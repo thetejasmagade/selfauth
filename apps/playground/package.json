@@ -1,0 +1,30 @@
+{
+  "name": "@selfauth/playground",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Express application that the SelfAuth Express reference implementation is developed in (Phase 3).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --env-file-if-exists=.env --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env dist/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "cookie": "^2.0.2",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "@selfauth/conformance": "workspace:*",
+    "@selfauth/spec": "workspace:*",
+    "@types/express": "^5.0.6",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.2"
+  }
+}

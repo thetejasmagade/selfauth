@@ -1,0 +1,31 @@
+name: Feature or adapter request
+description: Propose a new capability, adapter, or spec change.
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [Spec change, New adapter, CLI feature, Documentation, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that SelfAuth does not support?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal and acceptance criteria
+    validations:
+      required: true
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Principles
+      options:
+        - label: This does not introduce a runtime dependency on a SelfAuth service (ADR 0002).
+          required: true

@@ -1,0 +1,326 @@
+{
+  "cases": [
+    {
+      "id": "CT-ADMIN-001",
+      "title": "Administrative operations require their system permission and are audited",
+      "category": "admin",
+      "level": "authorization",
+      "requirements": ["AUTHZ-ADMIN-001", "IDENT-STATE-005"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "bob",
+          "input": {
+            "email": "bob@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "bob",
+          "input": {
+            "user": "$alice.id",
+            "state": "suspended"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "assignRole",
+          "as": "bob",
+          "input": {
+            "user": "$bob.id",
+            "role": "admin"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "state": "suspended"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "account.state_changed"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1,
+              "last.actorId": "$admin.id",
+              "last.userId": "$alice.id"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-ADMIN-002",
+      "title": "Role assignment cannot escalate beyond the actor's own permissions",
+      "category": "admin",
+      "level": "authorization",
+      "requirements": ["AUTHZ-ADMIN-002"],
+      "config": {
+        "authorization": {
+          "permissions": [],
+          "roles": {
+            "user": [],
+            "moderator": ["auth.roles.assign"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": []
+        },
+        {
+          "user": "mod",
+          "email": "mod@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["moderator"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "mod",
+          "input": {
+            "email": "mod@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "assignRole",
+          "as": "mod",
+          "input": {
+            "user": "$bob.id",
+            "role": "user"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "assignRole",
+          "as": "mod",
+          "input": {
+            "user": "$bob.id",
+            "role": "admin"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "assignRole",
+          "as": "mod",
+          "input": {
+            "user": "$mod.id",
+            "role": "admin"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-ADMIN-003",
+      "title": "The last active administrator cannot be removed or blocked",
+      "category": "admin",
+      "level": "authorization",
+      "requirements": ["AUTHZ-ADMIN-003"],
+      "given": [
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "removeRole",
+          "as": "admin",
+          "input": {
+            "user": "$admin.id",
+            "role": "admin"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CONFLICT"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$admin.id",
+            "state": "suspended"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CONFLICT"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$admin.id",
+            "state": "deleted"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CONFLICT"
+          }
+        },
+        {
+          "op": "deleteAccount",
+          "as": "admin",
+          "input": {
+            "currentPassword": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CONFLICT"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-ADMIN-004",
+      "title": "Suspending a user revokes their sessions immediately",
+      "category": "admin",
+      "level": "authorization",
+      "requirements": ["AUTHZ-ADMIN-006", "IDENT-STATE-003", "AUTHN-SESS-006"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        },
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "alice",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "state": "suspended"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "as": "alice",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "session",
+            "where": {
+              "userId": "$alice.id",
+              "revokedAt": null
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

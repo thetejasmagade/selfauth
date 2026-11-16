@@ -1,0 +1,446 @@
+{
+  "cases": [
+    {
+      "id": "CT-LOGIN-001",
+      "title": "Successful login creates a session and returns the current user",
+      "category": "login",
+      "level": "core",
+      "requirements": ["AUTHN-LOGIN-001", "AUTHN-LOGIN-008", "AUTHN-LOGIN-009", "AUTHN-ME-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true,
+            "assert": {
+              "body.user.email": "alice@example.test"
+            }
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "body.user.id": "$alice.id",
+              "bodyHasPath": [
+                "user.emailVerified",
+                "user.state",
+                "user.roles",
+                "user.permissions",
+                "session.idleExpiresAt",
+                "session.absoluteExpiresAt"
+              ]
+            }
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "auth.login.succeeded"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1,
+              "last.userId": "$alice.id"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-002",
+      "title": "Wrong password, unknown user, and deleted user are indistinguishable",
+      "category": "login",
+      "level": "core",
+      "requirements": [
+        "AUTHN-LOGIN-002",
+        "SEC-ENUM-001",
+        "ERR-FORMAT-004",
+        "AUTHN-LOGIN-008",
+        "SEC-AUDIT-003"
+      ],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        },
+        {
+          "user": "gone",
+          "email": "gone@example.test",
+          "password": "correct horse battery staple",
+          "state": "deleted"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS",
+            "sessionCreated": false
+          },
+          "save": "wrong"
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS",
+            "indistinguishableFrom": "wrong"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "gone@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS",
+            "indistinguishableFrom": "wrong"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "auth.login.failed"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 3,
+              "noFieldContaining": ["wrong password!!", "correct horse battery staple"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-003",
+      "title": "Pending accounts are revealed only after a correct password",
+      "category": "login",
+      "level": "core",
+      "requirements": ["AUTHN-LOGIN-004"],
+      "given": [
+        {
+          "user": "pending",
+          "email": "pending@example.test",
+          "password": "correct horse battery staple",
+          "state": "pending"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "pending@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "pending@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "EMAIL_NOT_VERIFIED",
+            "sessionCreated": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-004",
+      "title": "Suspended and disabled accounts cannot log in",
+      "category": "login",
+      "level": "core",
+      "requirements": ["AUTHN-LOGIN-004"],
+      "given": [
+        {
+          "user": "susp",
+          "email": "susp@example.test",
+          "password": "correct horse battery staple",
+          "state": "suspended"
+        },
+        {
+          "user": "dis",
+          "email": "dis@example.test",
+          "password": "correct horse battery staple",
+          "state": "disabled"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "susp@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "susp@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "ACCOUNT_UNAVAILABLE",
+            "sessionCreated": false
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "dis@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "ACCOUNT_UNAVAILABLE",
+            "sessionCreated": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-005",
+      "title": "Login issues a fresh session and never adopts a client-supplied token",
+      "category": "login",
+      "level": "core",
+      "requirements": ["AUTHN-LOGIN-005"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "note": "plant a fixed token in the client",
+          "input": {
+            "setCookie": {
+              "name": "$config.sessionCookieName",
+              "value": "attacker-chosen-value"
+            }
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true,
+            "assert": {
+              "cookieValueNot": "attacker-chosen-value"
+            }
+          },
+          "save": "first"
+        },
+        {
+          "op": "login",
+          "note": "second login from the same client",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true,
+            "assert": {
+              "cookieValueNot": "$first.cookieValue"
+            }
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "session",
+            "where": {
+              "userId": "$alice.id",
+              "revokedAt": null
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-006",
+      "title": "Passwords are NFKC-normalized but otherwise unaltered",
+      "category": "login",
+      "level": "core",
+      "requirements": ["SEC-HASH-005", "SEC-PWPOLICY-003"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "note": "fullwidth letters and a trailing space",
+          "input": {
+            "email": "nfkc@example.test",
+            "password": "ｐａｓｓｗｏｒｄ with spaces "
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "nfkc@example.test"
+          },
+          "save": "verifyMail"
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$verifyMail.token"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "login",
+          "note": "NFKC maps fullwidth letters to ASCII",
+          "input": {
+            "email": "nfkc@example.test",
+            "password": "password with spaces "
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "login",
+          "note": "trailing space is significant",
+          "input": {
+            "email": "nfkc@example.test",
+            "password": "password with spaces"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "note": "no case folding",
+          "input": {
+            "email": "nfkc@example.test",
+            "password": "PASSWORD with spaces "
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGIN-007",
+      "title": "Authentication responses are not cacheable",
+      "category": "login",
+      "level": "core",
+      "requirements": ["AUTHN-ME-003", "SEC-HTTP-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "header.cache-control": {
+                "contains": "no-store"
+              }
+            }
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "header.cache-control": {
+                "contains": "no-store"
+              }
+            }
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS",
+            "assert": {
+              "header.cache-control": {
+                "contains": "no-store"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

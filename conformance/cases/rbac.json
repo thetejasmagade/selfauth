@@ -1,0 +1,575 @@
+{
+  "cases": [
+    {
+      "id": "CT-AUTHZ-001",
+      "title": "Protected operations without a configured rule are denied",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-CORE-001"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "route": "unconfigured"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-002",
+      "title": "Missing session gives UNAUTHENTICATED, missing permission gives FORBIDDEN, granted is allowed",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-CORE-002", "AUTHZ-CORE-005", "AUTHZ-RBAC-001"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["analyst"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "callProtected",
+          "as": "stranger",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "login",
+          "as": "bob",
+          "input": {
+            "email": "bob@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "bob",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-003",
+      "title": "Client-supplied roles and permissions are ignored",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-CORE-003", "AUTHZ-CORE-004", "AUTHN-ME-002"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "reports.view",
+            "headers": {
+              "X-Roles": "admin,analyst",
+              "X-Permissions": "reports.view"
+            },
+            "body": {
+              "roles": ["analyst"],
+              "permissions": ["reports.view"],
+              "user": {
+                "roles": ["admin"]
+              }
+            },
+            "query": {
+              "role": "admin"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-004",
+      "title": "Role changes take effect on the next request and are audited",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-CORE-006", "AUTHZ-AUDIT-001", "SEC-AUDIT-001"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "assignRole",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "role": "analyst"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "note": "same session, next request",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "removeRole",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "role": "analyst"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "role.assigned"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1,
+              "last.actorId": "$admin.id",
+              "last.userId": "$alice.id"
+            }
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "role.removed"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-005",
+      "title": "Permissions match exactly; no wildcard or prefix semantics",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-PERM-003"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["support"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view_any"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "login",
+          "as": "bob",
+          "input": {
+            "email": "bob@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "bob",
+          "note": "orders.view_any does not imply orders.view",
+          "input": {
+            "permission": "orders.view"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-006",
+      "title": "Effective permissions are the union of all assigned roles",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RBAC-002"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user", "analyst"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.create"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "reports.view"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view_any"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "body.user.permissions": {
+                "sameMembers": ["orders.view", "orders.create", "reports.view"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-AUTHZ-007",
+      "title": "The admin role holds every system permission",
+      "category": "rbac",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RBAC-004"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.users.read"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.users.manage"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.sessions.manage"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.roles.assign"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.roles.manage"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "admin",
+          "input": {
+            "permission": "auth.audit.read"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    }
+  ]
+}

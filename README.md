@@ -64,6 +64,6 @@ described in [`SECURITY.md`](SECURITY.md).
 
 ## License
 
-Apache-2.0 for SelfAuth itself. Generated output and templates are additionally
+MIT for SelfAuth itself. Generated output and templates are additionally
 offered under 0BSD, so generated code is yours without attribution
-obligations — see [ADR 0010](docs/adr/0010-license.md).
+obligations — see [ADR 0013](docs/adr/0013-mit-license.md).

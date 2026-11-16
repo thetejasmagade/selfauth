@@ -1,0 +1,233 @@
+{
+  "cases": [
+    {
+      "id": "CT-AUDIT-001",
+      "title": "Security events carry the required fields",
+      "category": "audit-and-errors",
+      "level": "core",
+      "requirements": ["SEC-AUDIT-001", "SEC-AUDIT-002"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "User-Agent": "conformance-agent/1.0"
+            },
+            "body": {
+              "email": "alice@example.test",
+              "password": "correct horse battery staple"
+            }
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "auth.login.succeeded"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "last.hasFields": [
+                "type",
+                "occurredAt",
+                "outcome",
+                "userId",
+                "ipAddress",
+                "userAgent"
+              ],
+              "last.userAgent": "conformance-agent/1.0",
+              "last.outcome": "success"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOG-001",
+      "title": "Logs and events never contain passwords, tokens or cookies",
+      "category": "audit-and-errors",
+      "level": "core",
+      "requirements": ["SEC-LOG-001", "SEC-HASH-007", "SEC-AUDIT-003"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "sess"
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "requestPasswordReset",
+          "input": {
+            "email": "alice@example.test"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "save": "mail"
+        },
+        {
+          "op": "resetPassword",
+          "input": {
+            "token": "$mail.token",
+            "newPassword": "a brand new passphrase 42"
+          }
+        },
+        {
+          "op": "inspectLogs",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "noOccurrenceOf": [
+                "correct horse battery staple",
+                "a brand new passphrase 42",
+                "wrong password!!",
+                "$sess.cookieValue",
+                "$mail.token"
+              ]
+            }
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "*"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "noFieldContaining": [
+                "correct horse battery staple",
+                "a brand new passphrase 42",
+                "$sess.cookieValue",
+                "$mail.token"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-ERR-001",
+      "title": "Errors use the standard envelope; details describe only the caller's input",
+      "category": "audit-and-errors",
+      "level": "core",
+      "requirements": ["ERR-FORMAT-001", "ERR-FORMAT-002"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "not-an-email",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "VALIDATION_FAILED",
+            "assert": {
+              "bodyHasPath": ["error.code", "error.message"],
+              "body.error.details[].field": {
+                "oneOf": ["email", "password"]
+              }
+            }
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS",
+            "assert": {
+              "bodyHasPath": ["error.code", "error.message"],
+              "bodyLacksPath": ["error.details"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-ERR-002",
+      "title": "Unexpected failures in production expose no internals",
+      "category": "audit-and-errors",
+      "level": "production",
+      "requirements": ["SEC-LOG-002", "ERR-FORMAT-001"],
+      "environment": "production",
+      "given": [],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "driverFaultRoute"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INTERNAL_ERROR",
+            "assert": {
+              "bodyExcludesPatterns": ["at .*\\(.*:\\d+:\\d+\\)", "SELECT ", "Error: "]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-HTTP-001",
+      "title": "Oversized request bodies are rejected",
+      "category": "audit-and-errors",
+      "level": "core",
+      "requirements": ["SEC-HTTP-003"],
+      "given": [],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "bodySizeBytes": 17408
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "PAYLOAD_TOO_LARGE"
+          }
+        }
+      ]
+    }
+  ]
+}

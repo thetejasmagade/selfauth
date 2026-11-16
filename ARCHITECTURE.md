@@ -28,8 +28,8 @@ never runs as part of the application it helps build.
 | # | Component | Location | Status |
 | --- | --- | --- | --- |
 | 1 | **Core specification** — requirements, data contracts, security rules, error codes, configuration | `packages/spec` | Draft 0.1 |
-| 2 | **Conformance suite** — language-neutral cases + coverage enforcement; later an executable runner | `conformance` | Cases + coverage check |
-| 3 | **Framework adapters** — Express, Vue, React, … | `packages/adapters/*` | Phase 3/5 |
+| 2 | **Conformance suite** — language-neutral cases, coverage enforcement, and an executable runner with a driver contract | `conformance` | 87 cases, runner |
+| 3 | **Framework adapters** — Express reference implementation (application-owned code, the future template source); Vue, React later | `apps/playground/src/auth` | Express: all 87 cases pass (in-memory store) |
 | 4 | **Database & migration adapters** — Prisma, Mongoose, … orchestrating native tools | `packages/migration`, `packages/adapters/*` | Phase 4 |
 | 5 | **CLI** — `init`, `add`, `doctor`, `validate`, `db *`, `diff`, `upgrade` | `packages/cli` | Phase 6 |
 | 6 | **LLM skills** — `selfauth` skill for Claude Code and compatible agents | `skills/selfauth` | Phase 7 |

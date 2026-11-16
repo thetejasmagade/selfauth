@@ -1,6 +1,6 @@
 # ADR 0010 — License
 
-- **Status:** Accepted (owner may revisit before first public release)
+- **Status:** Superseded by ADR-0013
 - **Date:** 2026-11-16
 
 ## Context

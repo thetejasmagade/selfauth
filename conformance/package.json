@@ -1,0 +1,37 @@
+{
+  "name": "@selfauth/conformance",
+  "version": "0.0.0",
+  "description": "Language-neutral SelfAuth conformance cases and requirement-coverage tooling.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./cases/*": "./cases/*",
+    "./verification.json": "./verification.json",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "selfauth-coverage": "./dist/report.js"
+  },
+  "files": [
+    "dist",
+    "cases",
+    "verification.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "coverage:report": "node dist/report.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@selfauth/spec": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}
