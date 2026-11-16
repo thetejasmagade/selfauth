@@ -90,6 +90,28 @@ refer to `given` users and resources.
 > Express reference implementation, Phase 3) is written, so that the
 > vocabulary is shaped by a real runner rather than guessed.
 
+## Running the suite
+
+`@selfauth/conformance` exports `runCase(case, driverFactory)`, a TypeScript
+interpreter for the cases. An adapter provides a `Driver`
+(`conformance/src/runner/driver.ts`): an HTTP request function plus harness
+hooks for time, captured email, storage, events and logs. Adapters in other
+languages can either implement the same driver contract behind an HTTP test
+API, or port the interpreter.
+
+Drivers mount these harness routes in the application under test:
+
+| Route | Guard |
+| --- | --- |
+| `POST /__conformance/permission/:permission` | `requirePermission(permission)` |
+| `POST /__conformance/resource/:permission/:type/:id` | resource policy for `type` (`order` uses the ownership helper) |
+| `POST /__conformance/unconfigured` | none — must be denied by default |
+| `GET /__conformance/list/order` | owner-filtered list, `{ ids }` |
+| `GET /__conformance/fault` | throws an unexpected error |
+
+The runner's default request models a same-origin browser:
+`Sec-Fetch-Site: same-origin`, the CSRF header, and the client's cookie jar.
+
 ## Compliance levels
 
 | Level | Requirement |
