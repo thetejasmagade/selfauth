@@ -1,0 +1,28 @@
+{
+  "name": "@selfauth/migration",
+  "version": "0.0.0",
+  "description": "SelfAuth migration orchestration: adapter contract, SQL safety analysis, ownership manifest, and a Prisma adapter that drives native Prisma Migrate.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}
