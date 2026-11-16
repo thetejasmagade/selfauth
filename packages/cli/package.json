@@ -1,0 +1,33 @@
+{
+  "name": "@selfauth/cli",
+  "version": "0.0.0",
+  "description": "SelfAuth CLI: generate project-local authentication you own, and manage its migrations.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "selfauth": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/bundle-templates.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@selfauth/migration": "workspace:*",
+    "@selfauth/spec": "workspace:*",
+    "commander": "^15.1.0"
+  }
+}

@@ -1,4 +1,4 @@
-import type { SelfAuthConfig } from "@selfauth/spec";
+import type { SelfAuthConfig } from "../types.ts";
 
 /**
  * System permissions held by the admin role (AUTHORIZATION_SPEC §5). Copied

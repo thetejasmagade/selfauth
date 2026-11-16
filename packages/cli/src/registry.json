@@ -1,0 +1,114 @@
+{
+  "$comment": "Template sources are the reference implementations, which the conformance suite tests. `source` is relative to the repository root; `target` to the generated project. `when` selects by database.",
+  "stacks": {
+    "express": {
+      "files": [
+        { "source": "apps/playground/src/auth/types.ts", "target": "src/auth/types.ts" },
+        { "source": "apps/playground/src/auth/index.ts", "target": "src/auth/index.ts" },
+        {
+          "source": "apps/playground/src/auth/core/authorization.ts",
+          "target": "src/auth/core/authorization.ts"
+        },
+        { "source": "apps/playground/src/auth/core/clock.ts", "target": "src/auth/core/clock.ts" },
+        {
+          "source": "apps/playground/src/auth/core/common-passwords.ts",
+          "target": "src/auth/core/common-passwords.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/crypto.ts",
+          "target": "src/auth/core/crypto.ts"
+        },
+        { "source": "apps/playground/src/auth/core/email.ts", "target": "src/auth/core/email.ts" },
+        {
+          "source": "apps/playground/src/auth/core/errors.ts",
+          "target": "src/auth/core/errors.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/logger.ts",
+          "target": "src/auth/core/logger.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/mailer.ts",
+          "target": "src/auth/core/mailer.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/password.ts",
+          "target": "src/auth/core/password.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/rate-limit.ts",
+          "target": "src/auth/core/rate-limit.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/core/service.ts",
+          "target": "src/auth/core/service.ts"
+        },
+        { "source": "apps/playground/src/auth/core/store.ts", "target": "src/auth/core/store.ts" },
+        {
+          "source": "apps/playground/src/auth/express/index.ts",
+          "target": "src/auth/express/index.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/stores/memory.ts",
+          "target": "src/auth/stores/memory.ts"
+        },
+        { "source": "apps/playground/src/app.ts", "target": "src/app.ts" },
+        { "source": "apps/playground/src/env.ts", "target": "src/env.ts" },
+        { "source": "apps/playground/src/errors.ts", "target": "src/errors.ts" },
+        { "source": "apps/playground/src/request-id.ts", "target": "src/request-id.ts" },
+        { "source": "apps/playground/src/mailer.ts", "target": "src/mailer.ts" },
+        { "source": "apps/playground/src/dev-config.ts", "target": "src/dev-config.ts" },
+        { "source": "apps/playground/src/server.ts", "target": "src/server.ts" },
+        { "source": "packages/cli/template-variants/routes.ts", "target": "src/routes.ts" },
+        {
+          "source": "packages/cli/template-variants/store.memory.ts",
+          "target": "src/store.ts",
+          "when": "memory"
+        },
+        {
+          "source": "apps/playground/src/store.ts",
+          "target": "src/store.ts",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/src/auth/stores/prisma.ts",
+          "target": "src/auth/stores/prisma.ts",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/prisma.config.ts",
+          "target": "prisma.config.ts",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/prisma/schema.prisma",
+          "target": "prisma/schema.prisma",
+          "when": "postgresql"
+        },
+        {
+          "source": "apps/playground/prisma/migrations",
+          "target": "prisma/migrations",
+          "when": "postgresql",
+          "directory": true
+        }
+      ],
+      "dependencies": ["express", "cookie", "@node-rs/argon2"],
+      "devDependencies": ["typescript", "@types/express", "@types/node"],
+      "postgresql": {
+        "dependencies": ["@prisma/client", "@prisma/adapter-pg", "pg"],
+        "devDependencies": ["prisma", "@types/pg"],
+        "manifest": "apps/playground/selfauth.manifest.json"
+      }
+    }
+  }
+}

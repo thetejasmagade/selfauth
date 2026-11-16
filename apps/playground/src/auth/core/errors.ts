@@ -1,4 +1,4 @@
-import type { ErrorCode, ErrorDetail } from "@selfauth/spec";
+import type { ErrorCode, ErrorDetail } from "../types.ts";
 
 /** A spec-defined failure (specs/ERRORS.md). Transport adapters map `code` to a status. */
 export class AuthError extends Error {

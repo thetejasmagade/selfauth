@@ -25,10 +25,14 @@ const REDACTED_KEYS = new Set([
 
 /** 32+ char base64url/hex runs look like tokens or hashes; never log them. */
 const TOKEN_LIKE = /[A-Za-z0-9_-]{32,}/g;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function redact(value: unknown, depth = 0): unknown {
   if (depth > 8) return "[depth]";
-  if (typeof value === "string") return value.replace(TOKEN_LIKE, "[redacted]");
+  if (typeof value === "string") {
+    // UUIDs (request, user and session IDs) are identifiers, not secrets; keep them for correlation (SEC-LOG-003).
+    return value.replace(TOKEN_LIKE, (run) => (UUID.test(run) ? run : "[redacted]"));
+  }
   if (Array.isArray(value)) return value.map((v) => redact(v, depth + 1));
   if (value instanceof Error) {
     return {

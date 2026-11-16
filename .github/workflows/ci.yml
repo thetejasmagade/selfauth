@@ -82,3 +82,37 @@ jobs:
       - name: Install Chromium for Playwright
         run: pnpm --filter @selfauth/e2e exec playwright install --with-deps chromium
       - run: pnpm e2e
+
+  generated-project:
+    name: Generated project (${{ matrix.database }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [memory, postgresql]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SMOKE_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Generate, install, migrate, boot and exercise a project outside the monorepo
+        run: scripts/smoke-generated.sh ${{ matrix.database }}

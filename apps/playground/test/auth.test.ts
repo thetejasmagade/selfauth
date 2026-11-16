@@ -16,7 +16,8 @@ import { MemoryRateLimitStore, RateLimiter } from "../src/auth/core/rate-limit.t
 import { HTTP_STATUS } from "../src/auth/express/index.ts";
 import { createAuth, DevConsoleMailer, MemoryAuthStore, MemoryMailer } from "../src/auth/index.ts";
 import { getRequestId } from "../src/request-id.ts";
-import { config as playgroundConfig, localDevelopmentConfig } from "../src/selfauth.config.ts";
+import { localDevelopmentConfig } from "../src/dev-config.ts";
+import { config as playgroundConfig } from "../src/selfauth.config.ts";
 import { mountNotes } from "../src/example/notes.ts";
 import { buildTestApp, TEST_BASE_URL } from "./helpers.ts";
 
@@ -130,6 +131,16 @@ describe("log redaction (SEC-LOG-001)", () => {
     expect(out).not.toContain("a=b");
     expect(out).not.toContain("Bearer");
     expect(out).not.toContain("A".repeat(43));
+  });
+
+  it("keeps UUIDs such as request IDs so logs can be correlated (SEC-LOG-003)", () => {
+    const id = "39199157-689f-4896-94c8-093eeb0e10f0";
+    expect(redact({ requestId: id, note: `req ${id}` })).toEqual({
+      requestId: id,
+      note: `req ${id}`,
+    });
+    // A 64-char hex hash or 43-char base64url token is still removed.
+    expect(redact("a".repeat(64))).toBe("[redacted]");
   });
 });
 

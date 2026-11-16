@@ -5,7 +5,7 @@
  * will write into a project. It has no runtime dependency on SelfAuth packages
  * (only `import type` from @selfauth/spec).
  */
-import type { SelfAuthConfig } from "@selfauth/spec";
+import type { SelfAuthConfig } from "./types.ts";
 import type { Response } from "express";
 import { PolicyRegistry, roleDefinitions } from "./core/authorization.ts";
 import { systemClock, type Clock } from "./core/clock.ts";

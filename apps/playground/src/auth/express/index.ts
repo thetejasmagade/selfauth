@@ -1,4 +1,4 @@
-import type { ErrorCode, SelfAuthConfig } from "@selfauth/spec";
+import type { ErrorCode, SelfAuthConfig } from "../types.ts";
 import { parseCookie, stringifySetCookie } from "cookie";
 import express, {
   type ErrorRequestHandler,

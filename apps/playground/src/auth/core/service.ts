@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { SelfAuthConfig } from "@selfauth/spec";
+import type { SelfAuthConfig } from "../types.ts";
 import { ADMIN_ROLE, type Subject } from "./authorization.ts";
 import { MINUTE_MS, type Clock } from "./clock.ts";
 import { randomToken, sha256 } from "./crypto.ts";

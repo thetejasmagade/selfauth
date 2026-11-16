@@ -1,4 +1,4 @@
-import type { SelfAuthConfig } from "@selfauth/spec";
+import type { SelfAuthConfig } from "./auth/types.ts";
 import express, { type ErrorRequestHandler } from "express";
 import type { Auth } from "./auth/index.ts";
 import type { Logger } from "./auth/core/logger.ts";

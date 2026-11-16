@@ -33,8 +33,8 @@ and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
 | `specVersion` | string `"MAJOR.MINOR"` | `"0.1"` | |
 | `adapter.backend` | `"express"` | — (required) | MVP |
 | `adapter.frontend` | `"vue" \| "react" \| "none"` | `"none"` | |
-| `adapter.database` | `"postgresql" \| "mongodb"` | — (required) | |
-| `adapter.orm` | `"prisma" \| "mongoose"` | — (required) | postgresql↔prisma, mongodb↔mongoose |
+| `adapter.database` | `"postgresql" \| "mongodb" \| "memory"` | — (required) | `memory` is for development and demos only (single process, not persistent) |
+| `adapter.orm` | `"prisma" \| "mongoose" \| "none"` | — (required) | postgresql↔prisma, mongodb↔mongoose, memory↔none |
 | `authentication.methods` | `["password"]` | `["password"]` | MVP supports only `password` |
 | `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | `optional`/`off` activate accounts immediately; registration logs the user in only with `signInAfterRegistration` |
 | `authentication.emailVerification.tokenTtlMinutes` | int | `1440` (24 h) | 5 – 10080 (7 days) |
