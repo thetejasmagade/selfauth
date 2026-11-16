@@ -4,33 +4,61 @@ Generate project-local authentication you own. The CLI writes code into your
 project and then gets out of the way: nothing it generates calls SelfAuth at
 runtime.
 
+## New project
+
 ```bash
-npx selfauth init my-app --database postgresql --permissions orders.view,orders.create
+npx selfauth init my-app --database postgresql --frontend vue --permissions orders.view
 cd my-app && npm install && cp .env.example .env   # set DATABASE_URL
-npx selfauth db plan        # review the migration (destructive / non-owned changes are flagged)
-npx selfauth db migrate     # applies via Prisma Migrate; refuses destructive plans unless approved
+npx selfauth db plan        # review the migration
+npx selfauth db migrate     # Prisma Migrate; destructive plans need --approve-destructive
 npm run db:seed && npm run dev
+npm --prefix web install && npm run dev:web        # the Vue app on :5173
 ```
 
-## Commands
+`--frontend vue|react` adds the reference frontend in `web/` (API client,
+session state, route guards, `<Can>`, every auth page) and a notes example on
+both sides that shows permissions and ownership.
+
+## Existing Express project
+
+```bash
+npx selfauth add --database memory --install
+```
+
+Writes new files under `src/selfauth/` only and prints the remaining steps:
+`tsconfig` options to add, and two lines to wire into your server:
+
+```ts
+const selfauth = await setupSelfAuth(app);   // before your routes
+app.use(selfauth.errorHandler);              // after your routes
+```
+
+Requires ESM, Express and TypeScript ≥ 5.7. Projects that already use Prisma
+can use `--database memory` for now (ADR 0019).
+
+## Keeping generated code up to date
+
+```bash
+npx selfauth diff        # what a newer CLI's templates would change, with diffs
+npx selfauth upgrade     # apply safe changes
+```
+
+Files you never edited are updated. Files you edited stay yours: when the
+template also changed, a `file.selfauth-new` proposal is written next to it
+for you to merge. Files you deleted stay deleted (ADR 0004).
+
+## All commands
 
 | Command | What it does |
 | --- | --- |
-| `init [dir]` | New Express project: `--database postgresql\|memory`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install`. Shows the plan, never overwrites a file. |
+| `init [dir]` | New project: `--database postgresql\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
+| `add [dir]` | Existing Express project: same options plus `--allow-existing-auth` |
 | `list` | Supported integrations |
-| `doctor [dir]` | Configuration and production-readiness checks (enumeration opt-ins, insecure cookies, missing mail provider, secrets hygiene, `.env`) |
-| `validate [dir]` | Config schema, generated-file integrity (which files you changed), Prisma schema vs. ownership manifest |
-| `db status\|plan\|migrate\|validate\|rollback` | Migration orchestration over the native tool ([`@selfauth/migration`](../migration)) |
-| `db generate <name>` | New migration from `schema.prisma` changes, not applied |
+| `doctor [dir]` | Configuration and production-readiness checks |
+| `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |
+| `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates |
+| `db status\|plan\|migrate\|validate\|rollback\|generate` | Migration orchestration over Prisma Migrate |
 
-## What you get
-
-A TypeScript Express app with registration, email verification, login,
-sessions, logout everywhere, password change/reset, account deletion, RBAC,
-resource policies, CSRF/CORS, rate limiting, audit events and log redaction.
-The files are the SelfAuth reference implementation — the code that passes
-the 87-case conformance suite — copied byte for byte (ADR 0018). Edit them
-freely: `selfauth.manifest.json` records what was generated, so your changes
-are detected and never overwritten.
-
-Coming next: Vue/React frontends, `add` for existing projects, `diff`/`upgrade`.
+Generated code is the SelfAuth reference implementation — what passes the
+87-case conformance suite and the browser tests — copied byte for byte
+(ADR 0018).

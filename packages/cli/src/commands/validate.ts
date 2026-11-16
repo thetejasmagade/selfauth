@@ -15,11 +15,11 @@ export async function validate(dirArg: string | undefined): Promise<number> {
   }
   let errors = 0;
 
-  const { errors: configErrors } = await loadConfig(dir);
+  const { errors: configErrors } = await loadConfig(dir, manifest);
   if (configErrors.length) {
     configErrors.forEach(fail);
     errors += configErrors.length;
-  } else ok("src/selfauth.config.ts is valid");
+  } else ok("selfauth configuration is valid");
 
   const drift = await fileDrift(dir, manifest);
   if (drift.missing.length) {

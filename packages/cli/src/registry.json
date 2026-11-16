@@ -1,15 +1,24 @@
 {
-  "$comment": "Template sources are the reference implementations, which the conformance suite tests. `source` is relative to the repository root; `target` to the generated project. `when` selects by database.",
+  "$comment": "Template sources are the reference implementations, which the conformance and browser suites test. `source` is relative to the repository root; `target` to the generated project. `when` selects by database and/or frontend (\"any\" = a frontend was chosen). `layout` limits a file to new projects (\"project\") or to `selfauth add` (\"add\"), where src/ targets move under src/selfauth/.",
   "stacks": {
     "express": {
       "files": [
-        { "source": "apps/playground/src/auth/types.ts", "target": "src/auth/types.ts" },
-        { "source": "apps/playground/src/auth/index.ts", "target": "src/auth/index.ts" },
+        {
+          "source": "apps/playground/src/auth/types.ts",
+          "target": "src/auth/types.ts"
+        },
+        {
+          "source": "apps/playground/src/auth/index.ts",
+          "target": "src/auth/index.ts"
+        },
         {
           "source": "apps/playground/src/auth/core/authorization.ts",
           "target": "src/auth/core/authorization.ts"
         },
-        { "source": "apps/playground/src/auth/core/clock.ts", "target": "src/auth/core/clock.ts" },
+        {
+          "source": "apps/playground/src/auth/core/clock.ts",
+          "target": "src/auth/core/clock.ts"
+        },
         {
           "source": "apps/playground/src/auth/core/common-passwords.ts",
           "target": "src/auth/core/common-passwords.ts"
@@ -18,7 +27,10 @@
           "source": "apps/playground/src/auth/core/crypto.ts",
           "target": "src/auth/core/crypto.ts"
         },
-        { "source": "apps/playground/src/auth/core/email.ts", "target": "src/auth/core/email.ts" },
+        {
+          "source": "apps/playground/src/auth/core/email.ts",
+          "target": "src/auth/core/email.ts"
+        },
         {
           "source": "apps/playground/src/auth/core/errors.ts",
           "target": "src/auth/core/errors.ts"
@@ -43,7 +55,10 @@
           "source": "apps/playground/src/auth/core/service.ts",
           "target": "src/auth/core/service.ts"
         },
-        { "source": "apps/playground/src/auth/core/store.ts", "target": "src/auth/core/store.ts" },
+        {
+          "source": "apps/playground/src/auth/core/store.ts",
+          "target": "src/auth/core/store.ts"
+        },
         {
           "source": "apps/playground/src/auth/express/index.ts",
           "target": "src/auth/express/index.ts"
@@ -52,54 +67,122 @@
           "source": "apps/playground/src/auth/stores/memory.ts",
           "target": "src/auth/stores/memory.ts"
         },
-        { "source": "apps/playground/src/app.ts", "target": "src/app.ts" },
-        { "source": "apps/playground/src/env.ts", "target": "src/env.ts" },
-        { "source": "apps/playground/src/errors.ts", "target": "src/errors.ts" },
-        { "source": "apps/playground/src/request-id.ts", "target": "src/request-id.ts" },
-        { "source": "apps/playground/src/mailer.ts", "target": "src/mailer.ts" },
-        { "source": "apps/playground/src/dev-config.ts", "target": "src/dev-config.ts" },
-        { "source": "apps/playground/src/server.ts", "target": "src/server.ts" },
-        { "source": "packages/cli/template-variants/routes.ts", "target": "src/routes.ts" },
+        {
+          "source": "apps/playground/src/app.ts",
+          "target": "src/app.ts",
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground/src/env.ts",
+          "target": "src/env.ts"
+        },
+        {
+          "source": "apps/playground/src/errors.ts",
+          "target": "src/errors.ts",
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground/src/request-id.ts",
+          "target": "src/request-id.ts"
+        },
+        {
+          "source": "apps/playground/src/mailer.ts",
+          "target": "src/mailer.ts"
+        },
+        {
+          "source": "apps/playground/src/dev-config.ts",
+          "target": "src/dev-config.ts"
+        },
+        {
+          "source": "apps/playground/src/server.ts",
+          "target": "src/server.ts",
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/routes.ts",
+          "target": "src/routes.ts",
+          "when": {
+            "frontend": "none"
+          },
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground/src/routes.ts",
+          "target": "src/routes.ts",
+          "when": {
+            "frontend": "any"
+          },
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground/src/example/notes.ts",
+          "target": "src/example/notes.ts",
+          "when": {
+            "frontend": "any"
+          },
+          "layout": "project"
+        },
         {
           "source": "packages/cli/template-variants/store.memory.ts",
           "target": "src/store.ts",
-          "when": "memory"
+          "when": {
+            "database": "memory"
+          }
         },
         {
           "source": "apps/playground/src/store.ts",
           "target": "src/store.ts",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/src/auth/stores/prisma.ts",
           "target": "src/auth/stores/prisma.ts",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/src/scripts/seed.ts",
           "target": "src/scripts/seed.ts",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/src/scripts/create-admin.ts",
           "target": "src/scripts/create-admin.ts",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/prisma.config.ts",
           "target": "prisma.config.ts",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/prisma/schema.prisma",
           "target": "prisma/schema.prisma",
-          "when": "postgresql"
+          "when": {
+            "database": "postgresql"
+          }
         },
         {
           "source": "apps/playground/prisma/migrations",
           "target": "prisma/migrations",
-          "when": "postgresql",
-          "directory": true
+          "directory": true,
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/setup.ts",
+          "target": "src/setup.ts",
+          "layout": "add"
         }
       ],
       "dependencies": ["express", "cookie", "@node-rs/argon2"],
@@ -109,6 +192,147 @@
         "devDependencies": ["prisma", "@types/pg"],
         "manifest": "apps/playground/selfauth.manifest.json"
       }
+    }
+  },
+  "frontends": {
+    "vue": {
+      "port": 5173,
+      "files": [
+        {
+          "source": "apps/playground-vue/index.html",
+          "target": "web/index.html"
+        },
+        {
+          "source": "apps/playground-vue/vite.config.ts",
+          "target": "web/vite.config.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/main.ts",
+          "target": "web/src/main.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/App.vue",
+          "target": "web/src/App.vue"
+        },
+        {
+          "source": "apps/playground-vue/src/router.ts",
+          "target": "web/src/router.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/style.css",
+          "target": "web/src/style.css"
+        },
+        {
+          "source": "apps/playground-vue/src/env.d.ts",
+          "target": "web/src/env.d.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/client.ts",
+          "target": "web/src/auth/client.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/redirect.ts",
+          "target": "web/src/auth/redirect.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/url-token.ts",
+          "target": "web/src/auth/url-token.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/messages.ts",
+          "target": "web/src/auth/messages.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/types.ts",
+          "target": "web/src/auth/types.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/vue.ts",
+          "target": "web/src/auth/vue.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/auth/index.ts",
+          "target": "web/src/auth/index.ts"
+        },
+        {
+          "source": "apps/playground-vue/src/pages",
+          "target": "web/src/pages",
+          "directory": true
+        }
+      ],
+      "versionsFrom": "apps/playground-vue/package.json",
+      "dependencies": ["vue", "vue-router"],
+      "devDependencies": ["vite", "@vitejs/plugin-vue", "vue-tsc", "typescript", "@types/node"],
+      "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+    },
+    "react": {
+      "port": 5174,
+      "files": [
+        {
+          "source": "apps/playground-react/index.html",
+          "target": "web/index.html"
+        },
+        {
+          "source": "apps/playground-react/vite.config.ts",
+          "target": "web/vite.config.ts"
+        },
+        {
+          "source": "apps/playground-react/src/main.tsx",
+          "target": "web/src/main.tsx"
+        },
+        {
+          "source": "apps/playground-react/src/App.tsx",
+          "target": "web/src/App.tsx"
+        },
+        {
+          "source": "apps/playground-react/src/style.css",
+          "target": "web/src/style.css"
+        },
+        {
+          "source": "apps/playground-react/src/auth/client.ts",
+          "target": "web/src/auth/client.ts"
+        },
+        {
+          "source": "apps/playground-react/src/auth/redirect.ts",
+          "target": "web/src/auth/redirect.ts"
+        },
+        {
+          "source": "apps/playground-react/src/auth/url-token.ts",
+          "target": "web/src/auth/url-token.ts"
+        },
+        {
+          "source": "apps/playground-react/src/auth/messages.ts",
+          "target": "web/src/auth/messages.ts"
+        },
+        {
+          "source": "apps/playground-react/src/auth/types.ts",
+          "target": "web/src/auth/types.ts"
+        },
+        {
+          "source": "apps/playground-react/src/auth/react.tsx",
+          "target": "web/src/auth/react.tsx"
+        },
+        {
+          "source": "apps/playground-react/src/auth/index.ts",
+          "target": "web/src/auth/index.ts"
+        },
+        {
+          "source": "apps/playground-react/src/pages",
+          "target": "web/src/pages",
+          "directory": true
+        }
+      ],
+      "versionsFrom": "apps/playground-react/package.json",
+      "dependencies": ["react", "react-dom", "react-router"],
+      "devDependencies": [
+        "vite",
+        "@vitejs/plugin-react",
+        "typescript",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "typecheck": "tsc --noEmit -p tsconfig.json"
     }
   }
 }

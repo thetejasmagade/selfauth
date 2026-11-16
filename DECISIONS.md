@@ -23,3 +23,4 @@ Index of Architecture Decision Records (ADRs). Full text lives in
 | [0016](docs/adr/0016-postgresql-prisma-and-migration-orchestration.md) | PostgreSQL via Prisma 7; migration orchestration with safety analysis | Accepted |
 | [0017](docs/adr/0017-frontend-integration.md) | App-owned frontend client + thin framework layers; cookies only; UX-only guards | Accepted |
 | [0018](docs/adr/0018-templates-are-the-reference-implementations.md) | Templates are the tested reference files, copied byte for byte; manifest hashes every file | Accepted |
+| [0019](docs/adr/0019-adding-to-existing-projects.md) | `selfauth add`: new files only under src/selfauth/, printed wiring, strict preflight | Accepted |

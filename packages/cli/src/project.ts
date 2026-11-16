@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { MANIFEST_FILE, readManifest, type Manifest } from "@selfauth/migration";
 import { parseConfig, type SelfAuthConfig } from "@selfauth/spec";
-import { sha256 } from "./plan.js";
+import { addLayoutPath, sha256 } from "./plan.js";
 
 export interface FileDrift {
   modified: string[];
@@ -17,12 +17,19 @@ export async function loadManifest(dir: string): Promise<Manifest | null> {
   return existsSync(path) ? readManifest(path) : null;
 }
 
-/** Imports the project's src/selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */
+/** Where a generated file lives: `selfauth add` places src/ files under src/selfauth/. */
+export function projectPath(manifest: Manifest | null, target: string): string {
+  return manifest?.options?.layout === "add" ? addLayoutPath(target) : target;
+}
+
+/** Imports the project's selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */
 export async function loadConfig(
   dir: string,
+  manifest: Manifest | null = null,
 ): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
-  const path = join(dir, "src", "selfauth.config.ts");
-  if (!existsSync(path)) return { errors: ["src/selfauth.config.ts not found"] };
+  const relativePath = projectPath(manifest, "src/selfauth.config.ts");
+  const path = join(dir, relativePath);
+  if (!existsSync(path)) return { errors: [`${relativePath} not found`] };
   try {
     const mod = (await import(`${pathToFileURL(path).href}?t=${Date.now()}`)) as {
       config?: unknown;
@@ -33,7 +40,7 @@ export async function loadConfig(
     return {
       errors: issues
         ? issues.map((i) => `config ${i.path.join(".")}: ${i.message}`)
-        : [`could not load src/selfauth.config.ts: ${(error as Error).message}`],
+        : [`could not load ${relativePath}: ${(error as Error).message}`],
     };
   }
 }

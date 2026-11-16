@@ -20,9 +20,13 @@ import {
 } from "../src/index.js";
 
 const REPO = fileURLToPath(new URL("../../../", import.meta.url));
-const answers = (database: InitAnswers["database"]): InitAnswers => ({
+const answers = (
+  database: InitAnswers["database"],
+  frontend: InitAnswers["frontend"] = "none",
+): InitAnswers => ({
   name: "demo",
   database,
+  frontend,
   permissions: ["orders.view", "orders.create"],
   appBaseUrl: "http://localhost:5173",
 });
@@ -89,8 +93,68 @@ describe("planInit", () => {
 
   it("never registers a template file that does not exist", () => {
     for (const db of ["memory", "postgresql"] as const) {
-      for (const f of stackFiles(db)) expect(existsSync(join(REPO, f.source)), f.source).toBe(true);
+      for (const frontend of ["none", "vue", "react"] as const) {
+        for (const f of stackFiles({ database: db, frontend })) {
+          expect(existsSync(join(REPO, f.source)), f.source).toBe(true);
+        }
+      }
     }
+  });
+});
+
+describe("planInit with a frontend", () => {
+  it.each(["vue", "react"] as const)(
+    "copies the %s reference frontend into web/ byte for byte",
+    async (frontend) => {
+      const files = await planInit(answers("postgresql", frontend));
+      const web = files.filter((f) => f.template.startsWith(`${frontend}:`));
+      expect(web.length).toBeGreaterThan(15);
+      for (const f of web) {
+        expect(f.path.startsWith("web/"), f.path).toBe(true);
+        expect(f.content, f.path).toBe(
+          await readFile(join(REPO, f.template.slice(frontend.length + 1)), "utf8"),
+        );
+      }
+      // The backend ships the notes example the frontend uses.
+      expect(files.map((f) => f.path)).toContain("src/example/notes.ts");
+      expect(files.find((f) => f.path === "src/routes.ts")!.content).toContain("mountNotes");
+    },
+  );
+
+  it("configures the example permissions, frontend origin and web package", async () => {
+    const files = await planInit(answers("memory", "react"));
+    const config = files.find((f) => f.path === "src/selfauth.config.ts")!.content;
+    const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
+    expect(literal.adapter.frontend).toBe("react");
+    expect(literal.authorization.permissions).toEqual([
+      "orders.view",
+      "orders.create",
+      "notes.create",
+      "notes.view",
+      "notes.view_any",
+    ]);
+    expect(literal.authorization.roles.support).toEqual(["notes.view_any"]);
+
+    const web = JSON.parse(files.find((f) => f.path === "web/package.json")!.content);
+    const reference = JSON.parse(
+      await readFile(join(REPO, "apps/playground-react/package.json"), "utf8"),
+    );
+    expect(web.dependencies.react).toBe(reference.dependencies.react);
+    expect(web.devDependencies.vite).toBe(reference.devDependencies.vite);
+    expect(
+      Object.keys({ ...web.dependencies, ...web.devDependencies }).some((d) =>
+        d.startsWith("@selfauth/"),
+      ),
+    ).toBe(false);
+
+    const manifest = JSON.parse(files.find((f) => f.path === "selfauth.manifest.json")!.content);
+    expect(manifest.options).toMatchObject({ layout: "project", frontend: "react" });
+  });
+
+  it("keeps the hello example without a frontend", async () => {
+    const files = await planInit(answers("memory"));
+    expect(files.map((f) => f.path)).not.toContain("src/example/notes.ts");
+    expect(files.some((f) => f.path.startsWith("web/"))).toBe(false);
   });
 });
 

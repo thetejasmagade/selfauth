@@ -28,6 +28,7 @@
   "dependencies": {
     "@selfauth/migration": "workspace:*",
     "@selfauth/spec": "workspace:*",
-    "commander": "^15.1.0"
+    "commander": "^15.1.0",
+    "diff": "^9.0.0"
   }
 }

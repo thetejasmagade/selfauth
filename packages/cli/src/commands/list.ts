@@ -10,9 +10,9 @@ export function list(): number {
   );
   say("             memory           In-memory store for trying SelfAuth out (not for production)");
   say("  Frontend   none             API only");
-  say(
-    "\nComing next: Vue 3 and React frontends, `selfauth add` for existing projects, `diff`/`upgrade`.",
-  );
+  say("             vue              Vue 3 + Vite in web/ (reference frontend, browser-tested)");
+  say("             react            React + Vite in web/ (reference frontend, browser-tested)");
+  say("\nExisting Express + TypeScript projects: `selfauth add` (new files only, ADR 0019).");
   say("MongoDB + Mongoose follows once the PostgreSQL path is stable.");
   return 0;
 }

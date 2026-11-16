@@ -10,7 +10,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
 | M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
 | M5 — Frontend Integrations | Phase 5 | ✅ Vue 3 and React; one browser spec passes on both |
-| M6 — CLI Generator | Phase 6 | 🟡 6a done: backend generation, doctor, validate, db; 6b: frontends, add, diff/upgrade |
+| M6 — CLI Generator | Phase 6 | ✅ init (backend + Vue/React), add, diff/upgrade, doctor, validate, db |
 | M7 — LLM Skills | Phase 7 | ⏳ |
 | M8 — Manual Distribution | Phase 8 | ⏳ |
 | M9 — Security and Conformance | Phase 9 | ⏳ |
@@ -86,11 +86,23 @@ databases (Phase 6 CLI).
   them from npm, migrates, boots and exercises the API.
 - Found and fixed: request IDs were being redacted from logs (SEC-LOG-003).
 
-## Next: Phase 6b
+## Phase 6b — done
 
-1. Frontend templates (`--frontend vue|react`) from the reference frontends.
-2. `selfauth add` for existing Express projects (plan, no broad edits, mount instructions).
-3. `selfauth diff` / `upgrade`: three-way comparison using manifest hashes (ADR 0004).
+- `init --frontend vue|react`: full-stack projects; the frontend in `web/` and
+  the backend notes example are the browser-tested reference files.
+- `selfauth add` for existing Express + TypeScript projects: new files only,
+  strict preflight, printed wiring (ADR 0019).
+- `selfauth diff` / `upgrade`: updates untouched files, keeps edited ones,
+  writes `.selfauth-new` proposals for conflicts (ADR 0004).
+- CI smoke-tests five combinations outside the monorepo, including `add` on a
+  separate existing app.
+
+## Next
+
+1. Phase 7 — the `selfauth` agent skill (Claude Code and compatible agents),
+   built on the CLI.
+2. Phase 8 — publish packages and manual-integration docs.
+3. Later: MongoDB + Mongoose, Prisma schema merging for `add`.
 
 ## Decisions made after Sprint 1 review
 

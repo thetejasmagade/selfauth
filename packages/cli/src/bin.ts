@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { add } from "./commands/add.js";
 import { db } from "./commands/db.js";
 import { doctor } from "./commands/doctor.js";
 import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
+import { diffCommand, upgrade } from "./commands/upgrade.js";
 import { validate } from "./commands/validate.js";
 import { CLI_VERSION } from "./version.js";
 
@@ -22,15 +24,31 @@ program
   .command("init [dir]")
   .description("generate a new Express project with SelfAuth authentication")
   .option("--database <db>", "postgresql | memory")
+  .option("--frontend <fw>", "none | vue | react (generated into web/)")
   .option(
     "--permissions <list>",
     "comma-separated application permissions, e.g. orders.view,orders.create",
   )
-  .option("--app-base-url <url>", "frontend origin used in email links", "http://localhost:5173")
+  .option(
+    "--app-base-url <url>",
+    "frontend origin used in email links (default: the frontend dev server)",
+  )
   .option("-y, --yes", "non-interactive: accept the plan")
   .option("--dry-run", "show the plan without writing anything")
   .option("--install", "run npm install after generating")
   .action(async (dir: string | undefined, opts) => exit(await init(dir, opts)));
+
+program
+  .command("add [dir]")
+  .description("add SelfAuth to an existing Express + TypeScript project (new files only)")
+  .option("--database <db>", "memory | postgresql", "memory")
+  .option("--permissions <list>", "comma-separated application permissions")
+  .option("--app-base-url <url>", "frontend origin used in email links", "http://localhost:5173")
+  .option("--allow-existing-auth", "continue even though other auth packages are installed")
+  .option("-y, --yes", "non-interactive: accept the plan")
+  .option("--dry-run", "show the plan without writing anything")
+  .option("--install", "install the dependencies with your package manager")
+  .action(async (dir: string | undefined, opts) => exit(await add(dir, opts)));
 
 program
   .command("list")
@@ -46,6 +64,18 @@ program
   .command("validate [dir]")
   .description("validate configuration, generated files and the database schema manifest")
   .action(async (dir: string | undefined) => exit(await validate(dir)));
+
+program
+  .command("diff [dir]")
+  .description("show what an upgrade to this CLI's templates would change (writes nothing)")
+  .action(async (dir: string | undefined) => exit(await diffCommand(dir)));
+
+program
+  .command("upgrade [dir]")
+  .description("update generated files you have not edited; write proposals for the ones you have")
+  .option("-y, --yes", "apply without asking")
+  .option("--dry-run", "show the plan without writing")
+  .action(async (dir: string | undefined, opts) => exit(await upgrade(dir, opts)));
 
 const dbCmd = program
   .command("db")
