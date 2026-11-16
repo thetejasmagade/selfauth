@@ -117,11 +117,18 @@ any state ──delete──► deleted   (terminal)
 ## 3. Registration — `register(email, password)`
 
 Behavior depends on `emailVerification.mode` ([CONFIGURATION_SPEC](CONFIGURATION_SPEC.md)):
-`required` (default), `optional`, or `off`. In **every** mode, registration
-never reveals whether an email already has an account: the outcome is always
-`accepted`, and registration never creates a session — the user logs in
-afterwards. (Creating a session for new emails only would reveal which emails
-already exist.)
+`required` (default), `optional`, or `off`.
+
+**Default (private) behavior:** in every mode, registration never reveals
+whether an email already has an account — the outcome is always `accepted`,
+and registration never creates a session; the user logs in afterwards.
+(Creating a session for new emails only would reveal which emails already
+exist.)
+
+**Opt-in (convenient) behavior:** a project may set
+`authentication.registration.revealExistingEmail` to return `EMAIL_TAKEN`, and
+then additionally `signInAfterRegistration` to log new users in immediately.
+This is a deliberate privacy trade-off (§3.1).
 
 - **[AUTHN-REG-001]** (MUST) Registration MUST validate the email
   ([IDENT-EMAIL-004]) and password policy ([SEC-PWPOLICY-001] …) before creating
@@ -135,8 +142,9 @@ already exist.)
 - **[AUTHN-REG-004]** (MUST) In `required` mode, the new user MUST be created in
   state `pending`, a verification email MUST be sent (§8), and no session MUST
   be created. The outcome is `accepted`.
-- **[AUTHN-REG-005]** (MUST) In every verification mode, registering an email
-  that already belongs to a non-deleted user MUST produce an outcome indistinguishable
+- **[AUTHN-REG-005]** (MUST) Unless `revealExistingEmail` is enabled, in every
+  verification mode registering an email that already belongs to a non-deleted
+  user MUST produce an outcome indistinguishable
   from a new registration (same status, same body, no session), and MUST NOT
   modify the existing account. The implementation SHOULD send the existing
   owner a notification email instead.
@@ -148,12 +156,28 @@ already exist.)
 - **[AUTHN-REG-008]** (MUST) Registration MUST record a `user.registered`
   security event for each account created.
 - **[AUTHN-REG-009]** (MUST) In `optional` and `off` modes, the new user MUST be
-  created in state `active`, registration MUST NOT create a session, and the
-  outcome MUST be `accepted`, exactly as in `required` mode. In `optional` mode
+  created in state `active`. Unless `signInAfterRegistration` is enabled,
+  registration MUST NOT create a session and the outcome MUST be `accepted`,
+  exactly as in `required` mode. In `optional` mode
   a verification email MUST still be sent.
-- **[AUTHN-REG-010]** (MUST) Registering an existing email MUST perform
-  password-hashing work of comparable cost to a new registration, so response
-  time does not reveal account existence.
+- **[AUTHN-REG-010]** (MUST) Unless `revealExistingEmail` is enabled,
+  registering an existing email MUST perform password-hashing work of comparable
+  cost to a new registration, so response time does not reveal account
+  existence.
+
+### 3.1 Opt-in: revealing existing emails
+
+- **[AUTHN-REG-011]** (MUST) When `revealExistingEmail` is enabled, registering
+  an email that belongs to a non-deleted user MUST fail with `EMAIL_TAKEN`, MUST
+  NOT modify the existing account, and MUST remain rate limited
+  ([SEC-RATE-002]).
+- **[AUTHN-REG-012]** (MUST) `signInAfterRegistration` MUST be accepted only
+  when `revealExistingEmail` is enabled and the verification mode is `optional`
+  or `off`. When enabled, a successful registration MUST create a new session
+  exactly as login does (§6, [AUTHN-LOGIN-005]).
+- **[AUTHN-REG-013]** (SHOULD) Login and password reset SHOULD stay
+  non-enumerating even when this option is enabled; the option only affects
+  registration.
 
 ## 4. Login — `login(email, password)`
 
@@ -347,7 +371,7 @@ All bodies are JSON. All routes are under a configurable prefix (default
 
 | Operation | Method & path | Success |
 | --- | --- | --- |
-| register | `POST /auth/register` | `202 {status:"accepted"}` (all modes; never sets a cookie) |
+| register | `POST /auth/register` | `202 {status:"accepted"}` by default (never sets a cookie) · `409 EMAIL_TAKEN` with `revealExistingEmail` · `201 {user}` + `Set-Cookie` with `signInAfterRegistration` |
 | login | `POST /auth/login` | `200 {user}` + `Set-Cookie` |
 | logout | `POST /auth/logout` | `204` + expired cookie |
 | logoutAll | `POST /auth/logout-all` | `204` + expired cookie |

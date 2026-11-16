@@ -31,6 +31,10 @@ describe("selfAuthConfigSchema defaults", () => {
       tokenTtlMinutes: 1440,
     });
     expect(config.authentication.passwordReset.tokenTtlMinutes).toBe(30);
+    expect(config.authentication.registration).toEqual({
+      revealExistingEmail: false,
+      signInAfterRegistration: false,
+    });
     expect(config.authentication.password).toEqual({
       minLength: 12,
       maxLength: 128,
@@ -152,6 +156,17 @@ describe("selfAuthConfigSchema rejections", () => {
       "Argon2id single iteration with less than 46 MiB (SEC-HASH-002)",
       withAuth({ password: { hashing: { iterations: 1 } } }),
     ],
+    [
+      "signInAfterRegistration without revealExistingEmail (AUTHN-REG-012)",
+      withAuth({
+        emailVerification: { mode: "optional" },
+        registration: { signInAfterRegistration: true },
+      }),
+    ],
+    [
+      "signInAfterRegistration in required verification mode (AUTHN-REG-012)",
+      withAuth({ registration: { revealExistingEmail: true, signInAfterRegistration: true } }),
+    ],
     ["body limit below 1 KiB", { ...minimal, http: { bodyLimitBytes: 512 } }],
     ["re-auth window of zero", { ...minimal, authorization: { reauthenticationWindowMinutes: 0 } }],
   ])("rejects %s", (_name, input) => {
@@ -162,6 +177,18 @@ describe("selfAuthConfigSchema rejections", () => {
     expect(
       issues(withAuth({ sessions: { cookie: { name: "dev_session", secure: false } } })),
     ).toEqual([]);
+  });
+
+  it("allows the opt-in convenient registration flow (SEC-ENUM-004)", () => {
+    expect(
+      issues(
+        withAuth({
+          emailVerification: { mode: "optional" },
+          registration: { revealExistingEmail: true, signInAfterRegistration: true },
+        }),
+      ),
+    ).toEqual([]);
+    expect(issues(withAuth({ registration: { revealExistingEmail: true } }))).toEqual([]);
   });
 
   it("allows sameSite none with token CSRF", () => {

@@ -51,9 +51,11 @@ Implement the Express reference implementation in `apps/playground` /
 - **Licence:** MIT; generated output and templates also 0BSD (ADR 0013).
 - **Defaults:** every behavioral default is configurable within security
   bounds; `CONFIGURATION_SPEC.md` and the schema are kept in sync by a test.
-- **Registration enumeration:** the more secure option — no mode reveals
-  whether an email is registered, and registration never logs the user in
-  (AUTHN-REG-005/009/010; `EMAIL_TAKEN` removed).
+- **Registration enumeration:** private by default — registration never
+  reveals whether an email is registered and never logs the user in
+  (AUTHN-REG-005/009/010). Projects may opt in to `revealExistingEmail` and
+  `signInAfterRegistration` as a documented trade-off (AUTHN-REG-011/012,
+  SEC-ENUM-004).
 
 ## Open items
 

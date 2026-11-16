@@ -90,6 +90,12 @@ export const selfAuthConfigSchema = z
             tokenTtlMinutes: int(5, 10_080).default(1_440),
           })
           .prefault({}),
+        registration: z
+          .strictObject({
+            revealExistingEmail: z.boolean().default(false),
+            signInAfterRegistration: z.boolean().default(false),
+          })
+          .prefault({}),
         passwordReset: z
           .strictObject({
             tokenTtlMinutes: int(5, 60).default(30),
@@ -266,6 +272,25 @@ export const selfAuthConfigSchema = z
         message: "sameSite 'none' requires http.csrf.mode 'token' (SEC-COOKIE-005, SEC-CSRF-004)",
         path: ["http", "csrf", "mode"],
       });
+    }
+    const reg = c.authentication.registration;
+    if (reg.signInAfterRegistration) {
+      if (!reg.revealExistingEmail) {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "signInAfterRegistration requires revealExistingEmail: true, because an immediate session reveals whether the email was new (AUTHN-REG-012)",
+          path: ["authentication", "registration", "signInAfterRegistration"],
+        });
+      }
+      if (c.authentication.emailVerification.mode === "required") {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "signInAfterRegistration is not possible with emailVerification.mode 'required' (users are pending until verified)",
+          path: ["authentication", "registration", "signInAfterRegistration"],
+        });
+      }
     }
     const [major] = c.specVersion.split(".");
     if (major !== SPEC_VERSION.split(".")[0]) {

@@ -139,11 +139,14 @@ never defines custom cryptography.
 ## 7. Account enumeration
 
 - **[SEC-ENUM-001]** (MUST) Login, password-reset request, verification resend,
-  and registration (in every verification mode) MUST return responses that are
+  and registration (unless `revealExistingEmail` is enabled) MUST return responses that are
   indistinguishable (status code, body, headers other than request IDs)
   whether or not an account exists.
-- **[SEC-ENUM-002]** (MUST) (WITHDRAWN) No configuration permits account
-  enumeration any more (see [AUTHN-REG-009]).
+- **[SEC-ENUM-002]** (MUST) (WITHDRAWN) Replaced by [SEC-ENUM-004].
+- **[SEC-ENUM-004]** (MUST) Settings that permit account enumeration MUST be
+  off by default, MUST be enabled explicitly in configuration, and adapters MUST
+  document them as a privacy trade-off. Diagnostic tooling (`selfauth doctor`)
+  MUST warn when one is enabled.
 - **[SEC-ENUM-003]** (SHOULD) Response timing SHOULD NOT reveal account
   existence; in particular work such as sending email SHOULD be done in a way
   that does not lengthen only the "account exists" path (e.g. queued).
@@ -215,7 +218,7 @@ user (CSRF); attacker who can inject script into the app (XSS).
 | Threat / abuse case | Mitigation (requirements) |
 | --- | --- |
 | Credential stuffing, password guessing | SEC-RATE-001, SEC-RATE-003, SEC-PWPOLICY-004, AUTHN-LOGIN-006 |
-| Account enumeration (login, reset, register, timing) | SEC-ENUM-001, SEC-ENUM-003, AUTHN-LOGIN-002/003, AUTHN-REG-005/009/010 |
+| Account enumeration (login, reset, register, timing) | SEC-ENUM-001, SEC-ENUM-003, AUTHN-LOGIN-002/003, AUTHN-REG-005/009/010 (opt-out: AUTHN-REG-011, SEC-ENUM-004) |
 | Database leak → offline cracking / token reuse | SEC-HASH-001…003, SEC-TOKEN-002, AUTHN-SESS-002 |
 | Session fixation | AUTHN-LOGIN-005 |
 | Session theft via XSS | SEC-COOKIE-001 (HttpOnly); XSS prevention itself is application-owned |

@@ -107,6 +107,11 @@
       "how": "Reviewers confirm generated routes and services expose no update/delete operation for individual security events."
     },
     {
+      "requirement": "SEC-ENUM-004",
+      "methods": ["schema-test", "documentation", "adapter-test"],
+      "how": "Supplements CT-REG-009: schema defaults the options to false; adapter docs describe the trade-off; the CLI doctor test (Phase 6) asserts a warning when enabled."
+    },
+    {
       "requirement": "SEC-HTTP-002",
       "methods": ["documentation"],
       "how": "Adapter deployment guide requires HTTPS in production and documents HSTS."

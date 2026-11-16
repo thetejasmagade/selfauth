@@ -36,8 +36,10 @@ and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
 | `adapter.database` | `"postgresql" \| "mongodb"` | — (required) | |
 | `adapter.orm` | `"prisma" \| "mongoose"` | — (required) | postgresql↔prisma, mongodb↔mongoose |
 | `authentication.methods` | `["password"]` | `["password"]` | MVP supports only `password` |
-| `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | `optional`/`off` activate accounts immediately; registration still never logs the user in (AUTHN-REG-009) |
+| `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | `optional`/`off` activate accounts immediately; registration logs the user in only with `signInAfterRegistration` |
 | `authentication.emailVerification.tokenTtlMinutes` | int | `1440` (24 h) | 5 – 10080 (7 days) |
+| `authentication.registration.revealExistingEmail` | boolean | `false` | `true` returns `EMAIL_TAKEN` for registered emails (privacy trade-off, SEC-ENUM-004) |
+| `authentication.registration.signInAfterRegistration` | boolean | `false` | requires `revealExistingEmail: true` and verification mode `optional`/`off` |
 | `authentication.passwordReset.tokenTtlMinutes` | int | `30` | 5 – 60 |
 | `authentication.password.minLength` | int | `12` | ≥ 8, ≤ `maxLength` |
 | `authentication.password.maxLength` | int | `128` | 64 – 1024 |
