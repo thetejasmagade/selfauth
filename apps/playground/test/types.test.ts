@@ -1,4 +1,8 @@
-import type { ErrorCode as SpecErrorCode, ErrorEnvelope as SpecEnvelope, SelfAuthConfig as SpecConfig } from "@selfauth/spec";
+import type {
+  ErrorCode as SpecErrorCode,
+  ErrorEnvelope as SpecEnvelope,
+  SelfAuthConfig as SpecConfig,
+} from "@selfauth/spec";
 import { describe, expectTypeOf, it } from "vitest";
 import type { ErrorCode, ErrorEnvelope, SelfAuthConfig } from "../src/auth/types.ts";
 

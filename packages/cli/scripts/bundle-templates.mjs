@@ -1,3 +1,5 @@
+/* global console */
+/* eslint-disable no-console -- build script output */
 // Copies template sources (the tested reference implementations) into
 // dist/templates so the published CLI is self-contained, and records the
 // dependency versions the reference apps were tested with.
@@ -25,6 +27,7 @@ for (const p of ["package.json", "apps/playground/package.json"]) {
   const pkg = JSON.parse(readFileSync(join(repo, p), "utf8"));
   Object.assign(versions, pkg.devDependencies, pkg.dependencies);
 }
-for (const [name, v] of Object.entries(versions)) if (String(v).startsWith("workspace:")) delete versions[name];
+for (const [name, v] of Object.entries(versions))
+  if (String(v).startsWith("workspace:")) delete versions[name];
 writeFileSync(join(out, "versions.json"), `${JSON.stringify(versions, null, 2)}\n`);
 console.log(`bundled ${sources.size} template sources into dist/templates`);

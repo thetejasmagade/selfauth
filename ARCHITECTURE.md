@@ -31,7 +31,7 @@ never runs as part of the application it helps build.
 | 2 | **Conformance suite** — language-neutral cases, coverage enforcement, and an executable runner with a driver contract | `conformance` | 87 cases, runner |
 | 3 | **Framework adapters** — Express backend plus Vue 3 and React frontend reference implementations (application-owned code, the future template source) | `apps/playground*/src/auth` | Express: 87/87 cases on memory and PostgreSQL; Vue and React: unit tests + one shared browser spec |
 | 4 | **Database & migration adapters** — stores per database; migration contract + SQL safety analysis + Prisma Migrate adapter | `apps/playground/src/auth/stores`, `packages/migration` | PostgreSQL/Prisma: 87/87 cases; MongoDB later |
-| 5 | **CLI** — `init`, `add`, `doctor`, `validate`, `db *`, `diff`, `upgrade` | `packages/cli` | Phase 6 |
+| 5 | **CLI** — `init`, `list`, `doctor`, `validate`, `db *` (done); `add`, `diff`, `upgrade`, frontends (next) | `packages/cli` | Backend generation done; generated projects smoke-tested in CI |
 | 6 | **LLM skills** — `selfauth` skill for Claude Code and compatible agents | `skills/selfauth` | Phase 7 |
 
 Packages that do not exist yet are deliberately not scaffolded as empty

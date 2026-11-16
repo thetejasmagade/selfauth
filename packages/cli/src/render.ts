@@ -12,7 +12,8 @@ export interface InitAnswers {
 /** Resolved configuration written to src/selfauth.config.ts (validated by the spec schema). */
 export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   for (const p of answers.permissions) {
-    if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth.")) throw new Error(`invalid permission '${p}' (format: resource.action)`);
+    if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth."))
+      throw new Error(`invalid permission '${p}' (format: resource.action)`);
   }
   return parseConfig({
     adapter: {
@@ -113,7 +114,10 @@ export function renderTsconfig(): { base: string; build: string } {
     compilerOptions: { rootDir: "src", outDir: "dist", sourceMap: true },
     include: ["src"],
   };
-  return { base: `${JSON.stringify(base, null, 2)}\n`, build: `${JSON.stringify(build, null, 2)}\n` };
+  return {
+    base: `${JSON.stringify(base, null, 2)}\n`,
+    build: `${JSON.stringify(build, null, 2)}\n`,
+  };
 }
 
 export function renderEnvExample(answers: InitAnswers): string {
@@ -124,17 +128,29 @@ export function renderEnvExample(answers: InitAnswers): string {
     "PORT=3000",
     "# Absolute URL of your frontend: email links point here (AUTHN-VERIFY-009).",
     `SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}`,
-    "# Only for http.csrf.mode \"token\": 32+ random bytes, base64url.",
+    '# Only for http.csrf.mode "token": 32+ random bytes, base64url.',
     "# SELFAUTH_CSRF_SECRET=",
   ];
   if (answers.database === "postgresql") {
-    lines.push("# PostgreSQL connection for Prisma.", "DATABASE_URL=postgresql://user:password@localhost:5432/app");
+    lines.push(
+      "# PostgreSQL connection for Prisma.",
+      "DATABASE_URL=postgresql://user:password@localhost:5432/app",
+    );
   }
   return `${lines.join("\n")}\n`;
 }
 
 export function renderGitignore(): string {
-  return ["node_modules/", "dist/", ".env", ".env.*", "!.env.example", "src/generated/", "*.log", ""].join("\n");
+  return [
+    "node_modules/",
+    "dist/",
+    ".env",
+    ".env.*",
+    "!.env.example",
+    "src/generated/",
+    "*.log",
+    "",
+  ].join("\n");
 }
 
 export function renderReadme(answers: InitAnswers): string {

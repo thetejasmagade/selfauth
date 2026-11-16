@@ -10,13 +10,19 @@ function printPlan(plan: MigrationPlan) {
   if (plan.findings.length === 0) return ok("No destructive or non-owned changes.");
   say("\nChanges that need explicit approval:");
   for (const f of plan.findings) {
-    warn(`[${f.severity}] ${f.kind} ${f.object ?? ""} — ${f.migration}${f.line ? `:${f.line}` : ""}`);
+    warn(
+      `[${f.severity}] ${f.kind} ${f.object ?? ""} — ${f.migration}${f.line ? `:${f.line}` : ""}`,
+    );
   }
-  if (plan.blocked) fail("Blocked: objects already exist in the database. Nothing will be applied.");
+  if (plan.blocked)
+    fail("Blocked: objects already exist in the database. Nothing will be applied.");
 }
 
 /** `selfauth db <command>` — orchestrates the project's native migration tool (Prisma Migrate). */
-export async function db(command: string, args: { dir?: string; approveDestructive?: boolean; name?: string }): Promise<number> {
+export async function db(
+  command: string,
+  args: { dir?: string; approveDestructive?: boolean; name?: string },
+): Promise<number> {
   const dir = resolve(args.dir ?? ".");
   const manifest = await loadManifest(dir);
   if (!manifest) {
@@ -40,11 +46,15 @@ export async function db(command: string, args: { dir?: string; approveDestructi
         printPlan(await adapter.plan());
         return 0;
       case "migrate": {
-        if (process.env["NODE_ENV"] === "production") warn("Production database: make sure a recent backup exists.");
-        const result = await adapter.migrate({ approveDestructive: Boolean(args.approveDestructive) });
+        if (process.env["NODE_ENV"] === "production")
+          warn("Production database: make sure a recent backup exists.");
+        const result = await adapter.migrate({
+          approveDestructive: Boolean(args.approveDestructive),
+        });
         printPlan(result.plan);
         if (result.applied) ok("Migrations applied.");
-        else (result.reason === "no pending migrations" ? info : fail)(result.reason ?? "not applied");
+        else
+          (result.reason === "no pending migrations" ? info : fail)(result.reason ?? "not applied");
         return result.applied || result.reason === "no pending migrations" ? 0 : 1;
       }
       case "generate": {

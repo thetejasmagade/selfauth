@@ -35,12 +35,18 @@ async function listFiles(dir: string): Promise<string[]> {
   return out.sort();
 }
 
-function sourceAt(root: string, kind: TemplateSource["kind"], versions: () => Promise<Record<string, string>>): TemplateSource {
+function sourceAt(
+  root: string,
+  kind: TemplateSource["kind"],
+  versions: () => Promise<Record<string, string>>,
+): TemplateSource {
   return {
     kind,
     read: (source) => readFile(join(root, source), "utf8"),
     async listDirectory(source) {
-      return (await listFiles(join(root, source))).map((f) => relative(join(root, source), f).split("\\").join("/"));
+      return (await listFiles(join(root, source))).map((f) =>
+        relative(join(root, source), f).split("\\").join("/"),
+      );
     },
     versions,
   };
@@ -48,31 +54,42 @@ function sourceAt(root: string, kind: TemplateSource["kind"], versions: () => Pr
 
 /** Versions declared by the reference apps: the generated project gets exactly what was tested. */
 async function repositoryVersions(): Promise<Record<string, string>> {
-  const pkgs = ["package.json", "apps/playground/package.json"].map(async (p) =>
-    JSON.parse(await readFile(join(REPOSITORY, p), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    },
+  const pkgs = ["package.json", "apps/playground/package.json"].map(
+    async (p) =>
+      JSON.parse(await readFile(join(REPOSITORY, p), "utf8")) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      },
   );
   const all: Record<string, string> = {};
-  for (const pkg of await Promise.all(pkgs)) Object.assign(all, pkg.devDependencies, pkg.dependencies);
+  for (const pkg of await Promise.all(pkgs))
+    Object.assign(all, pkg.devDependencies, pkg.dependencies);
   return all;
 }
 
 export function templateSource(): TemplateSource {
   if (existsSync(join(BUNDLED, "versions.json"))) {
-    return sourceAt(BUNDLED, "bundled", async () => JSON.parse(await readFile(join(BUNDLED, "versions.json"), "utf8")));
+    return sourceAt(BUNDLED, "bundled", async () =>
+      JSON.parse(await readFile(join(BUNDLED, "versions.json"), "utf8")),
+    );
   }
   return sourceAt(REPOSITORY, "repository", repositoryVersions);
 }
 
 export function stackFiles(database: Database): RegistryFile[] {
-  return (registry.stacks.express.files as RegistryFile[]).filter((f) => !f.when || f.when === database);
+  return (registry.stacks.express.files as RegistryFile[]).filter(
+    (f) => !f.when || f.when === database,
+  );
 }
 
-export function stackDependencies(database: Database): { dependencies: string[]; devDependencies: string[]; manifest?: string } {
+export function stackDependencies(database: Database): {
+  dependencies: string[];
+  devDependencies: string[];
+  manifest?: string;
+} {
   const express = registry.stacks.express;
-  if (database !== "postgresql") return { dependencies: express.dependencies, devDependencies: express.devDependencies };
+  if (database !== "postgresql")
+    return { dependencies: express.dependencies, devDependencies: express.devDependencies };
   return {
     dependencies: [...express.dependencies, ...express.postgresql.dependencies],
     devDependencies: [...express.devDependencies, ...express.postgresql.devDependencies],

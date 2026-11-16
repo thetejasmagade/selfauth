@@ -18,11 +18,15 @@ export async function loadManifest(dir: string): Promise<Manifest | null> {
 }
 
 /** Imports the project's src/selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */
-export async function loadConfig(dir: string): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
+export async function loadConfig(
+  dir: string,
+): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
   const path = join(dir, "src", "selfauth.config.ts");
   if (!existsSync(path)) return { errors: ["src/selfauth.config.ts not found"] };
   try {
-    const mod = (await import(`${pathToFileURL(path).href}?t=${Date.now()}`)) as { config?: unknown };
+    const mod = (await import(`${pathToFileURL(path).href}?t=${Date.now()}`)) as {
+      config?: unknown;
+    };
     return { config: parseConfig(mod.config), errors: [] };
   } catch (error) {
     const issues = (error as { issues?: { path: PropertyKey[]; message: string }[] }).issues;

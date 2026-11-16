@@ -41,27 +41,43 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
   if (project.hasPackageJson) {
     fail("This directory already has a package.json.");
-    info("Adding SelfAuth to an existing project (`selfauth add`) is planned for the next release.");
-    if (project.existingAuth.length) warn(`Existing authentication packages detected: ${project.existingAuth.join(", ")}`);
+    info(
+      "Adding SelfAuth to an existing project (`selfauth add`) is planned for the next release.",
+    );
+    if (project.existingAuth.length)
+      warn(`Existing authentication packages detected: ${project.existingAuth.join(", ")}`);
     return 1;
   }
   if (!project.empty) info("Directory is not empty; existing files will never be overwritten.");
 
   let database = options.database as Database | undefined;
-  if (!database && interactive) database = (await ask(`Database? ${DATABASES.join(" | ")}`, "postgresql")) as Database;
+  if (!database && interactive)
+    database = (await ask(`Database? ${DATABASES.join(" | ")}`, "postgresql")) as Database;
   database ??= "postgresql";
   if (!DATABASES.includes(database)) {
-    fail(`Unsupported database '${database}'. Supported: ${DATABASES.join(", ")} (see \`selfauth list\`).`);
+    fail(
+      `Unsupported database '${database}'. Supported: ${DATABASES.join(", ")} (see \`selfauth list\`).`,
+    );
     return 1;
   }
   let permissions = options.permissions;
   if (permissions === undefined && interactive) {
-    permissions = await ask("Application permissions, comma-separated (e.g. orders.view,orders.create)?", "");
+    permissions = await ask(
+      "Application permissions, comma-separated (e.g. orders.view,orders.create)?",
+      "",
+    );
   }
   const answers: InitAnswers = {
-    name: basename(dir).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "app",
+    name:
+      basename(dir)
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "app",
     database,
-    permissions: (permissions ?? "").split(",").map((p) => p.trim()).filter(Boolean),
+    permissions: (permissions ?? "")
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean),
     appBaseUrl: options.appBaseUrl ?? "http://localhost:5173",
   };
 
@@ -73,7 +89,9 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     return 1;
   }
 
-  say(`\nPlan: create ${files.length} files (${database === "postgresql" ? "Express + PostgreSQL/Prisma" : "Express + in-memory store"})`);
+  say(
+    `\nPlan: create ${files.length} files (${database === "postgresql" ? "Express + PostgreSQL/Prisma" : "Express + in-memory store"})`,
+  );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
     say("\nDry run: nothing written.");
@@ -115,6 +133,8 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     say("  npm run db:migrate && npm run db:seed");
   }
   say("  npm run dev");
-  say("\nBefore production: implement createMailer() in src/mailer.ts, then run `npx selfauth doctor`.");
+  say(
+    "\nBefore production: implement createMailer() in src/mailer.ts, then run `npx selfauth doctor`.",
+  );
   return 0;
 }

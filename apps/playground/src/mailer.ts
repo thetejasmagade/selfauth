@@ -9,7 +9,9 @@ import type { Env } from "./env.ts";
  */
 export function createMailer(env: Env): Mailer {
   if (env.nodeEnv === "production") {
-    throw new Error("No email provider configured: implement createMailer() in src/mailer.ts before running in production.");
+    throw new Error(
+      "No email provider configured: implement createMailer() in src/mailer.ts before running in production.",
+    );
   }
   // Development: prints messages (including one-time links) to the console.
   return new DevConsoleMailer(env.nodeEnv);

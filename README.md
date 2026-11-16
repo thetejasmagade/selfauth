@@ -13,9 +13,13 @@ SelfAuth is **not** a hosted identity provider, auth server, or runtime SDK.
 Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
-> **Status: pre-alpha.** The specification, conformance suite, and an Express +
-> PostgreSQL reference implementation exist; the generator (CLI) does not yet.
+> **Status: pre-alpha.** Spec, conformance suite, Express + PostgreSQL backend,
+> Vue/React frontends, and a CLI that generates the backend into a new project.
 > See [`ROADMAP.md`](ROADMAP.md).
+
+```bash
+node packages/cli/dist/bin.js init my-app --database postgresql   # after pnpm build
+```
 
 ## Principles
 
@@ -35,6 +39,7 @@ disappears.
 ```text
 selfauth/
 ├── packages/spec/      Normative specification + requirement tooling (@selfauth/spec)
+├── packages/cli/       The `selfauth` CLI generator (@selfauth/cli)
 ├── packages/migration/ Migration orchestration + SQL safety analysis (@selfauth/migration)
 ├── conformance/        Language-neutral conformance cases and runner (@selfauth/conformance)
 ├── apps/playground/    Express reference implementation (memory or PostgreSQL)

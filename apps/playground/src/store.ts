@@ -20,7 +20,9 @@ export async function createStores(config: SelfAuthConfig): Promise<Stores> {
   const databaseUrl = process.env["DATABASE_URL"];
   if (!databaseUrl) {
     if (process.env["NODE_ENV"] === "production") {
-      throw new Error("DATABASE_URL is required in production; the in-memory store loses all data on restart.");
+      throw new Error(
+        "DATABASE_URL is required in production; the in-memory store loses all data on restart.",
+      );
     }
     const memory = new MemoryAuthStore();
     await syncRoles(memory, config); // memory does not persist, so it is seeded on start
@@ -31,7 +33,9 @@ export async function createStores(config: SelfAuthConfig): Promise<Stores> {
   const store = new PrismaAuthStore(db);
   for (const role of config.authorization.defaultRoles) {
     if (!(await store.roleExists(role))) {
-      throw new Error(`Role '${role}' is missing in the database. Run the migrations and \`npm run db:seed\` first.`);
+      throw new Error(
+        `Role '${role}' is missing in the database. Run the migrations and \`npm run db:seed\` first.`,
+      );
     }
   }
   console.log("Using PostgreSQL (Prisma) store.");

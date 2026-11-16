@@ -23,10 +23,14 @@ export interface PlannedFile {
   content: string;
 }
 
-export const sha256 = (content: string) => createHash("sha256").update(content, "utf8").digest("hex");
+export const sha256 = (content: string) =>
+  createHash("sha256").update(content, "utf8").digest("hex");
 
 /** Every file `init` would create, in memory. Nothing is written. */
-export async function planInit(answers: InitAnswers, source: TemplateSource = templateSource()): Promise<PlannedFile[]> {
+export async function planInit(
+  answers: InitAnswers,
+  source: TemplateSource = templateSource(),
+): Promise<PlannedFile[]> {
   const files: PlannedFile[] = [];
   for (const entry of stackFiles(answers.database)) {
     if (entry.directory) {
@@ -38,14 +42,22 @@ export async function planInit(answers: InitAnswers, source: TemplateSource = te
         });
       }
     } else {
-      files.push({ path: entry.target, template: `express:${entry.source}`, content: await source.read(entry.source) });
+      files.push({
+        path: entry.target,
+        template: `express:${entry.source}`,
+        content: await source.read(entry.source),
+      });
     }
   }
   const deps = stackDependencies(answers.database);
   const ts = renderTsconfig();
   const config = buildConfig(answers);
   files.push(
-    { path: "package.json", template: "rendered:package.json", content: renderPackageJson(answers, deps, await source.versions()) },
+    {
+      path: "package.json",
+      template: "rendered:package.json",
+      content: renderPackageJson(answers, deps, await source.versions()),
+    },
     { path: "tsconfig.json", template: "rendered:tsconfig", content: ts.base },
     { path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build },
     { path: ".gitignore", template: "rendered:gitignore", content: renderGitignore() },
@@ -62,11 +74,18 @@ export async function planInit(answers: InitAnswers, source: TemplateSource = te
     version: CLI_VERSION,
     templateVersion: CLI_VERSION,
     specVersion: SPEC_VERSION,
-    database: { type: answers.database, orm: answers.database === "postgresql" ? "prisma" : "none" },
+    database: {
+      type: answers.database,
+      orm: answers.database === "postgresql" ? "prisma" : "none",
+    },
     ownedResources: owned,
     files: files.map((f) => ({ path: f.path, template: f.template, sha256: sha256(f.content) })),
   });
-  files.push({ path: "selfauth.manifest.json", template: "rendered:manifest", content: `${JSON.stringify(manifest, null, 2)}\n` });
+  files.push({
+    path: "selfauth.manifest.json",
+    template: "rendered:manifest",
+    content: `${JSON.stringify(manifest, null, 2)}\n`,
+  });
   return files;
 }
 

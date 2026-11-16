@@ -27,7 +27,8 @@ export async function validate(dirArg: string | undefined): Promise<number> {
     errors += drift.missing.length;
   }
   ok(`${drift.unchanged} generated file(s) unchanged`);
-  if (drift.modified.length) info(`changed by you (kept, never overwritten): ${drift.modified.join(", ")}`);
+  if (drift.modified.length)
+    info(`changed by you (kept, never overwritten): ${drift.modified.join(", ")}`);
 
   if (manifest.database.orm === "prisma") {
     if (existsSync(join(dir, "node_modules", ".bin", "prisma"))) {

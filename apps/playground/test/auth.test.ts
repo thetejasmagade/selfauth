@@ -135,7 +135,10 @@ describe("log redaction (SEC-LOG-001)", () => {
 
   it("keeps UUIDs such as request IDs so logs can be correlated (SEC-LOG-003)", () => {
     const id = "39199157-689f-4896-94c8-093eeb0e10f0";
-    expect(redact({ requestId: id, note: `req ${id}` })).toEqual({ requestId: id, note: `req ${id}` });
+    expect(redact({ requestId: id, note: `req ${id}` })).toEqual({
+      requestId: id,
+      note: `req ${id}`,
+    });
     // A 64-char hex hash or 43-char base64url token is still removed.
     expect(redact("a".repeat(64))).toBe("[redacted]");
   });

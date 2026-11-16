@@ -64,7 +64,11 @@ const originSchema = z.string().refine(
   { message: "must be an origin such as https://app.example.com (no path or trailing slash)" },
 );
 
-const ADAPTER_PAIRS: Record<string, string> = { postgresql: "prisma", mongodb: "mongoose", memory: "none" };
+const ADAPTER_PAIRS: Record<string, string> = {
+  postgresql: "prisma",
+  mongodb: "mongoose",
+  memory: "none",
+};
 
 export const selfAuthConfigSchema = z
   .strictObject({
