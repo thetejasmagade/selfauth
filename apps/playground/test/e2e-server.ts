@@ -12,7 +12,8 @@ import { createLogger, MemoryLogSink } from "../src/auth/core/logger.ts";
 import { loadEnv } from "../src/env.ts";
 import { mountNotes } from "../src/example/notes.ts";
 import { getRequestId } from "../src/request-id.ts";
-import { config as baseConfig, localDevelopmentConfig } from "../src/selfauth.config.ts";
+import { localDevelopmentConfig } from "../src/dev-config.ts";
+import { config as baseConfig } from "../src/selfauth.config.ts";
 
 if (process.env["NODE_ENV"] !== "test") throw new Error("e2e-server runs only with NODE_ENV=test");
 

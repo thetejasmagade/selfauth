@@ -2,7 +2,7 @@ import { hash, verify, type Algorithm } from "@node-rs/argon2";
 
 /** `Algorithm.Argon2id`; the library exports a const enum that erasable TypeScript cannot reference. */
 const ARGON2ID = 2 as Algorithm;
-import type { ErrorDetail, SelfAuthConfig } from "@selfauth/spec";
+import type { ErrorDetail, SelfAuthConfig } from "../types.ts";
 import { COMMON_PASSWORDS } from "./common-passwords.ts";
 import { AuthError } from "./errors.ts";
 

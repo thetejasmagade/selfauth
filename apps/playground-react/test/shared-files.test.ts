@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
  * this test keeps the React and Vue copies identical; the client's behaviour
  * is unit-tested in apps/playground-vue/test.
  */
-const SHARED = ["client.ts", "redirect.ts", "url-token.ts", "messages.ts"];
+const SHARED = ["client.ts", "redirect.ts", "url-token.ts", "messages.ts", "types.ts"];
 // Plain paths: Vite rewrites `new URL("…", import.meta.url)` into served asset URLs.
 const here = dirname(fileURLToPath(import.meta.url));
 

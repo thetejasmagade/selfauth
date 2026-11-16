@@ -9,7 +9,7 @@
  * - Permissions returned here are UI hints; the server enforces access
  *   (AUTHZ-CORE-004).
  */
-import type { ErrorCode } from "@selfauth/spec";
+import type { ErrorCode } from "./types.ts";
 
 export interface PublicUser {
   id: string;

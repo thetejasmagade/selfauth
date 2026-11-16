@@ -1,4 +1,4 @@
-import type { ErrorCode, ErrorDetail, ErrorEnvelope } from "@selfauth/spec";
+import type { ErrorCode, ErrorDetail, ErrorEnvelope } from "./auth/types.ts";
 
 /**
  * Error raised by handlers; rendered with the spec's error envelope
