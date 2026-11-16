@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { configJsonSchema, parseConfig, SYSTEM_PERMISSIONS } from "../src/index.js";
+import { configJsonSchema, parseConfig, readSpecFile, SYSTEM_PERMISSIONS } from "../src/index.js";
 
 const minimal = {
   adapter: { backend: "express", database: "postgresql", orm: "prisma" },
@@ -35,11 +35,13 @@ describe("selfAuthConfigSchema defaults", () => {
       minLength: 12,
       maxLength: 128,
       rejectCommon: true,
+      hashing: { memoryKiB: 19_456, iterations: 2, parallelism: 1 },
     });
     expect(config.authentication.sessions).toMatchObject({
       strategy: "database",
       idleTimeoutMinutes: 10_080,
       absoluteTimeoutMinutes: 43_200,
+      touchIntervalSeconds: 60,
       cookie: { name: "__Host-session", sameSite: "lax", secure: true },
     });
     expect(config.authentication.rateLimit.login).toEqual({
@@ -51,8 +53,10 @@ describe("selfAuthConfigSchema defaults", () => {
       permissions: [],
       roles: { user: [] },
       defaultRoles: ["user"],
+      reauthenticationWindowMinutes: 15,
     });
     expect(config.http).toEqual({
+      bodyLimitBytes: 16_384,
       basePath: "/auth",
       trustedOrigins: [],
       trustProxy: false,
@@ -140,6 +144,16 @@ describe("selfAuthConfigSchema rejections", () => {
     ["origin with path", { ...minimal, http: { trustedOrigins: ["https://app.example.com/"] } }],
     ["non-http origin", { ...minimal, http: { trustedOrigins: ["ftp://example.com"] } }],
     ["missing adapter", {}],
+    [
+      "Argon2id memory below 19 MiB (SEC-HASH-002)",
+      withAuth({ password: { hashing: { memoryKiB: 19_455 } } }),
+    ],
+    [
+      "Argon2id single iteration with less than 46 MiB (SEC-HASH-002)",
+      withAuth({ password: { hashing: { iterations: 1 } } }),
+    ],
+    ["body limit below 1 KiB", { ...minimal, http: { bodyLimitBytes: 512 } }],
+    ["re-auth window of zero", { ...minimal, authorization: { reauthenticationWindowMinutes: 0 } }],
   ])("rejects %s", (_name, input) => {
     expect(issues(input)).not.toEqual([]);
   });
@@ -157,6 +171,49 @@ describe("selfAuthConfigSchema rejections", () => {
         http: { csrf: { mode: "token" } },
       }),
     ).toEqual([]);
+  });
+});
+
+describe("defaults are configurable within bounds", () => {
+  it("accepts stronger and alternative secure settings", () => {
+    expect(
+      issues({
+        ...minimal,
+        authentication: {
+          emailVerification: { mode: "optional", tokenTtlMinutes: 60 },
+          passwordReset: { tokenTtlMinutes: 15 },
+          password: { minLength: 15, hashing: { memoryKiB: 47_104, iterations: 1 } },
+          sessions: {
+            idleTimeoutMinutes: 30,
+            absoluteTimeoutMinutes: 480,
+            touchIntervalSeconds: 0,
+          },
+          rateLimit: { login: { perAccount: { limit: 3, windowSeconds: 3_600 } } },
+        },
+        authorization: { reauthenticationWindowMinutes: 5 },
+        http: { bodyLimitBytes: 8_192 },
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("CONFIGURATION_SPEC.md", () => {
+  it("documents the same defaults the schema applies", async () => {
+    const md = await readSpecFile("CONFIGURATION_SPEC.md");
+    const resolved = parseConfig(minimal) as unknown as Record<string, unknown>;
+    const rows = [...md.matchAll(/^\| `([a-zA-Z.]+)` \| (?:[^|\\]|\\.)+ \| `([^`]+)`/gm)];
+    expect(rows.length).toBeGreaterThanOrEqual(30);
+    const mismatches: string[] = [];
+    for (const [, key, documented] of rows) {
+      let value: unknown = resolved;
+      for (const part of key!.split(".")) value = (value as Record<string, unknown>)[part];
+      // Documented defaults are JSON, except object keys may be unquoted ({ user: [] }).
+      const normalized = documented!.replace(/([{,]\s*)(\w+):/g, '$1"$2":');
+      if (JSON.stringify(JSON.parse(normalized)) !== JSON.stringify(value)) {
+        mismatches.push(`${key}: documented ${documented}, schema ${JSON.stringify(value)}`);
+      }
+    }
+    expect(mismatches).toEqual([]);
   });
 });
 

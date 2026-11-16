@@ -113,7 +113,8 @@ System permissions:
 - **[AUTHZ-ADMIN-003]** (MUST) The system MUST prevent removing the `admin` role
   from, or suspending/disabling/deleting, the last active user holding it.
 - **[AUTHZ-ADMIN-004]** (SHOULD) Administrative operations SHOULD require recent
-  authentication (password re-entry within the last 15 minutes), failing with
+  authentication (password re-entry within
+  `authorization.reauthenticationWindowMinutes`, default 15), failing with
   `REAUTHENTICATION_REQUIRED` otherwise.
 - **[AUTHZ-ADMIN-005]** (MUST NOT) Operations reachable by an unauthenticated
   client, including registration, MUST NOT grant roles or system

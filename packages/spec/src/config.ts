@@ -26,6 +26,16 @@ export const SYSTEM_ROLES = ["admin", "user"] as const;
 
 const int = (min: number, max: number) => z.number().int().min(min).max(max);
 
+/** Minimum Argon2id profiles (SEC-HASH-002, OWASP). A configuration must meet at least one. */
+export const ARGON2_FLOORS = [
+  { memoryKiB: 19_456, iterations: 2 },
+  { memoryKiB: 47_104, iterations: 1 },
+] as const;
+
+export function meetsArgon2Floor(p: { memoryKiB: number; iterations: number }): boolean {
+  return ARGON2_FLOORS.some((f) => p.memoryKiB >= f.memoryKiB && p.iterations >= f.iterations);
+}
+
 const limitSchema = (limit: number) =>
   z
     .strictObject({
@@ -90,6 +100,18 @@ export const selfAuthConfigSchema = z
             minLength: int(8, 1024).default(12),
             maxLength: int(64, 1024).default(128),
             rejectCommon: z.boolean().default(true),
+            hashing: z
+              .strictObject({
+                memoryKiB: int(ARGON2_FLOORS[0].memoryKiB, 4_194_304).default(19_456),
+                iterations: int(1, 10).default(2),
+                parallelism: int(1, 16).default(1),
+              })
+              .prefault({})
+              .refine(meetsArgon2Floor, {
+                message:
+                  "Argon2id parameters are below the minimum (19 MiB with 2+ iterations, or 46 MiB with 1 iteration; SEC-HASH-002)",
+                path: ["memoryKiB"],
+              }),
           })
           .prefault({})
           .refine((p) => p.minLength <= p.maxLength, {
@@ -101,6 +123,7 @@ export const selfAuthConfigSchema = z
             strategy: z.enum(["database"]).default("database"),
             idleTimeoutMinutes: int(5, 525_600).default(10_080),
             absoluteTimeoutMinutes: int(5, 525_600).default(43_200),
+            touchIntervalSeconds: int(0, 3_600).default(60),
             cookie: z
               .strictObject({
                 name: z
@@ -156,6 +179,7 @@ export const selfAuthConfigSchema = z
           .record(z.string().regex(ROLE_NAME_PATTERN), z.array(z.string()))
           .default({ user: [] }),
         defaultRoles: z.array(z.string()).min(1).default(["user"]),
+        reauthenticationWindowMinutes: int(1, 1_440).default(15),
       })
       .prefault({})
       .superRefine((a, ctx) => {
@@ -207,6 +231,7 @@ export const selfAuthConfigSchema = z
       }),
     http: z
       .strictObject({
+        bodyLimitBytes: int(1_024, 1_048_576).default(16_384),
         basePath: z
           .string()
           .regex(/^\/[A-Za-z0-9/_-]*$/)

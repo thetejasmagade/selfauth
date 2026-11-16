@@ -17,6 +17,11 @@
       "how": "Adapter test asserts the password verifier is invoked (against a dummy hash) when the user does not exist; reviewers confirm no early return before verification."
     },
     {
+      "requirement": "AUTHN-REG-010",
+      "methods": ["adapter-test", "code-review"],
+      "how": "Adapter test asserts the password hasher runs when registering an existing email; reviewers confirm no early return before hashing."
+    },
+    {
       "requirement": "AUTHZ-CORE-002",
       "methods": ["code-review"],
       "how": "Supplements CT-AUTHZ-002: reviewers confirm every generated protected route declares requireAuth/requirePermission/authorize; adapter lint rule flags routes without a guard where feasible."
@@ -75,11 +80,6 @@
       "requirement": "SEC-REDIRECT-001",
       "methods": ["code-review", "adapter-test"],
       "how": "Where any adapter accepts a redirect target, a shared same-origin-path validator is used and unit-tested with absolute, protocol-relative (//evil) and backslash URLs."
-    },
-    {
-      "requirement": "SEC-ENUM-002",
-      "methods": ["documentation"],
-      "how": "Supplements CT-REG-007: adapter README documents the enumeration trade-off of optional/off verification modes."
     },
     {
       "requirement": "SEC-SECRET-001",

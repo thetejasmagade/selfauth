@@ -46,9 +46,15 @@ Implement the Express reference implementation in `apps/playground` /
 5. RBAC + `requirePermission` + resource policies.
 6. Executable conformance runner mapping cases to HTTP calls.
 
-## Open decisions for the project owner
+## Decisions made after Sprint 1 review
 
-- Licence choice (ADR 0010) before the first public release.
-- Default session lifetimes and password minimum length (see
-  `CONFIGURATION_SPEC.md`).
-- Whether to create GitHub milestones/issues from this file.
+- **Licence:** MIT; generated output and templates also 0BSD (ADR 0013).
+- **Defaults:** every behavioral default is configurable within security
+  bounds; `CONFIGURATION_SPEC.md` and the schema are kept in sync by a test.
+- **Registration enumeration:** the more secure option — no mode reveals
+  whether an email is registered, and registration never logs the user in
+  (AUTHN-REG-005/009/010; `EMAIL_TAKEN` removed).
+
+## Open items
+
+- Create GitHub milestones and issues from this file (owner, later).

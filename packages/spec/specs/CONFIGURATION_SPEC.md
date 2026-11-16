@@ -7,6 +7,10 @@
 The project configuration file (e.g. `selfauth.config.ts`) is committed to the
 application repository. It holds **behavior**, never **secrets**.
 
+Every default below is a secure starting point and can be changed by the
+project. Security-relevant values have hard bounds (a floor on password length
+and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
+
 ## Rules
 
 - **[CONF-FILE-001]** (MUST) Configuration MUST be validated before use; unknown
@@ -32,15 +36,19 @@ application repository. It holds **behavior**, never **secrets**.
 | `adapter.database` | `"postgresql" \| "mongodb"` | — (required) | |
 | `adapter.orm` | `"prisma" \| "mongoose"` | — (required) | postgresql↔prisma, mongodb↔mongoose |
 | `authentication.methods` | `["password"]` | `["password"]` | MVP supports only `password` |
-| `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | |
+| `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | `optional`/`off` activate accounts immediately; registration still never logs the user in (AUTHN-REG-009) |
 | `authentication.emailVerification.tokenTtlMinutes` | int | `1440` (24 h) | 5 – 10080 (7 days) |
 | `authentication.passwordReset.tokenTtlMinutes` | int | `30` | 5 – 60 |
 | `authentication.password.minLength` | int | `12` | ≥ 8, ≤ `maxLength` |
 | `authentication.password.maxLength` | int | `128` | 64 – 1024 |
 | `authentication.password.rejectCommon` | boolean | `true` | offline list |
+| `authentication.password.hashing.memoryKiB` | int | `19456` (19 MiB) | ≥ 19456 when `iterations` ≥ 2; ≥ 47104 when `iterations` = 1 (SEC-HASH-002) |
+| `authentication.password.hashing.iterations` | int | `2` | 1 – 10 |
+| `authentication.password.hashing.parallelism` | int | `1` | 1 – 16 |
 | `authentication.sessions.strategy` | `"database"` | `"database"` | ADR 0008 |
 | `authentication.sessions.idleTimeoutMinutes` | int | `10080` (7 days) | 5 – `absoluteTimeoutMinutes` |
 | `authentication.sessions.absoluteTimeoutMinutes` | int | `43200` (30 days) | 5 – 525600 (365 days) |
+| `authentication.sessions.touchIntervalSeconds` | int | `60` | 0 – 3600; minimum time between idle-expiry writes |
 | `authentication.sessions.cookie.name` | string | `"__Host-session"` | `__Host-` prefix requires `secure: true` |
 | `authentication.sessions.cookie.sameSite` | `"lax" \| "strict" \| "none"` | `"lax"` | `none` requires `csrf.mode = "token"` |
 | `authentication.sessions.cookie.secure` | boolean | `true` | `false` only for localhost development |
@@ -50,7 +58,9 @@ application repository. It holds **behavior**, never **secrets**.
 | `authorization.permissions` | string[] | `[]` | AUTHZ-PERM-001 format; no `auth.` prefix; unique |
 | `authorization.roles` | `{ [role]: string[] }` | `{ user: [] }` | permissions must be defined or `auth.*` system permissions |
 | `authorization.defaultRoles` | string[] | `["user"]` | must name defined roles; MUST NOT include `admin` |
+| `authorization.reauthenticationWindowMinutes` | int | `15` | 1 – 1440; recent-auth window for admin operations |
 | `http.basePath` | string | `"/auth"` | starts with `/` |
+| `http.bodyLimitBytes` | int | `16384` (16 KiB) | 1024 – 1048576 |
 | `http.trustedOrigins` | string[] (origins) | `[]` | used by CSRF origin check and CORS |
 | `http.trustProxy` | `false \| int \| string[]` | `false` | hop count or proxy CIDRs |
 | `http.csrf.mode` | `"header" \| "token"` | `"header"` | SEC-CSRF-004 |

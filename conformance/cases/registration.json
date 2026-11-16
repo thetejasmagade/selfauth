@@ -368,10 +368,10 @@
     },
     {
       "id": "CT-REG-007",
-      "title": "Optional verification mode creates active users and may reveal taken emails",
+      "title": "'optional' verification mode activates accounts but never reveals existing emails or auto-logs in",
       "category": "registration",
       "level": "core",
-      "requirements": ["AUTHN-REG-006", "SEC-ENUM-002"],
+      "requirements": ["AUTHN-REG-009", "AUTHN-REG-005", "SEC-ENUM-001"],
       "config": {
         "authentication": {
           "emailVerification": {
@@ -395,8 +395,15 @@
             "password": "correct horse battery staple"
           },
           "expect": {
-            "outcome": "success"
-          }
+            "outcome": "success",
+            "sessionCreated": false,
+            "assert": {
+              "body": {
+                "status": "accepted"
+              }
+            }
+          },
+          "save": "fresh"
         },
         {
           "op": "inspectStorage",
@@ -414,15 +421,172 @@
           }
         },
         {
+          "op": "readLastEmail",
+          "input": {
+            "to": "carol@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "kind": "verification"
+            }
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "note": "registration did not log the user in",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
           "op": "register",
-          "note": "permitted only in optional/off modes",
+          "input": {
+            "email": "alice@example.test",
+            "password": "some other password"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": false,
+            "indistinguishableFrom": "fresh"
+          }
+        },
+        {
+          "op": "login",
           "input": {
             "email": "alice@example.test",
             "password": "correct horse battery staple"
           },
+          "note": "existing account unchanged",
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        },
+        {
+          "op": "login",
+          "as": "carol",
+          "input": {
+            "email": "carol@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-REG-008",
+      "title": "'off' verification mode activates accounts but never reveals existing emails or auto-logs in",
+      "category": "registration",
+      "level": "core",
+      "requirements": ["AUTHN-REG-009", "AUTHN-REG-005", "SEC-ENUM-001"],
+      "config": {
+        "authentication": {
+          "emailVerification": {
+            "mode": "off"
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "carol@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": false,
+            "assert": {
+              "body": {
+                "status": "accepted"
+              }
+            }
+          },
+          "save": "fresh"
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "emailNormalized": "carol@example.test"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "first.state": "active"
+            }
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "carol@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "none": true
+            }
+          },
+          "note": "no verification email in off mode"
+        },
+        {
+          "op": "getCurrentUser",
+          "note": "registration did not log the user in",
           "expect": {
             "outcome": "error",
-            "code": "EMAIL_TAKEN"
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "some other password"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": false,
+            "indistinguishableFrom": "fresh"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "note": "existing account unchanged",
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        },
+        {
+          "op": "login",
+          "as": "carol",
+          "input": {
+            "email": "carol@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
           }
         }
       ]

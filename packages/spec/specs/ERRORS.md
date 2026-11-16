@@ -43,7 +43,6 @@
 | `CSRF_FAILED` | 403 | Origin/CSRF verification failed | — |
 | `NOT_FOUND` | 404 | Resource absent or hidden from subject | Yes |
 | `TOKEN_INVALID` | 400 | Any one-time-token failure | Yes — identical for all causes |
-| `EMAIL_TAKEN` | 409 | Only in `optional`/`off` verification modes | **No** (documented trade-off) |
 | `CONFLICT` | 409 | State conflict (e.g. removing last admin) | — |
 | `RATE_LIMITED` | 429 | Rate limit exceeded; `Retry-After` header | Yes |
 | `PAYLOAD_TOO_LARGE` | 413 | Body exceeds limit | Yes |

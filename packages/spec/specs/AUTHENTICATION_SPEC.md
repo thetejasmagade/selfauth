@@ -117,7 +117,11 @@ any state ──delete──► deleted   (terminal)
 ## 3. Registration — `register(email, password)`
 
 Behavior depends on `emailVerification.mode` ([CONFIGURATION_SPEC](CONFIGURATION_SPEC.md)):
-`required` (default), `optional`, or `off`.
+`required` (default), `optional`, or `off`. In **every** mode, registration
+never reveals whether an email already has an account: the outcome is always
+`accepted`, and registration never creates a session — the user logs in
+afterwards. (Creating a session for new emails only would reveal which emails
+already exist.)
 
 - **[AUTHN-REG-001]** (MUST) Registration MUST validate the email
   ([IDENT-EMAIL-004]) and password policy ([SEC-PWPOLICY-001] …) before creating
@@ -131,19 +135,25 @@ Behavior depends on `emailVerification.mode` ([CONFIGURATION_SPEC](CONFIGURATION
 - **[AUTHN-REG-004]** (MUST) In `required` mode, the new user MUST be created in
   state `pending`, a verification email MUST be sent (§8), and no session MUST
   be created. The outcome is `accepted`.
-- **[AUTHN-REG-005]** (MUST) In `required` mode, registering an email that
-  already belongs to a non-deleted user MUST produce an outcome indistinguishable
+- **[AUTHN-REG-005]** (MUST) In every verification mode, registering an email
+  that already belongs to a non-deleted user MUST produce an outcome indistinguishable
   from a new registration (same status, same body, no session), and MUST NOT
   modify the existing account. The implementation SHOULD send the existing
   owner a notification email instead.
-- **[AUTHN-REG-006]** (MUST) In `optional` and `off` modes, the user MUST be
-  created `active`; the implementation MAY create a session immediately. If the
-  email is taken it MAY return `EMAIL_TAKEN`; adapters MUST document this
-  enumeration trade-off (see [SEC-ENUM-002]).
+- **[AUTHN-REG-006]** (MUST) (WITHDRAWN) Replaced by [AUTHN-REG-009]; the
+  `EMAIL_TAKEN` error and the optional immediate session were removed so that
+  no mode allows account enumeration.
 - **[AUTHN-REG-007]** (MUST) Concurrent registrations for the same normalized
   email MUST result in at most one account.
 - **[AUTHN-REG-008]** (MUST) Registration MUST record a `user.registered`
   security event for each account created.
+- **[AUTHN-REG-009]** (MUST) In `optional` and `off` modes, the new user MUST be
+  created in state `active`, registration MUST NOT create a session, and the
+  outcome MUST be `accepted`, exactly as in `required` mode. In `optional` mode
+  a verification email MUST still be sent.
+- **[AUTHN-REG-010]** (MUST) Registering an existing email MUST perform
+  password-hashing work of comparable cost to a new registration, so response
+  time does not reveal account existence.
 
 ## 4. Login — `login(email, password)`
 
@@ -223,7 +233,8 @@ Behavior depends on `emailVerification.mode` ([CONFIGURATION_SPEC](CONFIGURATION
   password reset, account state change) MUST take effect for the very next
   request. Any cache of session state MUST honor this.
 - **[AUTHN-SESS-007]** (SHOULD) Writes that extend idle expiry SHOULD be
-  throttled (e.g. at most once per minute per session) to limit database load.
+  throttled (`authentication.sessions.touchIntervalSeconds`, default 60) to
+  limit database load.
 - **[AUTHN-SESS-008]** (SHOULD) Expired and revoked sessions SHOULD be purged
   periodically by an application-controlled job.
 - **[AUTHN-SESS-009]** (MAY) Implementations MAY record IP address and user
@@ -336,7 +347,7 @@ All bodies are JSON. All routes are under a configurable prefix (default
 
 | Operation | Method & path | Success |
 | --- | --- | --- |
-| register | `POST /auth/register` | `202 {status:"accepted"}` (required mode) · `201 {user}` (optional/off) |
+| register | `POST /auth/register` | `202 {status:"accepted"}` (all modes; never sets a cookie) |
 | login | `POST /auth/login` | `200 {user}` + `Set-Cookie` |
 | logout | `POST /auth/logout` | `204` + expired cookie |
 | logoutAll | `POST /auth/logout-all` | `204` + expired cookie |
