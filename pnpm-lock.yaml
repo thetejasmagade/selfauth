@@ -189,6 +189,15 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
 
+  skills:
+    devDependencies:
+      '@selfauth/cli':
+        specifier: workspace:*
+        version: link:../packages/cli
+      '@selfauth/spec':
+        specifier: workspace:*
+        version: link:../packages/spec
+
 packages:
 
   '@babel/code-frame@7.29.7':

@@ -44,7 +44,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   if (project.hasPackageJson) {
     fail("This directory already has a package.json.");
     info(
-      "Adding SelfAuth to an existing project (`selfauth add`) is planned for the next release.",
+      "For an existing Express project use `selfauth add` (`selfauth detect` checks compatibility).",
     );
     if (project.existingAuth.length)
       warn(`Existing authentication packages detected: ${project.existingAuth.join(", ")}`);

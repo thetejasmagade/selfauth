@@ -53,11 +53,25 @@ for you to merge. Files you deleted stay deleted (ADR 0004).
 | --- | --- |
 | `init [dir]` | New project: `--database postgresql\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
 | `add [dir]` | Existing Express project: same options plus `--allow-existing-auth` |
+| `detect [dir]` | Read-only inspection: stack, database, existing auth (packages and source), which command applies and what blocks it |
 | `list` | Supported integrations |
 | `doctor [dir]` | Configuration and production-readiness checks |
 | `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |
+| `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--update`, `--dry-run` |
 | `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates |
 | `db status\|plan\|migrate\|validate\|rollback\|generate` | Migration orchestration over Prisma Migrate |
+
+`detect`, `list`, `doctor` and `validate` take `--json` for agents and scripts.
+
+## Coding agents
+
+```bash
+npx selfauth skill install --agent claude   # or codex, cursor, all
+```
+
+This installs the `selfauth` skill, which makes the agent use these commands
+instead of writing authentication code. Before it reports success, the agent
+must validate the result. See [`integrations/`](../../integrations/README.md).
 
 Generated code is the SelfAuth reference implementation — what passes the
 87-case conformance suite and the browser tests — copied byte for byte
