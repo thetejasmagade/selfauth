@@ -37,7 +37,10 @@ selfauth/
 ├── packages/spec/      Normative specification + requirement tooling (@selfauth/spec)
 ├── packages/migration/ Migration orchestration + SQL safety analysis (@selfauth/migration)
 ├── conformance/        Language-neutral conformance cases and runner (@selfauth/conformance)
-├── apps/playground/    Minimal Express app the reference implementation grows from
+├── apps/playground/    Express reference implementation (memory or PostgreSQL)
+├── apps/playground-vue/   Vue 3 reference frontend
+├── apps/playground-react/ React reference frontend
+├── apps/e2e/            One Playwright spec run against both frontends
 ├── docs/adr/           Architecture decision records
 ├── templates/          (Phase 6/8) Application-owned code templates
 ├── skills/             (Phase 7) Agent skills

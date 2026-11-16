@@ -5,3 +5,5 @@ coverage
 pnpm-lock.yaml
 *.md
 apps/playground/src/generated
+test-results
+playwright-report

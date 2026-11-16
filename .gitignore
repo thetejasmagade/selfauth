@@ -11,3 +11,7 @@ coverage/
 
 # Prisma client is generated (pnpm generate)
 apps/playground/src/generated/
+
+# Playwright output
+test-results/
+playwright-report/
