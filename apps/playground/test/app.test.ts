@@ -1,12 +1,10 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.ts";
 import { EnvError, loadEnv } from "../src/env.ts";
+import { buildTestApp } from "./helpers.ts";
 
-const env = loadEnv({ NODE_ENV: "test", SELFAUTH_APP_BASE_URL: "http://localhost:5173" });
-
-describe("playground app", () => {
-  const app = createApp(env);
+describe("playground app", async () => {
+  const { app } = await buildTestApp();
 
   it("responds to /health", async () => {
     const res = await request(app).get("/health");
@@ -28,10 +26,11 @@ describe("playground app", () => {
     });
   });
 
-  it("rejects bodies over 16 KiB with PAYLOAD_TOO_LARGE (SEC-HTTP-003)", async () => {
+  it("rejects bodies over the configured limit with PAYLOAD_TOO_LARGE (SEC-HTTP-003)", async () => {
     const res = await request(app)
       .post("/health")
       .set("Content-Type", "application/json")
+      .set("X-SelfAuth-CSRF", "1")
       .send(JSON.stringify({ data: "x".repeat(17 * 1024) }));
     expect(res.status).toBe(413);
     expect(res.body.error.code).toBe("PAYLOAD_TOO_LARGE");
@@ -39,25 +38,30 @@ describe("playground app", () => {
 
   it("rejects malformed JSON without echoing parser internals", async () => {
     const res = await request(app)
-      .post("/health")
+      .post("/auth/login")
       .set("Content-Type", "application/json")
+      .set("X-SelfAuth-CSRF", "1")
       .send("{not json");
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe("VALIDATION_FAILED");
     expect(JSON.stringify(res.body)).not.toMatch(/SyntaxError|Unexpected token|at /);
   });
 
-  it("hides internals of unexpected errors (SEC-LOG-002)", async () => {
-    const faulty = createApp(env, {
+  it("hides internals of unexpected errors and redacts the server log (SEC-LOG-002)", async () => {
+    const t = await buildTestApp({
       mount: (a) =>
         a.get("/boom", () => {
-          throw new Error("SELECT * FROM secrets failed at db.ts:12:3");
+          throw new Error(
+            "SELECT * FROM secrets WHERE token='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'",
+          );
         }),
     });
-    const res = await request(faulty).get("/boom");
+    const res = await request(t.app).get("/boom");
     expect(res.status).toBe(500);
     expect(res.body.error.code).toBe("INTERNAL_ERROR");
-    expect(JSON.stringify(res.body)).not.toMatch(/SELECT|db\.ts|Error:/);
+    expect(JSON.stringify(res.body)).not.toMatch(/SELECT|Error:/);
+    expect(t.logs.lines.join("\n")).toContain("unhandled error");
+    expect(t.logs.lines.join("\n")).not.toContain("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   });
 });
 
@@ -81,5 +85,20 @@ describe("loadEnv (SEC-SECRET-003)", () => {
       loadEnv({ NODE_ENV: "production", SELFAUTH_APP_BASE_URL: "https://app.example.test" })
         .appBaseUrl.origin,
     ).toBe("https://app.example.test");
+  });
+
+  it("rejects CSRF secrets shorter than 32 bytes (SEC-SECRET-004)", () => {
+    expect(() =>
+      loadEnv({
+        SELFAUTH_APP_BASE_URL: "http://x.test",
+        SELFAUTH_CSRF_SECRET: Buffer.alloc(16).toString("base64url"),
+      }),
+    ).toThrow(/at least 32/);
+    expect(
+      loadEnv({
+        SELFAUTH_APP_BASE_URL: "http://x.test",
+        SELFAUTH_CSRF_SECRET: Buffer.alloc(32, 1).toString("base64url"),
+      }).csrfSecret?.length,
+    ).toBe(32);
   });
 });

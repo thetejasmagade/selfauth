@@ -107,9 +107,12 @@ System permissions:
 - **[AUTHZ-ADMIN-001]** (MUST) Every administrative operation MUST require its
   system permission and MUST record a security event identifying actor, target,
   and change.
-- **[AUTHZ-ADMIN-002]** (MUST) Assigning a role MUST require `auth.roles.assign`.
-  An actor MUST NOT be able to assign a role that grants a permission the actor
-  does not hold (no privilege escalation by delegation).
+- **[AUTHZ-ADMIN-002]** (MUST) Assigning or removing a role MUST require
+  `auth.roles.assign`. An actor without `auth.roles.manage` MUST NOT be able to
+  assign or remove a role that grants a permission the actor does not hold (no
+  privilege escalation by delegation, and no demoting of more privileged
+  users). Holders of `auth.roles.manage` are exempt because they can already
+  redefine roles.
 - **[AUTHZ-ADMIN-003]** (MUST) The system MUST prevent removing the `admin` role
   from, or suspending/disabling/deleting, the last active user holding it.
 - **[AUTHZ-ADMIN-004]** (SHOULD) Administrative operations SHOULD require recent

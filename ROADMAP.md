@@ -7,7 +7,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M0 — Product and Architecture | Phase 0 | ✅ ADRs 0001–0012, architecture, policies |
 | M1 — Authentication Specification | Phase 1 | 🟡 Draft spec 0.1 + conformance cases — **needs review** |
 | M2 — Monorepo Foundation | Phase 2 | ✅ pnpm + Turborepo + TS + ESLint + Prettier + Vitest + CI + Changesets |
-| M3 — Express Reference Implementation | Phase 3 | ⏳ Playground skeleton only |
+| M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
 | M4 — Database and Migration Adapters | Phase 4 | ⏳ |
 | M5 — Frontend Integrations | Phase 5 | ⏳ |
 | M6 — CLI Generator | Phase 6 | ⏳ |
@@ -34,17 +34,23 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 specification is documented, and the reference application can be developed
 against it.
 
-## Next: Phase 3 (after spec review)
+## Phase 3 — done
 
-Implement the Express reference implementation in `apps/playground` /
-`packages/adapters/express`, built feature-by-feature against requirement IDs:
+- Express reference implementation in `apps/playground/src/auth` (application-owned code).
+- Executable conformance runner in `@selfauth/conformance`; all 87 cases pass.
+- Mutation-tested: deliberately breaking enumeration safety, CSRF, rate limits,
+  session fixation, token single-use, absolute expiry, role escalation,
+  deny-by-default, session revocation, or link building each fails the suite.
+- ADR 0014 (`@node-rs/argon2`), ADR 0015 (own rate limiter, replacing the
+  proposed `rate-limiter-flexible`, which cannot take an injected clock).
 
-1. Choose Argon2 and rate-limit libraries (ADR).
-2. Repository interfaces + in-memory test implementation.
-3. Registration → login → session middleware → logout → logout-all.
-4. Email verification, password reset, password change.
-5. RBAC + `requirePermission` + resource policies.
-6. Executable conformance runner mapping cases to HTTP calls.
+## Next: Phase 4 — database adapters and migrations
+
+1. Prisma schema for the logical model + generated native migrations.
+2. `PrismaAuthStore` implementing `AuthStore`; atomic consume via conditional updates.
+3. Run the same 87 cases against PostgreSQL (CI service container).
+4. Shared rate-limit store (database table) for multi-instance deployments.
+5. Migration safety: manifest, existing-schema detection, no startup migrations.
 
 ## Decisions made after Sprint 1 review
 

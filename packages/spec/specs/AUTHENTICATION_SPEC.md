@@ -282,8 +282,9 @@ This is a deliberate privacy trade-off (§3.1).
 
 - **[AUTHN-VERIFY-001]** (MUST) The outcome MUST be `accepted` and
   indistinguishable whether the email belongs to a `pending` user, an already
-  verified user, or no user ([SEC-ENUM-001]). A token is sent only to a
-  `pending` user.
+  verified user, or no user ([SEC-ENUM-001]). A token is sent only to a user
+  whose email is not yet verified and whose state is `pending` or `active`
+  (the latter occurs in `optional` mode).
 - **[AUTHN-VERIFY-002]** (MUST) Requests MUST be rate limited per normalized
   email and per client address.
 - **[AUTHN-VERIFY-003]** (SHOULD) Issuing a new verification token SHOULD
@@ -372,18 +373,24 @@ All bodies are JSON. All routes are under a configurable prefix (default
 | Operation | Method & path | Success |
 | --- | --- | --- |
 | register | `POST /auth/register` | `202 {status:"accepted"}` by default (never sets a cookie) · `409 EMAIL_TAKEN` with `revealExistingEmail` · `201 {user}` + `Set-Cookie` with `signInAfterRegistration` |
-| login | `POST /auth/login` | `200 {user}` + `Set-Cookie` |
+| login | `POST /auth/login` | `200 {user, csrfToken?}` + `Set-Cookie` |
 | logout | `POST /auth/logout` | `204` + expired cookie |
 | logoutAll | `POST /auth/logout-all` | `204` + expired cookie |
-| getCurrentUser | `GET /auth/me` | `200 {user, session}` |
+| getCurrentUser | `GET /auth/me` | `200 {user, session, csrfToken?}` |
 | listSessions | `GET /auth/sessions` | `200 {sessions}` |
 | revokeSession | `DELETE /auth/sessions/:id` | `204` |
 | requestEmailVerification | `POST /auth/email/verification` | `202 {status:"accepted"}` |
 | verifyEmail | `POST /auth/email/verify` `{token}` | `200 {status:"verified"}` |
-| changePassword | `POST /auth/password/change` | `204` (+ rotated cookie) |
+| changePassword | `POST /auth/password/change` | `200 {status:"changed", csrfToken?}` + rotated cookie |
 | requestPasswordReset | `POST /auth/password/reset-request` | `202 {status:"accepted"}` |
 | resetPassword | `POST /auth/password/reset` `{token, newPassword}` | `204` |
 | deleteAccount | `POST /auth/account/delete` `{currentPassword}` | `204` + expired cookie |
+| setAccountState | `POST /auth/admin/users/:id/state` `{state}` | `204` |
+| assignRole | `POST /auth/admin/users/:id/roles` `{role}` | `204` |
+| removeRole | `DELETE /auth/admin/users/:id/roles/:role` | `204` |
+
+`csrfToken` is present only when `http.csrf.mode` is `token`; clients send it
+back in the CSRF header. In `header` mode clients send `X-SelfAuth-CSRF: 1`.
 
 Email links point to **frontend** pages (e.g. `/verify-email#token=…`,
 `/reset-password#token=…`) that submit the token with `POST`. Putting the token

@@ -6,6 +6,9 @@ export interface Env {
   nodeEnv: "development" | "test" | "production";
   port: number;
   appBaseUrl: URL;
+  /** SELFAUTH_CSRF_SECRET (base64url, ≥ 32 bytes); required for csrf mode "token". */
+  csrfSecret: Buffer | undefined;
+  csrfSecretPrevious: Buffer | undefined;
 }
 
 export class EnvError extends Error {
@@ -42,8 +45,19 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
     }
   }
 
+  const secret = (name: string): Buffer | undefined => {
+    const raw = source[name];
+    if (!raw) return undefined;
+    const bytes = Buffer.from(raw, "base64url");
+    if (bytes.length < 32)
+      problems.push(`${name} must be at least 32 random bytes, base64url-encoded (SEC-SECRET-004)`);
+    return bytes;
+  };
+  const csrfSecret = secret("SELFAUTH_CSRF_SECRET");
+  const csrfSecretPrevious = secret("SELFAUTH_CSRF_SECRET_PREVIOUS");
+
   if (problems.length > 0 || !appBaseUrl) {
     throw new EnvError(`Invalid environment:\n  - ${problems.join("\n  - ")}`);
   }
-  return { nodeEnv: nodeEnv as Env["nodeEnv"], port, appBaseUrl };
+  return { nodeEnv: nodeEnv as Env["nodeEnv"], port, appBaseUrl, csrfSecret, csrfSecretPrevious };
 }

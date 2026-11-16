@@ -18,3 +18,5 @@ Index of Architecture Decision Records (ADRs). Full text lives in
 | [0011](docs/adr/0011-versioning-and-release.md) | Semver via Changesets; independent `specVersion`; `0.x` until stable | Accepted |
 | [0012](docs/adr/0012-contribution-model.md) | DCO sign-off; maintainer review for security-sensitive areas | Accepted |
 | [0013](docs/adr/0013-mit-license.md) | MIT for SelfAuth; generated output also 0BSD | Accepted |
+| [0014](docs/adr/0014-argon2-library-for-node.md) | `@node-rs/argon2` for Node.js adapters | Accepted |
+| [0015](docs/adr/0015-rate-limiter-implementation.md) | Small clock-injectable rate limiter with pluggable store | Accepted |

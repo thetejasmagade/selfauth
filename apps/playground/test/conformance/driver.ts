@@ -1,0 +1,167 @@
+import type { Driver, DriverFactory, HttpRequest } from "@selfauth/conformance";
+import type express from "express";
+import request from "supertest";
+import {
+  knownPermissions,
+  ownerFilter,
+  ownershipPolicy,
+} from "../../src/auth/core/authorization.ts";
+import { PasswordHasher } from "../../src/auth/core/password.ts";
+import type { AccountState } from "../../src/auth/core/store.ts";
+import { normalizeEmail } from "../../src/auth/core/email.ts";
+import type { Auth } from "../../src/auth/index.ts";
+import { buildTestApp } from "../helpers.ts";
+
+/** Hashing fixtures once per password keeps the suite fast. */
+const fixtureHashes = new Map<string, Promise<string>>();
+
+interface FixtureResource {
+  type: string;
+  id: string;
+  ownerId: string;
+}
+
+/** Conformance driver for the Express reference implementation (CONFORMANCE.md). */
+export const createPlaygroundDriver: DriverFactory = async ({ config, environment, given }) => {
+  const resources: FixtureResource[] = [];
+  let lastListFiltered: boolean | undefined;
+
+  const mountHarness = (app: express.Express, auth: Auth) => {
+    const routes = auth.protectedRoutes();
+    const ok: express.RequestHandler = (_req, res) => {
+      res.json({ ok: true });
+    };
+    const known = knownPermissions(config);
+    for (const permission of known) {
+      routes.post(`/permission/${permission}`, auth.requirePermission(permission), ok);
+      routes.post(
+        `/resource/${permission}/:type/:id`,
+        auth.authorizeResource(permission, (req) => ({
+          type: req.params["type"] as string,
+          id: req.params["id"] as string,
+        })),
+        ok,
+      );
+    }
+    routes.post("/unconfigured", ok); // no guard → must be denied (AUTHZ-CORE-001)
+    if (known.has("orders.view")) {
+      routes.get("/list/order", auth.requirePermission("orders.view"), (_req, res) => {
+        const filter = ownerFilter(auth.context(res)!, "orders.view") ?? { ownerId: "" };
+        lastListFiltered = filter.ownerId !== undefined;
+        // The filter is applied by the query, not after loading everything (AUTHZ-RES-006).
+        const ids = resources
+          .filter(
+            (r) =>
+              r.type === "order" && (filter.ownerId === undefined || r.ownerId === filter.ownerId),
+          )
+          .map((r) => r.id);
+        res.json({ ids });
+      });
+    }
+    auth.policies.register(
+      "order",
+      ownershipPolicy(async (id) => {
+        const r = resources.find((x) => x.type === "order" && x.id === id);
+        return r ? { type: r.type, id: r.id, ownerId: r.ownerId } : null;
+      }),
+    );
+    app.get("/__conformance/fault", () => {
+      throw new Error("SELECT * FROM auth_users failed at db.ts:12:3");
+    });
+    app.use("/__conformance", routes.router);
+  };
+
+  const t = await buildTestApp({
+    config,
+    nodeEnv: environment === "production" ? "production" : "test",
+    mount: mountHarness,
+  });
+  const { store, mailer, clock, logs } = t;
+
+  // Fixtures are written directly to storage, as a seed script would.
+  const hasher = new PasswordHasher(config.authentication.password.hashing);
+  const fixtures: Record<string, { id: string }> = {};
+  for (const g of given) {
+    if ("resource" in g) continue;
+    const hashPromise = fixtureHashes.get(g.password) ?? hasher.hash(g.password);
+    fixtureHashes.set(g.password, hashPromise);
+    const now = clock.now();
+    const state = g.state as AccountState;
+    const user = await store.createUser({
+      user: {
+        id: crypto.randomUUID(),
+        email: g.email,
+        emailNormalized: normalizeEmail(g.email),
+        emailVerifiedAt: state === "pending" ? null : now,
+        state: state === "deleted" ? "active" : state,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: null,
+      },
+      passwordHash: await hashPromise,
+      roles: g.roles ?? config.authorization.defaultRoles,
+    });
+    if (state === "deleted") {
+      await store.updateUser(user.id, {
+        state: "deleted",
+        deletedAt: now,
+        email: null,
+        emailNormalized: null,
+      });
+      await store.deleteCredentials(user.id);
+    }
+    fixtures[g.user] = { id: user.id };
+  }
+  for (const g of given) {
+    if (!("resource" in g)) continue;
+    const owner = fixtures[g.resource.owner];
+    if (!owner) throw new Error(`resource owner '${g.resource.owner}' is not a fixture user`);
+    resources.push({ type: g.resource.type, id: g.resource.id, ownerId: owner.id });
+    fixtures[g.resource.id] = { id: g.resource.id };
+  }
+
+  const driver: Driver = {
+    fixtures,
+    async request(req: HttpRequest) {
+      const agent = request(t.app);
+      const method = req.method.toLowerCase() as
+        "get" | "post" | "put" | "patch" | "delete" | "options";
+      let pending = agent[method](req.path);
+      for (const [k, v] of Object.entries(req.headers)) pending = pending.set(k, v);
+      const hasBody = req.body !== undefined && method !== "get" && method !== "options";
+      const res = await (hasBody ? pending.send(req.body as string | object) : pending);
+      const headers: Record<string, string | string[]> = {};
+      for (const [k, v] of Object.entries(res.headers))
+        headers[k.toLowerCase()] = v as string | string[];
+      const setCookie = res.headers["set-cookie"] as string[] | string | undefined;
+      headers["set-cookie"] =
+        setCookie === undefined ? [] : Array.isArray(setCookie) ? setCookie : [setCookie];
+      const body =
+        res.body && typeof res.body === "object" && Object.keys(res.body).length === 0 && !res.text
+          ? null
+          : res.body;
+      return { status: res.status, headers, body };
+    },
+    advanceClock(ms) {
+      clock.advance(ms);
+    },
+    async lastEmail(to) {
+      const mail = mailer.lastTo(to);
+      return mail ? { kind: mail.kind, token: mail.token, link: mail.link } : null;
+    },
+    async inspectStorage(entity) {
+      return store.inspect(entity);
+    },
+    async mutateStorage(entity, where, set) {
+      store.mutate(entity, (r) => Object.entries(where).every(([k, v]) => r[k] === v), set);
+    },
+    async events() {
+      return store.events as unknown as Record<string, unknown>[];
+    },
+    async logs() {
+      return logs.lines;
+    },
+    lastListQueryFiltered: () => lastListFiltered,
+  };
+  return driver;
+};
