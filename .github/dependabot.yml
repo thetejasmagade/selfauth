@@ -7,6 +7,13 @@ updates:
     groups:
       dev-tooling:
         dependency-type: development
+    ignore:
+      # typescript-eslint does not support TypeScript 7 yet (ADR 0005).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Types must match the minimum supported Node.js major (22).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
