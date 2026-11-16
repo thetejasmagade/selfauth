@@ -4,11 +4,12 @@ import { createInterface } from "node:readline/promises";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
 import type { InitAnswers } from "../render.js";
-import type { Database } from "../templates.js";
+import { frontendInfo, type Database, type Frontend } from "../templates.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface InitOptions {
   database?: string;
+  frontend?: string;
   permissions?: string;
   appBaseUrl?: string;
   yes?: boolean;
@@ -17,6 +18,7 @@ export interface InitOptions {
 }
 
 const DATABASES: Database[] = ["postgresql", "memory"];
+const FRONTENDS: Frontend[] = ["none", "vue", "react"];
 
 async function ask(question: string, fallback: string): Promise<string> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -60,6 +62,14 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     );
     return 1;
   }
+  let frontend = options.frontend as Frontend | undefined;
+  if (!frontend && interactive)
+    frontend = (await ask(`Frontend? ${FRONTENDS.join(" | ")}`, "none")) as Frontend;
+  frontend ??= "none";
+  if (!FRONTENDS.includes(frontend)) {
+    fail(`Unsupported frontend '${frontend}'. Supported: ${FRONTENDS.join(", ")}.`);
+    return 1;
+  }
   let permissions = options.permissions;
   if (permissions === undefined && interactive) {
     permissions = await ask(
@@ -74,11 +84,14 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
         .replace(/[^a-z0-9-]+/g, "-")
         .replace(/^-+|-+$/g, "") || "app",
     database,
+    frontend,
     permissions: (permissions ?? "")
       .split(",")
       .map((p) => p.trim())
       .filter(Boolean),
-    appBaseUrl: options.appBaseUrl ?? "http://localhost:5173",
+    appBaseUrl:
+      options.appBaseUrl ??
+      `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`,
   };
 
   let files;
@@ -90,7 +103,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
 
   say(
-    `\nPlan: create ${files.length} files (${database === "postgresql" ? "Express + PostgreSQL/Prisma" : "Express + in-memory store"})`,
+    `\nPlan: create ${files.length} files (Express + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in web/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -133,6 +146,8 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     say("  npm run db:migrate && npm run db:seed");
   }
   say("  npm run dev");
+  if (frontend !== "none")
+    say(`  npm --prefix web install && npm run dev:web   # then open ${answers.appBaseUrl}`);
   say(
     "\nBefore production: implement createMailer() in src/mailer.ts, then run `npx selfauth doctor`.",
   );

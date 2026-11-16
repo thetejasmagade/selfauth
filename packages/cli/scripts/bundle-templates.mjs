@@ -13,7 +13,7 @@ const out = join(pkgDir, "dist", "templates");
 const registry = JSON.parse(readFileSync(join(pkgDir, "src", "registry.json"), "utf8"));
 
 const sources = new Set();
-for (const stack of Object.values(registry.stacks)) {
+for (const stack of [...Object.values(registry.stacks), ...Object.values(registry.frontends)]) {
   for (const f of stack.files) sources.add(f.source);
   if (stack.postgresql?.manifest) sources.add(stack.postgresql.manifest);
 }
@@ -23,7 +23,12 @@ for (const source of sources) {
 }
 
 const versions = {};
-for (const p of ["package.json", "apps/playground/package.json"]) {
+for (const p of [
+  "package.json",
+  "apps/playground/package.json",
+  "apps/playground-vue/package.json",
+  "apps/playground-react/package.json",
+]) {
   const pkg = JSON.parse(readFileSync(join(repo, p), "utf8"));
   Object.assign(versions, pkg.devDependencies, pkg.dependencies);
 }

@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { fileDrift, loadConfig, loadManifest, readEnvFile } from "../project.js";
+import { fileDrift, loadConfig, loadManifest, projectPath, readEnvFile } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface DoctorReport {
@@ -27,7 +27,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
     return report;
   }
 
-  const { config, errors } = await loadConfig(dir);
+  const { config, errors } = await loadConfig(dir, manifest);
   report.errors.push(...errors);
   if (config) {
     const a = config.authentication;
@@ -66,13 +66,13 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
     }
   }
 
-  const mailer = join(dir, "src", "mailer.ts");
+  const mailer = join(dir, projectPath(manifest, "src/mailer.ts"));
   if (
     existsSync(mailer) &&
     (await readFile(mailer, "utf8")).includes("No email provider configured")
   ) {
     report.warnings.push(
-      "no email provider yet: implement createMailer() in src/mailer.ts before production",
+      `no email provider yet: implement createMailer() in ${projectPath(manifest, "src/mailer.ts")} before production`,
     );
   }
   const gitignore = existsSync(join(dir, ".gitignore"))

@@ -29,6 +29,15 @@ export const manifestSchema = z.strictObject({
     types: z.array(z.string()).default([]),
     migrations: z.array(z.string()).default([]),
   }),
+  /** Choices the project was generated with, so `upgrade` can re-plan it. */
+  options: z
+    .strictObject({
+      layout: z.enum(["project", "add"]).default("project"),
+      frontend: z.enum(["none", "vue", "react"]).default("none"),
+      permissions: z.array(z.string()).default([]),
+      appBaseUrl: z.string().optional(),
+    })
+    .optional(),
   /** Generated files and their original hashes, for upgrades and drift detection. */
   files: z.array(manifestFileSchema).optional(),
 });

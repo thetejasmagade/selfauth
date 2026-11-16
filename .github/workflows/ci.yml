@@ -84,11 +84,17 @@ jobs:
       - run: pnpm e2e
 
   generated-project:
-    name: Generated project (${{ matrix.database }})
+    name: Generated project (${{ matrix.database }}, ${{ matrix.mode }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        database: [memory, postgresql]
+        include:
+          - { database: memory, mode: none }
+          - { database: postgresql, mode: none }
+          - { database: memory, mode: vue }
+          - { database: postgresql, mode: react }
+          - { database: memory, mode: add }
     services:
       postgres:
         image: postgres:16
@@ -115,4 +121,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Generate, install, migrate, boot and exercise a project outside the monorepo
-        run: scripts/smoke-generated.sh ${{ matrix.database }}
+        run: scripts/smoke-generated.sh ${{ matrix.database }} ${{ matrix.mode }}

@@ -5,11 +5,20 @@ import { fileURLToPath } from "node:url";
 import registry from "./registry.json" with { type: "json" };
 
 export type Database = "memory" | "postgresql";
+export type Frontend = "none" | "vue" | "react";
+
+export interface Selection {
+  database: Database;
+  frontend: Frontend;
+  /** "add": integrating into an existing project (no app shell, no example routes). */
+  layout?: "project" | "add";
+}
 
 export interface RegistryFile {
   source: string;
   target: string;
-  when?: Database;
+  when?: { database?: Database; frontend?: "none" | "any" };
+  layout?: "project" | "add";
   directory?: boolean;
 }
 
@@ -24,6 +33,14 @@ export interface TemplateSource {
 
 const BUNDLED = fileURLToPath(new URL("./templates/", import.meta.url));
 const REPOSITORY = fileURLToPath(new URL("../../../", import.meta.url));
+
+/** Package manifests whose tested versions generated projects inherit. */
+export const VERSION_SOURCES = [
+  "package.json",
+  "apps/playground/package.json",
+  registry.frontends.vue.versionsFrom,
+  registry.frontends.react.versionsFrom,
+];
 
 async function listFiles(dir: string): Promise<string[]> {
   const out: string[] = [];
@@ -52,18 +69,16 @@ function sourceAt(
   };
 }
 
-/** Versions declared by the reference apps: the generated project gets exactly what was tested. */
 async function repositoryVersions(): Promise<Record<string, string>> {
-  const pkgs = ["package.json", "apps/playground/package.json"].map(
-    async (p) =>
-      JSON.parse(await readFile(join(REPOSITORY, p), "utf8")) as {
-        dependencies?: Record<string, string>;
-        devDependencies?: Record<string, string>;
-      },
-  );
   const all: Record<string, string> = {};
-  for (const pkg of await Promise.all(pkgs))
+  for (const p of VERSION_SOURCES) {
+    const pkg = JSON.parse(await readFile(join(REPOSITORY, p), "utf8")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
     Object.assign(all, pkg.devDependencies, pkg.dependencies);
+  }
+  for (const [name, v] of Object.entries(all)) if (v.startsWith("workspace:")) delete all[name];
   return all;
 }
 
@@ -76,10 +91,21 @@ export function templateSource(): TemplateSource {
   return sourceAt(REPOSITORY, "repository", repositoryVersions);
 }
 
-export function stackFiles(database: Database): RegistryFile[] {
-  return (registry.stacks.express.files as RegistryFile[]).filter(
-    (f) => !f.when || f.when === database,
-  );
+function applies(file: RegistryFile, sel: Selection): boolean {
+  if (file.layout && file.layout !== (sel.layout ?? "project")) return false;
+  const w = file.when;
+  if (!w) return true;
+  if (w.database && w.database !== sel.database) return false;
+  if (w.frontend === "none" && sel.frontend !== "none") return false;
+  if (w.frontend === "any" && sel.frontend === "none") return false;
+  return true;
+}
+
+/** Backend files for a selection, plus the frontend's files under web/. */
+export function stackFiles(sel: Selection): RegistryFile[] {
+  const backend = (registry.stacks.express.files as RegistryFile[]).filter((f) => applies(f, sel));
+  if (sel.frontend === "none") return backend;
+  return [...backend, ...(registry.frontends[sel.frontend].files as RegistryFile[])];
 }
 
 export function stackDependencies(database: Database): {
@@ -95,6 +121,10 @@ export function stackDependencies(database: Database): {
     devDependencies: [...express.devDependencies, ...express.postgresql.devDependencies],
     manifest: express.postgresql.manifest,
   };
+}
+
+export function frontendInfo(frontend: Exclude<Frontend, "none">) {
+  return registry.frontends[frontend];
 }
 
 export { registry };
