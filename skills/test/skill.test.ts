@@ -20,11 +20,24 @@ function walk(dir: string): string[] {
   });
 }
 
-/** Markdown an agent reads: the skill and the integration guides. */
+/**
+ * Markdown people and agents follow: the skill, the integration guides, and the user docs
+ * (installation, API, upgrading). ADRs and the roadmap are historical records, not checked.
+ */
 const docs = [
   ...walk(SKILL),
   ...walk(join(REPO, "integrations")),
-  join(REPO, "skills", "README.md"),
+  ...walk(join(REPO, "docs")).filter((f) => !f.includes(`${join("docs", "adr")}`)),
+  ...[
+    "skills",
+    "templates",
+    "examples",
+    "packages/cli",
+    "packages/spec",
+    "packages/migration",
+    "packages/selfauth",
+    "conformance",
+  ].map((d) => join(REPO, d, "README.md")),
 ].filter((f) => f.endsWith(".md"));
 /** Hand-written docs (generated references are checked against the spec by sync instead). */
 const handWritten = docs.filter((f) => !GENERATED.has(relative(join(SKILL, "references"), f)));

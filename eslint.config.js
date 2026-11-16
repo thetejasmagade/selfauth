@@ -9,6 +9,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/.turbo/**",
       "**/node_modules/**",
+      "templates/**", // generated copies of linted reference files (scripts/sync-templates.mjs)
     ],
   },
   js.configs.recommended,

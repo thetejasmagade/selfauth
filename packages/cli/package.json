@@ -3,6 +3,24 @@
   "version": "0.0.0",
   "description": "SelfAuth CLI: generate project-local authentication you own, and manage its migrations.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thetejasmagade/selfauth.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/thetejasmagade/selfauth/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/thetejasmagade/selfauth/issues"
+  },
+  "keywords": [
+    "selfauth",
+    "authentication",
+    "authorization",
+    "express",
+    "prisma",
+    "generator",
+    "cli"
+  ],
   "type": "module",
   "bin": {
     "selfauth": "./dist/bin.js"
@@ -12,7 +30,8 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./bin": "./dist/bin.js"
   },
   "files": [
     "dist"
@@ -30,5 +49,9 @@
     "@selfauth/spec": "workspace:*",
     "commander": "^15.1.0",
     "diff": "^9.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

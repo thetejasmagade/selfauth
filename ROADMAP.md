@@ -12,7 +12,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M5 — Frontend Integrations | Phase 5 | ✅ Vue 3 and React; one browser spec passes on both |
 | M6 — CLI Generator | Phase 6 | ✅ init (backend + Vue/React), add, diff/upgrade, doctor, validate, db |
 | M7 — LLM Skills | Phase 7 | ✅ |
-| M8 — Manual Distribution | Phase 8 | ⏳ |
+| M8 — Manual Distribution | Phase 8 | ✅ (publishing awaits npm setup) |
 | M9 — Security and Conformance | Phase 9 | ⏳ |
 | M10 — Additional Frameworks | Phase 10 | ⏳ |
 | M11 — Stable Open-source Release | Phase 12 | ⏳ |
@@ -114,11 +114,30 @@ databases (Phase 6 CLI).
   patch, and runs its own tests. Every generated-project job also has to
   print `validate-auth` `RESULT: PASS`.
 
+## Phase 8 — done (publishing awaits the maintainer's npm setup)
+
+- Publish-ready packages: `@selfauth/cli`, `selfauth` (the `npx selfauth`
+  alias), `@selfauth/spec`, `@selfauth/migration` and
+  `@selfauth/conformance`. Each has metadata, a README, a LICENSE and
+  provenance. `scripts/pack-check.sh` installs the tarballs outside the repo,
+  and CI runs the smoke tests with the packaged CLI. A changeset for 0.1.0
+  and `release.yml` are in place (docs/releasing.md).
+- `templates/`: four standalone projects generated from the CLI, with a CI
+  drift check. A CI job runs `templates/express` with no SelfAuth tooling at
+  all.
+- Docs: manual integration; API reference (HTTP, server, client), checked
+  against the code; database schema and migrations; customization;
+  upgrading; releasing.
+- Tested: no generated variant depends on, imports or contacts anything
+  from SelfAuth (ADR 0021).
+
 ## Next
 
-1. Phase 8 — publish packages and manual-integration docs.
-2. Tests inside generated projects (so `validate-auth` can run them instead of
-   reporting `test` as skipped).
+1. Maintainer: create the npm org `selfauth`, reserve `selfauth`, add
+   `NPM_TOKEN`, then merge the release PR (docs/releasing.md).
+2. Phase 9: conformance levels, security review and quality gates. Also tests
+   inside generated projects, so `validate-auth` can run them instead of
+   reporting `test` as skipped.
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`.
 
 ## Decisions made after Sprint 1 review

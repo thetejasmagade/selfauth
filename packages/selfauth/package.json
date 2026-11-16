@@ -1,0 +1,39 @@
+{
+  "name": "selfauth",
+  "version": "0.0.0",
+  "description": "SelfAuth CLI (`npx selfauth`): generate project-local authentication you own. Alias of @selfauth/cli.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thetejasmagade/selfauth.git",
+    "directory": "packages/selfauth"
+  },
+  "homepage": "https://github.com/thetejasmagade/selfauth#readme",
+  "bugs": {
+    "url": "https://github.com/thetejasmagade/selfauth/issues"
+  },
+  "keywords": [
+    "selfauth",
+    "authentication",
+    "authorization",
+    "express",
+    "cli"
+  ],
+  "type": "module",
+  "bin": {
+    "selfauth": "./bin.js"
+  },
+  "files": [
+    "bin.js"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@selfauth/cli": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

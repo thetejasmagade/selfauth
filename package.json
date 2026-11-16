@@ -1,7 +1,7 @@
 {
   "name": "selfauth-monorepo",
   "private": true,
-  "description": "SelfAuth \u2014 project-local authentication and authorization code generation. Authentication. Fully yours.",
+  "description": "SelfAuth — project-local authentication and authorization code generation. Authentication. Fully yours.",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
@@ -17,7 +17,11 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "changeset": "changeset",
-    "e2e": "pnpm --filter @selfauth/e2e e2e"
+    "e2e": "pnpm --filter @selfauth/e2e e2e",
+    "version-packages": "changeset version && pnpm install --lockfile-only && pnpm build && node scripts/sync-versions.mjs",
+    "release": "pnpm build && scripts/pack-check.sh && changeset publish",
+    "templates:sync": "node scripts/sync-templates.mjs",
+    "templates:check": "node scripts/sync-templates.mjs --check"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

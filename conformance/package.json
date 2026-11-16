@@ -3,6 +3,21 @@
   "version": "0.0.0",
   "description": "Language-neutral SelfAuth conformance cases and requirement-coverage tooling.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thetejasmagade/selfauth.git",
+    "directory": "conformance"
+  },
+  "homepage": "https://github.com/thetejasmagade/selfauth/tree/main/conformance#readme",
+  "bugs": {
+    "url": "https://github.com/thetejasmagade/selfauth/issues"
+  },
+  "keywords": [
+    "selfauth",
+    "authentication",
+    "conformance",
+    "testing"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -33,5 +48,9 @@
   "dependencies": {
     "@selfauth/spec": "workspace:*",
     "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

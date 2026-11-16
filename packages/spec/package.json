@@ -3,6 +3,22 @@
   "version": "0.0.0",
   "description": "SelfAuth language-neutral authentication & authorization specification, requirement tooling, and configuration schema.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thetejasmagade/selfauth.git",
+    "directory": "packages/spec"
+  },
+  "homepage": "https://github.com/thetejasmagade/selfauth/tree/main/packages/spec#readme",
+  "bugs": {
+    "url": "https://github.com/thetejasmagade/selfauth/issues"
+  },
+  "keywords": [
+    "selfauth",
+    "authentication",
+    "authorization",
+    "specification",
+    "conformance"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -26,5 +42,9 @@
   },
   "dependencies": {
     "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

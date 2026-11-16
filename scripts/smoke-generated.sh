@@ -2,18 +2,21 @@
 # Generates a project with the CLI outside the monorepo, installs it from npm,
 # and proves it works: typecheck, build, migrations (PostgreSQL), and a real
 # sign-up → email verification → login → protected route flow.
-#   scripts/smoke-generated.sh memory [none|vue|react|add]
-#   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react]
+#   scripts/smoke-generated.sh memory [none|vue|react|add|manual]
+#   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react|manual]
 # The second argument adds a frontend (installed, typechecked and built), or
-# runs `selfauth add` against an existing Express app instead of `init`.
+# runs `selfauth add` against an existing Express app instead of `init`, or
+# (manual) copies templates/express by hand and never runs any SelfAuth tool:
+# plain npm and Prisma, as in docs/manual-integration.md.
 # Each run also follows the agent skill's workflow: the skill is installed
 # with `selfauth skill install`, and its detect-project / validate-auth scripts
 # (the installed copies) must recommend the right command and pass.
 set -euo pipefail
-DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add]}"
+DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add|manual]}"
 MODE="${2:-none}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-CLI="$REPO/packages/cli/dist/bin.js"
+# SELFAUTH_SMOKE_CLI: run a packaged CLI (scripts/pack-check.sh) instead of the workspace build.
+CLI="${SELFAUTH_SMOKE_CLI:-$REPO/packages/cli/dist/bin.js}"
 WORK="$(mktemp -d)"
 APP="$WORK/app"
 PORT="${SMOKE_PORT:-3950}"
@@ -47,6 +50,17 @@ if [[ "$MODE" == "add" ]]; then
   printf 'NODE_ENV=development\nSELFAUTH_APP_BASE_URL=http://localhost:5173\n' > .env
   expect "existing tests still pass, plus the new one" "$(npm test 2>&1)" "# pass 4"
   START=(node --env-file=.env src/server.ts)
+elif [[ "$MODE" == "manual" ]]; then
+  step "manual installation: copy templates/express, no SelfAuth tooling ($DB)"
+  CLI=/nonexistent/selfauth-must-not-be-used
+  cp -r "$REPO/templates/express" "$APP"
+  cd "$APP"
+  if grep -q '@selfauth/\|"selfauth"' package.json; then echo "FAIL template depends on SelfAuth"; exit 1; fi
+  npm install --no-audit --no-fund --loglevel=error
+  npm run -s typecheck
+  npm run -s build
+  cp .env.example .env
+  START=(node --env-file=.env dist/server.js)
 else
   step "selfauth init ($DB, frontend: $MODE)"
   node "$CLI" skill install "$APP" --agent claude > /dev/null
@@ -70,7 +84,13 @@ else
   cp .env.example .env
   START=(node --env-file=.env dist/server.js)
 fi
-if [[ "$DB" == "postgresql" ]]; then
+if [[ "$DB" == "postgresql" && "$MODE" == "manual" ]]; then
+  : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
+  sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" .env
+  step "migrate with Prisma directly, seed roles"
+  npm run -s db:migrate
+  npm run -s db:seed
+elif [[ "$DB" == "postgresql" ]]; then
   : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
   sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" .env
   step "selfauth db plan / migrate / validate"
@@ -81,8 +101,10 @@ if [[ "$DB" == "postgresql" ]]; then
   node "$CLI" validate
 fi
 
-step "selfauth doctor"
-node "$CLI" doctor
+if [[ "$MODE" != "manual" ]]; then
+  step "selfauth doctor"
+  node "$CLI" doctor
+fi
 
 step "boot and exercise the API"
 PORT="$PORT" "${START[@]}" > server.log 2>&1 &
@@ -107,14 +129,16 @@ fi
 if [[ "$MODE" == "add" ]]; then
   expect "existing route untouched" "$(curl -s "localhost:$PORT/api/products")" '"Coffee"'
 fi
-step "agent skill: validate-auth (static checks, project scripts, live probes)"
-PROTECTED=/api/hello
-[[ "$MODE" == "vue" || "$MODE" == "react" ]] && PROTECTED=/api/notes
-[[ "$MODE" == "add" ]] && PROTECTED=/api/account
-VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
-echo "$VALIDATION"
-expect "validate-auth passes" "$VALIDATION" "RESULT: PASS"
-expect "skill reports SelfAuth installed" "$(skill detect-project.ts .)" "**Recommendation: upgrade**"
+if [[ "$MODE" != "manual" ]]; then
+  step "agent skill: validate-auth (static checks, project scripts, live probes)"
+  PROTECTED=/api/hello
+  [[ "$MODE" == "vue" || "$MODE" == "react" ]] && PROTECTED=/api/notes
+  [[ "$MODE" == "add" ]] && PROTECTED=/api/account
+  VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
+  echo "$VALIDATION"
+  expect "validate-auth passes" "$VALIDATION" "RESULT: PASS"
+  expect "skill reports SelfAuth installed" "$(skill detect-project.ts .)" "**Recommendation: upgrade**"
+fi
 
 step "CSRF and logout"
 expect "CSRF enforced" "$(curl -s -b jar -X POST "localhost:$PORT/auth/logout-all")" CSRF_FAILED

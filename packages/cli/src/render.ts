@@ -238,7 +238,7 @@ deploy it. Nothing here calls a SelfAuth service.
 \`\`\`bash
 npm install
 cp .env.example .env${pg ? "            # then set DATABASE_URL" : ""}
-${pg ? "npx selfauth db plan          # review the migration\nnpm run db:migrate\nnpm run db:seed               # roles from src/selfauth.config.ts\n" : ""}npm run dev${web ? "                   # API on :3000\nnpm --prefix web install && npm run dev:web   # " + answers.frontend + " app, proxies /auth and /api" : ""}
+${pg ? "npx selfauth db plan          # optional: review the migration for destructive changes\nnpm run db:migrate\nnpm run db:seed               # roles from src/selfauth.config.ts\n" : ""}npm run dev${web ? "                   # API on :3000\nnpm --prefix web install && npm run dev:web   # " + answers.frontend + " app, proxies /auth and /api" : ""}
 \`\`\`
 ${web ? `\nOpen ${answers.appBaseUrl}. The frontend lives in \`web/\` (${answers.frontend}); its \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`src/example/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\`. If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
@@ -255,11 +255,14 @@ verification, password reset/change, sessions, admin). Add your own routes in
 Browsers must send \`X-SelfAuth-CSRF: 1\` on state-changing requests (or use
 the SelfAuth frontend client).
 ${pg ? "\nCreate the first administrator after registering: `npm run db:create-admin you@example.com`.\n" : ""}
-## Checks
+## Checks (optional)
+
+The SelfAuth CLI is a development tool; the app never needs it to run.
 
 \`\`\`bash
 npx selfauth doctor     # configuration and production-readiness warnings
 npx selfauth validate   # configuration schema + which generated files you changed
+npx selfauth diff       # what a newer SelfAuth release would change
 \`\`\`
 `;
 }

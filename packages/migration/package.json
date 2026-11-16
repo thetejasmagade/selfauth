@@ -3,6 +3,21 @@
   "version": "0.0.0",
   "description": "SelfAuth migration orchestration: adapter contract, SQL safety analysis, ownership manifest, and a Prisma adapter that drives native Prisma Migrate.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thetejasmagade/selfauth.git",
+    "directory": "packages/migration"
+  },
+  "homepage": "https://github.com/thetejasmagade/selfauth/tree/main/packages/migration#readme",
+  "bugs": {
+    "url": "https://github.com/thetejasmagade/selfauth/issues"
+  },
+  "keywords": [
+    "selfauth",
+    "migrations",
+    "prisma",
+    "postgresql"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -24,5 +39,9 @@
   },
   "dependencies": {
     "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
