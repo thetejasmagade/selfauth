@@ -10,7 +10,8 @@ import { PasswordHasher } from "../../src/auth/core/password.ts";
 import type { AccountState } from "../../src/auth/core/store.ts";
 import { normalizeEmail } from "../../src/auth/core/email.ts";
 import type { Auth } from "../../src/auth/index.ts";
-import { buildTestApp } from "../helpers.ts";
+import type { PrismaAuthStore } from "../../src/auth/stores/prisma.ts";
+import { buildTestApp, type StoreKind } from "../helpers.ts";
 
 /** Hashing fixtures once per password keeps the suite fast. */
 const fixtureHashes = new Map<string, Promise<string>>();
@@ -21,8 +22,55 @@ interface FixtureResource {
   ownerId: string;
 }
 
+type Row = Record<string, unknown>;
+
+/** Logical entities (DATA_MODEL.md) read back from PostgreSQL for `inspectStorage`. */
+async function inspectPrisma(store: PrismaAuthStore, entity: string): Promise<Row[]> {
+  const db = store.db;
+  switch (entity) {
+    case "user": {
+      const users = await db.authUser.findMany({
+        include: { roles: { include: { role: true } } },
+        orderBy: { createdAt: "asc" },
+      });
+      return users.map(({ roles, ...u }) => ({ ...u, roles: roles.map((r) => r.role.name) }));
+    }
+    case "credential":
+      return db.authCredential.findMany({ orderBy: { createdAt: "asc" } });
+    case "session":
+      return db.authSession.findMany({ orderBy: { createdAt: "asc" } });
+    case "passwordResetToken":
+      return db.authPasswordResetToken.findMany({ orderBy: { createdAt: "asc" } });
+    case "emailVerificationToken":
+      return db.authEmailVerificationToken.findMany({ orderBy: { createdAt: "asc" } });
+    default:
+      throw new Error(`unknown entity '${entity}'`);
+  }
+}
+
+async function mutatePrisma(
+  store: PrismaAuthStore,
+  entity: string,
+  where: Row,
+  set: Row,
+): Promise<void> {
+  if (entity !== "user" && entity !== "session")
+    throw new Error(`mutateStorage: unsupported entity '${entity}'`);
+  // Test-only escape hatch: field names come from the case and are checked by Prisma at runtime.
+  if (entity === "user")
+    await store.db.authUser.updateMany({ where: where as never, data: set as never });
+  else await store.db.authSession.updateMany({ where: where as never, data: set as never });
+}
+
 /** Conformance driver for the Express reference implementation (CONFORMANCE.md). */
-export const createPlaygroundDriver: DriverFactory = async ({ config, environment, given }) => {
+export function playgroundDriver(storeKind: StoreKind): DriverFactory {
+  return (options) => createPlaygroundDriver(storeKind, options);
+}
+
+const createPlaygroundDriver = async (
+  storeKind: StoreKind,
+  { config, environment, given }: Parameters<DriverFactory>[0],
+): Promise<Driver> => {
   const resources: FixtureResource[] = [];
   let lastListFiltered: boolean | undefined;
 
@@ -75,6 +123,7 @@ export const createPlaygroundDriver: DriverFactory = async ({ config, environmen
     config,
     nodeEnv: environment === "production" ? "production" : "test",
     mount: mountHarness,
+    store: storeKind,
   });
   const { store, mailer, clock, logs } = t;
 
@@ -150,14 +199,22 @@ export const createPlaygroundDriver: DriverFactory = async ({ config, environmen
       return mail ? { kind: mail.kind, token: mail.token, link: mail.link } : null;
     },
     async inspectStorage(entity) {
-      return store.inspect(entity);
+      if (t.memory) return t.memory.inspect(entity);
+      return inspectPrisma(t.prisma!, entity);
     },
     async mutateStorage(entity, where, set) {
-      store.mutate(entity, (r) => Object.entries(where).every(([k, v]) => r[k] === v), set);
+      if (t.memory) {
+        t.memory.mutate(entity, (r) => Object.entries(where).every(([k, v]) => r[k] === v), set);
+      } else {
+        await mutatePrisma(t.prisma!, entity, where, set);
+      }
     },
     async events() {
-      return store.events as unknown as Record<string, unknown>[];
+      if (t.memory) return t.memory.events as unknown as Record<string, unknown>[];
+      const events = await t.prisma!.db.authSecurityEvent.findMany({ orderBy: { seq: "asc" } });
+      return events.map(({ seq: _seq, ...e }) => e);
     },
+    close: t.close,
     async logs() {
       return logs.lines;
     },

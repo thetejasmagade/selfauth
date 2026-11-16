@@ -13,8 +13,9 @@ SelfAuth is **not** a hosted identity provider, auth server, or runtime SDK.
 Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
-> **Status: pre-alpha (Sprint 1).** The specification and repository foundation
-> exist; no generator or adapter is usable yet. See [`ROADMAP.md`](ROADMAP.md).
+> **Status: pre-alpha.** The specification, conformance suite, and an Express +
+> PostgreSQL reference implementation exist; the generator (CLI) does not yet.
+> See [`ROADMAP.md`](ROADMAP.md).
 
 ## Principles
 
@@ -34,7 +35,8 @@ disappears.
 ```text
 selfauth/
 ├── packages/spec/      Normative specification + requirement tooling (@selfauth/spec)
-├── conformance/        Language-neutral conformance cases (@selfauth/conformance)
+├── packages/migration/ Migration orchestration + SQL safety analysis (@selfauth/migration)
+├── conformance/        Language-neutral conformance cases and runner (@selfauth/conformance)
 ├── apps/playground/    Minimal Express app the reference implementation grows from
 ├── docs/adr/           Architecture decision records
 ├── templates/          (Phase 6/8) Application-owned code templates
@@ -51,7 +53,8 @@ Start with:
 
 ## Development
 
-Requires Node.js ≥ 22 and pnpm 10 (`corepack enable`).
+Requires Node.js ≥ 22 and pnpm 10 (`corepack enable`). PostgreSQL tests run
+when `TEST_DATABASE_URL` is set (CI always runs them).
 
 ```bash
 pnpm install

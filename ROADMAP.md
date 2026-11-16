@@ -8,7 +8,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M1 — Authentication Specification | Phase 1 | 🟡 Draft spec 0.1 + conformance cases — **needs review** |
 | M2 — Monorepo Foundation | Phase 2 | ✅ pnpm + Turborepo + TS + ESLint + Prettier + Vitest + CI + Changesets |
 | M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
-| M4 — Database and Migration Adapters | Phase 4 | ⏳ |
+| M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
 | M5 — Frontend Integrations | Phase 5 | ⏳ |
 | M6 — CLI Generator | Phase 6 | ⏳ |
 | M7 — LLM Skills | Phase 7 | ⏳ |
@@ -44,13 +44,31 @@ against it.
 - ADR 0014 (`@node-rs/argon2`), ADR 0015 (own rate limiter, replacing the
   proposed `rate-limiter-flexible`, which cannot take an injected clock).
 
-## Next: Phase 4 — database adapters and migrations
+## Phase 4 — done (PostgreSQL)
 
-1. Prisma schema for the logical model + generated native migrations.
-2. `PrismaAuthStore` implementing `AuthStore`; atomic consume via conditional updates.
-3. Run the same 87 cases against PostgreSQL (CI service container).
-4. Shared rate-limit store (database table) for multi-instance deployments.
-5. Migration safety: manifest, existing-schema detection, no startup migrations.
+- Prisma 7 schema and a committed, reviewable initial migration
+  (`apps/playground/prisma`), ownership manifest `selfauth.manifest.json`.
+- `PrismaAuthStore` + shared `PrismaRateLimitStore` (row-locked, atomic across instances).
+- All 87 conformance cases pass on PostgreSQL as well as in memory; CI runs a Postgres service.
+- `@selfauth/migration`: adapter contract, destructive/non-owned SQL detection,
+  pre-existing-object conflict detection, P3005 baselining guidance; tested
+  against real Prisma Migrate on fresh databases, existing Prisma projects with
+  data, and conflicting tables.
+- Developer commands: `db:plan`, `db:migrate`, `db:status`, `db:validate`,
+  `db:seed`, `db:create-admin`, `db:rollback` (guidance).
+- ADR 0016.
+
+Deferred: MongoDB + Mongoose (after the PostgreSQL path has been used in
+anger, per the MVP plan); automatic baselining of existing non-Prisma
+databases (Phase 6 CLI).
+
+## Next: Phase 5 — frontend integrations
+
+1. Vue 3 package: auth state composable, current user, login/registration
+   helpers, CSRF header handling, protected-route guard, permission helpers.
+2. Example Vue app against the playground API; Playwright E2E tests.
+3. React equivalents if they do not delay the Vue slice.
+4. Frontend pages for email links (token in fragment, POST, `Referrer-Policy`), closing SEC-TOKEN-005.
 
 ## Decisions made after Sprint 1 review
 

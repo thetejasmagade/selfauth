@@ -9,7 +9,8 @@ has no runtime dependency on SelfAuth packages.
 
 - All **87 conformance cases** pass (`test/conformance/`), plus unit and
   adapter tests.
-- Storage: **in-memory only**. PostgreSQL + Prisma arrive in Phase 4.
+- Storage: **PostgreSQL via Prisma** when `DATABASE_URL` is set, otherwise
+  in-memory. All 87 cases pass on both.
 - Email: `DevConsoleMailer` prints links in development and refuses to run in
   production. Supply your own `Mailer` for real delivery.
 - The playground server refuses `NODE_ENV=production`.
@@ -17,9 +18,23 @@ has no runtime dependency on SelfAuth packages.
 ## Run it
 
 ```bash
-cp .env.example .env
+cp .env.example .env            # set DATABASE_URL for PostgreSQL, or remove it for memory
+pnpm --filter @selfauth/playground generate
+pnpm --filter @selfauth/playground db:plan      # review pending migrations
+pnpm --filter @selfauth/playground db:migrate   # apply (refuses destructive changes unless --approve-destructive)
+pnpm --filter @selfauth/playground db:seed      # sync roles from selfauth.config.ts
 pnpm --filter @selfauth/playground dev
+pnpm --filter @selfauth/playground db:create-admin you@example.com   # after registering
 ```
+
+The server never migrates or seeds on startup. Other commands: `db:status`,
+`db:validate` (schema + ownership manifest), `db:migrate:create <name>`
+(new migration from schema.prisma changes, not applied), `db:rollback`
+(recovery guidance — Prisma has no automatic down migrations).
+
+Integrating into an existing database that has tables but no Prisma
+migration history requires a baseline first (Prisma error P3005);
+`db:migrate` prints the steps.
 
 Locally the session cookie is `dev_session` without `Secure` (plain http);
 production configuration uses `__Host-session` with `Secure`.
@@ -51,6 +66,7 @@ src/auth/
 │   ├── store.ts         persistence contract (implemented per database)
 │   ├── mailer.ts, logger.ts, crypto.ts, email.ts, clock.ts, errors.ts
 ├── stores/memory.ts in-memory store (dev/test)
+├── stores/prisma.ts PostgreSQL store + shared rate-limit store
 ├── express/index.ts cookies, CSRF, CORS, session middleware, guards, routes
 └── index.ts         createAuth(), syncRoles()
 src/example/notes.ts example app module using guards and ownership
@@ -67,7 +83,7 @@ auth.policies.register("note", ownershipPolicy(loadNote));
 
 ## Known limitations
 
-- Single-process only (memory store and memory rate-limit store).
+- The in-memory store is single-process only; use PostgreSQL for more than one instance.
 - The bundled common-password list is a small starter list; replace it with a
   larger offline list.
 - Registration in `off` mode sends the "account exists" notice only on the
