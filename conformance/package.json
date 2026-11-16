@@ -2,7 +2,7 @@
   "name": "@selfauth/conformance",
   "version": "0.0.0",
   "description": "Language-neutral SelfAuth conformance cases and requirement-coverage tooling.",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": {

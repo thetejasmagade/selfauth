@@ -2,7 +2,7 @@
   "name": "@selfauth/spec",
   "version": "0.0.0",
   "description": "SelfAuth language-neutral authentication & authorization specification, requirement tooling, and configuration schema.",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": {

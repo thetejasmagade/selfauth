@@ -36,8 +36,8 @@ Useful commands: `pnpm build`, `pnpm test`, `pnpm lint`, `pnpm typecheck`,
 - Changing a published package? Add a changeset: `pnpm changeset`.
 - Sign off your commits (`git commit -s`) to certify the
   [Developer Certificate of Origin](https://developercertificate.org/).
-- Template contributions are distributed under both Apache-2.0 and 0BSD
-  (ADR 0010).
+- Contributions are licensed under MIT; template contributions under both MIT
+  and 0BSD (ADR 0013).
 
 ## Writing specification requirements
 

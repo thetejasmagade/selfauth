@@ -6,7 +6,7 @@
 ## Decision
 
 - Contributions are accepted via pull request under the project licence
-  (ADR 0010), using the **Developer Certificate of Origin** (`git commit -s`)
+  (ADR 0013), using the **Developer Certificate of Origin** (`git commit -s`)
   rather than a CLA.
 - Security-sensitive areas (spec, password/session/token handling, migrations)
   require review by a maintainer, plus the conformance suite passing.

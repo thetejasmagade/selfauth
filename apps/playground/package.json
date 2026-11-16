@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Minimal Express application that the SelfAuth Express reference implementation is developed in (Phase 3).",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
