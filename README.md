@@ -14,11 +14,12 @@ Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
 > **Status: pre-alpha.** Spec, conformance suite, Express + PostgreSQL backend,
-> Vue/React frontends, and a CLI that generates the backend into a new project.
-> See [`ROADMAP.md`](ROADMAP.md).
+> Vue/React frontends, a CLI (`init`, `add`, `upgrade`, migrations), and a
+> `selfauth` skill for coding agents. See [`ROADMAP.md`](ROADMAP.md).
 
 ```bash
 node packages/cli/dist/bin.js init my-app --database postgresql   # after pnpm build
+node packages/cli/dist/bin.js skill install my-app --agent claude  # let your agent drive it
 ```
 
 ## Principles
@@ -48,9 +49,9 @@ selfauth/
 ├── apps/e2e/            One Playwright spec run against both frontends
 ├── docs/adr/           Architecture decision records
 ├── templates/          (Phase 6/8) Application-owned code templates
-├── skills/             (Phase 7) Agent skills
-├── integrations/       (Phase 7) Agent-tool integrations
-└── examples/           (Phase 3+) Example applications
+├── skills/selfauth/    The `selfauth` agent skill (Claude Code, Codex, Cursor)
+├── integrations/       How to install the skill for each agent
+└── examples/           Sample projects (existing-express-app: skill acceptance)
 ```
 
 Start with:

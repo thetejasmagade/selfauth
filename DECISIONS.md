@@ -24,3 +24,4 @@ Index of Architecture Decision Records (ADRs). Full text lives in
 | [0017](docs/adr/0017-frontend-integration.md) | App-owned frontend client + thin framework layers; cookies only; UX-only guards | Accepted |
 | [0018](docs/adr/0018-templates-are-the-reference-implementations.md) | Templates are the tested reference files, copied byte for byte; manifest hashes every file | Accepted |
 | [0019](docs/adr/0019-adding-to-existing-projects.md) | `selfauth add`: new files only under src/selfauth/, printed wiring, strict preflight | Accepted |
+| [0020](docs/adr/0020-agent-skill.md) | `selfauth` agent skill: Agent Skills format, drives the CLI (`detect --json`), spec-synced references, validation must print PASS | Accepted |

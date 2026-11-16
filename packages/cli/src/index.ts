@@ -14,3 +14,9 @@ export {
 export { buildManifest, templateFiles } from "./plan.js";
 export { planAdd, addLayoutPath } from "./plan.js";
 export { preflightAdd, REQUIRED_COMPILER_OPTIONS } from "./preflight.js";
+export { inspect, type DetectReport } from "./commands/detect.js";
+export { findAuthSignals, type AuthSignal } from "./auth-signals.js";
+export { runValidation, type ValidationReport } from "./commands/validate.js";
+export { INTEGRATIONS, PLANNED, type Integration } from "./commands/list.js";
+export { AGENT_SKILL_DIRS, planSkillInstall, skillFiles, skillRoot } from "./commands/skill.js";
+export { CLI_VERSION } from "./version.js";

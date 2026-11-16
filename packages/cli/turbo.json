@@ -1,0 +1,26 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/playground/**",
+        "$TURBO_ROOT$/apps/playground-vue/**",
+        "$TURBO_ROOT$/apps/playground-react/**",
+        "$TURBO_ROOT$/skills/selfauth/**"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/playground/**",
+        "$TURBO_ROOT$/apps/playground-vue/**",
+        "$TURBO_ROOT$/apps/playground-react/**",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/packages/spec/specs/**"
+      ],
+      "dependsOn": ["^build", "generate", "build"]
+    }
+  }
+}

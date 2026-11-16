@@ -2,9 +2,11 @@
 import { Command } from "commander";
 import { add } from "./commands/add.js";
 import { db } from "./commands/db.js";
+import { detect } from "./commands/detect.js";
 import { doctor } from "./commands/doctor.js";
 import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
+import { skillInstall } from "./commands/skill.js";
 import { diffCommand, upgrade } from "./commands/upgrade.js";
 import { validate } from "./commands/validate.js";
 import { CLI_VERSION } from "./version.js";
@@ -51,19 +53,30 @@ program
   .action(async (dir: string | undefined, opts) => exit(await add(dir, opts)));
 
 program
+  .command("detect [dir]")
+  .description(
+    "inspect a project: stack, existing auth, and which SelfAuth command applies (reads only)",
+  )
+  .option("--json", "machine-readable output (for agents)")
+  .action(async (dir: string | undefined, opts) => exit(await detect(dir, opts)));
+
+program
   .command("list")
   .description("list supported integrations")
-  .action(() => exit(list()));
+  .option("--json", "machine-readable output (for agents)")
+  .action((opts) => exit(list(opts)));
 
 program
   .command("doctor [dir]")
   .description("check configuration and production readiness")
-  .action(async (dir: string | undefined) => exit(await doctor(dir)));
+  .option("--json", "machine-readable output (for agents)")
+  .action(async (dir: string | undefined, opts) => exit(await doctor(dir, opts)));
 
 program
   .command("validate [dir]")
   .description("validate configuration, generated files and the database schema manifest")
-  .action(async (dir: string | undefined) => exit(await validate(dir)));
+  .option("--json", "machine-readable output (for agents)")
+  .action(async (dir: string | undefined, opts) => exit(await validate(dir, opts)));
 
 program
   .command("diff [dir]")
@@ -76,6 +89,16 @@ program
   .option("-y, --yes", "apply without asking")
   .option("--dry-run", "show the plan without writing")
   .action(async (dir: string | undefined, opts) => exit(await upgrade(dir, opts)));
+
+program
+  .command("skill")
+  .description("the `selfauth` skill for coding agents (Claude Code, Codex, Cursor)")
+  .command("install [dir]")
+  .description("copy the skill into the project where your agent finds it")
+  .option("--agent <list>", "claude | codex | cursor | all (comma-separated)", "claude")
+  .option("--update", "replace skill files that differ from this CLI's version")
+  .option("--dry-run", "show what would be written")
+  .action(async (dir: string | undefined, opts) => exit(await skillInstall(dir, opts)));
 
 const dbCmd = program
   .command("db")

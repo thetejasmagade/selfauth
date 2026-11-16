@@ -1,0 +1,17 @@
+{
+  "name": "@selfauth/skills",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The selfauth agent skill (Claude Code, Codex, Cursor) and its tests.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-references.mjs",
+    "test": "node scripts/sync-references.mjs --check && vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@selfauth/cli": "workspace:*",
+    "@selfauth/spec": "workspace:*"
+  }
+}

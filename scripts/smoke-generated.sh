@@ -6,16 +6,22 @@
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react]
 # The second argument adds a frontend (installed, typechecked and built), or
 # runs `selfauth add` against an existing Express app instead of `init`.
+# Each run also follows the agent skill's workflow: the skill is installed
+# with `selfauth skill install`, and its detect-project / validate-auth scripts
+# (the installed copies) must recommend the right command and pass.
 set -euo pipefail
 DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add]}"
 MODE="${2:-none}"
-CLI="$(cd "$(dirname "$0")/.." && pwd)/packages/cli/dist/bin.js"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+CLI="$REPO/packages/cli/dist/bin.js"
 WORK="$(mktemp -d)"
 APP="$WORK/app"
 PORT="${SMOKE_PORT:-3950}"
 trap 'kill "${SERVER:-0}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
 step() { printf '\n== %s\n' "$*"; }
+# The installed skill's scripts, run as an agent would (SELFAUTH_CLI: this build, not npm).
+skill() { SELFAUTH_CLI="$CLI" node "$APP/.claude/skills/selfauth/scripts/$1" "${@:2}"; }
 expect() { # expect <label> <haystack> <needle>
   if [[ "$2" != *"$3"* ]]; then echo "FAIL $1: expected '$3' in: $2"; exit 1; fi
   echo "ok   $1"
@@ -23,48 +29,28 @@ expect() { # expect <label> <haystack> <needle>
 
 if [[ "$MODE" == "add" ]]; then
   step "existing Express app + selfauth add ($DB)"
-  mkdir -p "$APP/src"
+  # examples/existing-express-app: a small shop API with its own test suite.
+  mkdir -p "$APP"
+  cp -r "$REPO/examples/existing-express-app/." "$APP"
   cd "$APP"
-  cat > package.json <<'JSON'
-{ "name": "existing-app", "private": true, "type": "module",
-  "dependencies": { "express": "^5.3.0" },
-  "devDependencies": { "typescript": "~6.0.3", "@types/express": "^5.0.6", "@types/node": "^22.20.5" } }
-JSON
-  cat > tsconfig.json <<'JSON'
-{
-  // the app's own settings
-  "compilerOptions": { "target": "ES2023", "module": "NodeNext", "moduleResolution": "NodeNext",
-    "types": ["node"], "strict": true, "skipLibCheck": true, "noEmit": true },
-  "include": ["src"]
-}
-JSON
-  printf '.env\nnode_modules/\n' > .gitignore
   npm install --no-audit --no-fund --loglevel=error
+  expect "existing tests pass before" "$(npm test 2>&1)" "# pass 3"
+  step "agent skill: install, detect"
+  node "$CLI" skill install . --agent claude > /dev/null
+  expect "skill recommends add" "$(skill detect-project.ts .)" "**Recommendation: add**"
   node "$CLI" add . --database "$DB" --yes --install > add.log
   cat add.log | sed -n '/Finish the integration/,$p'
-  # Apply the printed instructions, exactly as a developer would.
-  sed -i 's#"noEmit": true }#"noEmit": true, "allowImportingTsExtensions": true, "rewriteRelativeImportExtensions": true }#' tsconfig.json
-  cat > src/server.ts <<'TS'
-import express from "express";
-import { setupSelfAuth } from "./selfauth/setup.ts";
-
-const app = express();
-app.use(express.json());
-const selfauth = await setupSelfAuth(app);
-app.get("/api/legacy", (_req, res) => {
-  res.json({ legacy: true });
-});
-app.get("/api/hello", selfauth.auth.requireAuth, (_req, res) => {
-  res.json({ hello: selfauth.auth.context(res)!.user.email });
-});
-app.use(selfauth.errorHandler);
-app.listen(Number(process.env["PORT"] ?? 3000));
-TS
+  # The edits an agent makes after `add` (wiring, one protected route, tsconfig, .env loading),
+  # kept as a reviewable patch next to the example.
+  patch -p1 < "$REPO/examples/existing-express-app.selfauth.patch"
   npx tsc --noEmit
   printf 'NODE_ENV=development\nSELFAUTH_APP_BASE_URL=http://localhost:5173\n' > .env
+  expect "existing tests still pass, plus the new one" "$(npm test 2>&1)" "# pass 4"
   START=(node --env-file=.env src/server.ts)
 else
   step "selfauth init ($DB, frontend: $MODE)"
+  node "$CLI" skill install "$APP" --agent claude > /dev/null
+  expect "skill recommends init" "$(skill detect-project.ts "$APP")" "**Recommendation: init**"
   node "$CLI" init "$APP" --database "$DB" --frontend "$MODE" --permissions orders.view,orders.create --yes > /dev/null
   cd "$APP"
   echo "generated $(find . -type f | wc -l) files"
@@ -113,12 +99,24 @@ expect verify "$(curl "${H[@]}" "localhost:$PORT/auth/email/verify" -d "{\"token
 expect login "$(curl "${H[@]}" "localhost:$PORT/auth/login" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")" "\"email\":\"$EMAIL\""
 if [[ "$MODE" == "vue" || "$MODE" == "react" ]]; then
   expect "notes example" "$(curl "${H[@]}" "localhost:$PORT/api/notes" -d '{"text":"from smoke"}')" '"from smoke"'
+elif [[ "$MODE" == "add" ]]; then
+  expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/account")" "\"email\":\"$EMAIL\""
 else
   expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/hello")" "\"hello\":\"$EMAIL\""
 fi
 if [[ "$MODE" == "add" ]]; then
-  expect "existing route untouched" "$(curl -s "localhost:$PORT/api/legacy")" '"legacy":true'
+  expect "existing route untouched" "$(curl -s "localhost:$PORT/api/products")" '"Coffee"'
 fi
+step "agent skill: validate-auth (static checks, project scripts, live probes)"
+PROTECTED=/api/hello
+[[ "$MODE" == "vue" || "$MODE" == "react" ]] && PROTECTED=/api/notes
+[[ "$MODE" == "add" ]] && PROTECTED=/api/account
+VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
+echo "$VALIDATION"
+expect "validate-auth passes" "$VALIDATION" "RESULT: PASS"
+expect "skill reports SelfAuth installed" "$(skill detect-project.ts .)" "**Recommendation: upgrade**"
+
+step "CSRF and logout"
 expect "CSRF enforced" "$(curl -s -b jar -X POST "localhost:$PORT/auth/logout-all")" CSRF_FAILED
 expect logout "$(curl "${H[@]}" -o /dev/null -w '%{http_code}' -X POST "localhost:$PORT/auth/logout")" 204
 expect "signed out" "$(curl "${H[@]}" "localhost:$PORT/auth/me")" UNAUTHENTICATED

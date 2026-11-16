@@ -36,3 +36,9 @@ for (const [name, v] of Object.entries(versions))
   if (String(v).startsWith("workspace:")) delete versions[name];
 writeFileSync(join(out, "versions.json"), `${JSON.stringify(versions, null, 2)}\n`);
 console.log(`bundled ${sources.size} template sources into dist/templates`);
+
+// The agent skill ships with the CLI so `selfauth skill install` matches the CLI's commands.
+cpSync(join(repo, "skills", "selfauth"), join(pkgDir, "dist", "skill", "selfauth"), {
+  recursive: true,
+});
+console.log("bundled the selfauth skill into dist/skill");

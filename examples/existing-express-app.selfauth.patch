@@ -1,0 +1,70 @@
+--- a/package.json
++++ b/package.json
+@@ -3,9 +3,9 @@
+   "private": true,
+   "type": "module",
+   "scripts": {
+-    "start": "node src/server.ts",
++    "start": "node --env-file-if-exists=.env src/server.ts",
+     "typecheck": "tsc --noEmit",
+-    "test": "node --test test/app.test.ts"
++    "test": "node --env-file-if-exists=.env --test test/app.test.ts"
+   },
+   "dependencies": {
+     "express": "^5.3.0"
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -1,4 +1,5 @@
+ import express from "express";
++import { setupSelfAuth } from "./selfauth/setup.ts";
+ 
+ export interface Product {
+   id: string;
+@@ -10,10 +11,11 @@
+   { id: "p2", name: "Tea" },
+ ];
+ 
+-/** The shop API. Product browsing is public. */
++/** The shop API. Product browsing is public; the account needs a session (SelfAuth). */
+ export async function createApp(): Promise<express.Express> {
+   const app = express();
+   app.use(express.json());
++  const selfauth = await setupSelfAuth(app);
+ 
+   app.get("/health", (_req, res) => {
+     res.json({ ok: true });
+@@ -29,6 +31,10 @@
+     }
+     res.json({ product });
+   });
++  app.get("/api/account", selfauth.auth.requireAuth, (_req, res) => {
++    res.json({ email: selfauth.auth.context(res)!.user.email });
++  });
+ 
++  app.use(selfauth.errorHandler);
+   return app;
+ }
+--- a/test/app.test.ts
++++ b/test/app.test.ts
+@@ -26,3 +26,9 @@
+ test("unknown product is 404", async () => {
+   assert.equal((await fetch(`${base}/api/products/nope`)).status, 404);
+ });
++
++test("the account requires a session", async () => {
++  const res = await fetch(`${base}/api/account`);
++  assert.equal(res.status, 401);
++  assert.equal(((await res.json()) as { error: { code: string } }).error.code, "UNAUTHENTICATED");
++});
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -8,7 +8,8 @@
+     "strict": true,
+     "skipLibCheck": true,
+     "noEmit": true,
+-    "allowImportingTsExtensions": true
++    "allowImportingTsExtensions": true,
++    "rewriteRelativeImportExtensions": true
+   },
+   "include": ["src", "test"]
+ }

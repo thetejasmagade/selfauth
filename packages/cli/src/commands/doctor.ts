@@ -101,10 +101,17 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
   return report;
 }
 
-export async function doctor(dirArg: string | undefined): Promise<number> {
+export async function doctor(
+  dirArg: string | undefined,
+  opts: { json?: boolean } = {},
+): Promise<number> {
   const dir = resolve(dirArg ?? ".");
-  say(`SelfAuth doctor → ${dir}`);
   const report = await diagnose(dir);
+  if (opts.json) {
+    say(JSON.stringify({ ok: !report.errors.length, ...report }, null, 2));
+    return report.errors.length ? 1 : 0;
+  }
+  say(`SelfAuth doctor → ${dir}`);
   for (const e of report.errors) fail(e);
   for (const w of report.warnings) warn(w);
   for (const n of report.notes) info(n);

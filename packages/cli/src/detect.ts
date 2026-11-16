@@ -18,6 +18,48 @@ const AUTH_PACKAGES = [
   "jsonwebtoken",
 ];
 
+/** Backend/full-stack frameworks SelfAuth does not generate for (yet). Reported, never guessed at. */
+const OTHER_FRAMEWORKS = [
+  "fastify",
+  "koa",
+  "@hapi/hapi",
+  "@nestjs/core",
+  "hono",
+  "next",
+  "nuxt",
+  "@sveltejs/kit",
+  "@remix-run/node",
+  "@adonisjs/core",
+];
+
+/** Database client packages (plan §6.1: detect the database and ORM). */
+const DATABASE_CLIENTS = [
+  "pg",
+  "postgres",
+  "mysql2",
+  "mongodb",
+  "mongoose",
+  "better-sqlite3",
+  "sqlite3",
+  "typeorm",
+  "sequelize",
+  "drizzle-orm",
+  "knex",
+  "@mikro-orm/core",
+];
+
+/** Files that mark a non-JavaScript backend at the project root. */
+const OTHER_LANGUAGES: Record<string, string> = {
+  "requirements.txt": "python",
+  "pyproject.toml": "python",
+  "go.mod": "go",
+  Gemfile: "ruby",
+  "composer.json": "php",
+  "pom.xml": "java",
+  "build.gradle": "java",
+  "Cargo.toml": "rust",
+};
+
 export interface ProjectInfo {
   exists: boolean;
   /** No entries other than VCS metadata. */
@@ -29,6 +71,16 @@ export interface ProjectInfo {
   prisma: boolean;
   existingAuth: string[];
   selfauth: boolean;
+  /** Unsupported frameworks found in package.json. */
+  otherFrameworks: string[];
+  /** Non-JavaScript backends found at the root (python, go, ...). */
+  otherLanguages: string[];
+  /** Database client and ORM packages found in package.json. */
+  databaseClients: string[];
+  /** The datasource provider in prisma/schema.prisma, when there is one. */
+  prismaProvider: string | null;
+  /** `"type": "module"` in package.json. */
+  esm: boolean;
 }
 
 export async function detectProject(dir: string): Promise<ProjectInfo> {
@@ -42,6 +94,11 @@ export async function detectProject(dir: string): Promise<ProjectInfo> {
     prisma: false,
     existingAuth: [],
     selfauth: false,
+    otherFrameworks: [],
+    otherLanguages: [],
+    databaseClients: [],
+    prismaProvider: null,
+    esm: false,
   };
   if (!info.exists) return info;
   const entries = (await readdir(dir)).filter((e) => ![".git", ".DS_Store"].includes(e));
@@ -57,9 +114,20 @@ export async function detectProject(dir: string): Promise<ProjectInfo> {
           ? "npm"
           : null;
   info.prisma = entries.includes("prisma") || entries.includes("prisma.config.ts");
+  info.otherLanguages = [
+    ...new Set(
+      Object.entries(OTHER_LANGUAGES).flatMap(([f, l]) => (entries.includes(f) ? [l] : [])),
+    ),
+  ];
+  const schema = join(dir, "prisma", "schema.prisma");
+  if (existsSync(schema)) {
+    const datasource = /datasource\s+\w+\s*\{([^}]*)\}/.exec(await readFile(schema, "utf8"));
+    info.prismaProvider = /provider\s*=\s*"([^"]+)"/.exec(datasource?.[1] ?? "")?.[1] ?? null;
+  }
   if (entries.includes("package.json")) {
     info.hasPackageJson = true;
     const pkg = JSON.parse(await readFile(join(dir, "package.json"), "utf8")) as {
+      type?: string;
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
@@ -68,6 +136,9 @@ export async function detectProject(dir: string): Promise<ProjectInfo> {
     info.typescript = "typescript" in deps || entries.includes("tsconfig.json");
     info.prisma ||= "prisma" in deps || "@prisma/client" in deps;
     info.existingAuth = AUTH_PACKAGES.filter((p) => p in deps);
+    info.otherFrameworks = OTHER_FRAMEWORKS.filter((p) => p in deps);
+    info.databaseClients = DATABASE_CLIENTS.filter((p) => p in deps);
+    info.esm = pkg.type === "module";
   }
   return info;
 }

@@ -2,6 +2,7 @@ packages:
   - "packages/*"
   - "conformance"
   - "apps/*"
+  - "skills"
 
 # Packages allowed to run install scripts (pnpm blocks all others by default).
 # Prisma downloads its schema engine for migrations.

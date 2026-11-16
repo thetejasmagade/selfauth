@@ -11,7 +11,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
 | M5 — Frontend Integrations | Phase 5 | ✅ Vue 3 and React; one browser spec passes on both |
 | M6 — CLI Generator | Phase 6 | ✅ init (backend + Vue/React), add, diff/upgrade, doctor, validate, db |
-| M7 — LLM Skills | Phase 7 | ⏳ |
+| M7 — LLM Skills | Phase 7 | ✅ |
 | M8 — Manual Distribution | Phase 8 | ⏳ |
 | M9 — Security and Conformance | Phase 9 | ⏳ |
 | M10 — Additional Frameworks | Phase 10 | ⏳ |
@@ -97,11 +97,28 @@ databases (Phase 6 CLI).
 - CI smoke-tests five combinations outside the monorepo, including `add` on a
   separate existing app.
 
+## Phase 7 — done
+
+- `skills/selfauth`: `SKILL.md` covers the plan's ten responsibilities and
+  its safety rules. Also `references/` (spec copies kept in sync by a test,
+  plus architecture, framework support and migration rules),
+  `scripts/detect-project.ts`, `scripts/validate-auth.ts`, and examples
+  (ADR 0020).
+- CLI: `selfauth detect --json` (stack, database, existing auth in packages
+  *and* source, recommendation, blockers), `--json` for
+  `list`/`doctor`/`validate`, and `selfauth skill install --agent
+  claude|codex|cursor|all`.
+- `integrations/`: Claude Code, Codex, Cursor and other agents.
+- `examples/existing-express-app`: the sample project for acceptance. CI adds
+  SelfAuth to it via the skill's scripts, applies the agent's integration
+  patch, and runs its own tests. Every generated-project job also has to
+  print `validate-auth` `RESULT: PASS`.
+
 ## Next
 
-1. Phase 7 — the `selfauth` agent skill (Claude Code and compatible agents),
-   built on the CLI.
-2. Phase 8 — publish packages and manual-integration docs.
+1. Phase 8 — publish packages and manual-integration docs.
+2. Tests inside generated projects (so `validate-auth` can run them instead of
+   reporting `test` as skipped).
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`.
 
 ## Decisions made after Sprint 1 review
