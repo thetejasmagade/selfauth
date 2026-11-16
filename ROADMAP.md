@@ -9,7 +9,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M2 — Monorepo Foundation | Phase 2 | ✅ pnpm + Turborepo + TS + ESLint + Prettier + Vitest + CI + Changesets |
 | M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
 | M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
-| M5 — Frontend Integrations | Phase 5 | ⏳ |
+| M5 — Frontend Integrations | Phase 5 | 🟡 Vue 3 done (unit + browser tests); React next |
 | M6 — CLI Generator | Phase 6 | ⏳ |
 | M7 — LLM Skills | Phase 7 | ⏳ |
 | M8 — Manual Distribution | Phase 8 | ⏳ |
@@ -62,13 +62,21 @@ Deferred: MongoDB + Mongoose (after the PostgreSQL path has been used in
 anger, per the MVP plan); automatic baselining of existing non-Prisma
 databases (Phase 6 CLI).
 
-## Next: Phase 5 — frontend integrations
+## Phase 5 — Vue 3 done
 
-1. Vue 3 package: auth state composable, current user, login/registration
-   helpers, CSRF header handling, protected-route guard, permission helpers.
-2. Example Vue app against the playground API; Playwright E2E tests.
-3. React equivalents if they do not delay the Vue slice.
-4. Frontend pages for email links (token in fragment, POST, `Referrer-Policy`), closing SEC-TOKEN-005.
+- `apps/playground-vue`: app-owned framework-neutral client, Vue store,
+  `useAuth()`, route guards, `<Can>`, and every auth page including the
+  email-link pages (closes SEC-TOKEN-005 and SEC-REDIRECT-001 verification).
+- 34 unit tests; 6 Playwright browser tests against the real Express backend
+  (separate CI job), including direct API calls that bypass the UI.
+- `docs/frontend-deployment.md` (same origin, subdomains, cross site); ADR 0017.
+
+## Next
+
+1. React integration over the same client design (hooks, provider, route
+   guard, `<Can>`), with a small example and browser tests.
+2. Then Phase 6: the CLI generator that writes these reference
+   implementations into a project.
 
 ## Decisions made after Sprint 1 review
 

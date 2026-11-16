@@ -69,7 +69,7 @@
     {
       "requirement": "SEC-TOKEN-005",
       "methods": ["adapter-test"],
-      "how": "Frontend adapter tests (Phase 5) assert token pages send Referrer-Policy: no-referrer and submit tokens via POST from the URL fragment."
+      "how": "Vue reference frontend: url-token unit tests assert the fragment token is read and stripped; Playwright tests assert email-link pages respond with Referrer-Policy: no-referrer and the token leaves the address bar."
     },
     {
       "requirement": "SEC-COOKIE-003",
@@ -79,7 +79,7 @@
     {
       "requirement": "SEC-REDIRECT-001",
       "methods": ["code-review", "adapter-test"],
-      "how": "Where any adapter accepts a redirect target, a shared same-origin-path validator is used and unit-tested with absolute, protocol-relative (//evil) and backslash URLs."
+      "how": "Frontend safeRedirect is unit-tested with absolute, protocol-relative (//evil), backslash and control-character targets, and Playwright tests sign in with hostile ?redirect= values; the backend accepts no redirect targets."
     },
     {
       "requirement": "SEC-SECRET-001",
