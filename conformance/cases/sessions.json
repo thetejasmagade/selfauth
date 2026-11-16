@@ -1,0 +1,308 @@
+{
+  "cases": [
+    {
+      "id": "CT-SESS-001",
+      "title": "Session tokens are high-entropy and only their hash is stored",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["AUTHN-SESS-001", "AUTHN-SESS-002", "SEC-TOKEN-001", "SEC-TOKEN-002"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "cookieValueMinBytes": 32
+            }
+          },
+          "save": "sess"
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "session",
+            "where": {
+              "userId": "$alice.id"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "first.tokenHash": {
+                "sha256Of": "$sess.cookieValue"
+              },
+              "noFieldContaining": ["$sess.cookieValue"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-SESS-002",
+      "title": "Sessions expire after the idle timeout",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["AUTHN-SESS-003", "AUTHN-SESS-005"],
+      "config": {
+        "authentication": {
+          "sessions": {
+            "idleTimeoutMinutes": 60,
+            "absoluteTimeoutMinutes": 600
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 59
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 61
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-SESS-003",
+      "title": "Sliding renewal never extends past the absolute expiry",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["AUTHN-SESS-004", "SEC-COOKIE-004"],
+      "config": {
+        "authentication": {
+          "sessions": {
+            "idleTimeoutMinutes": 60,
+            "absoluteTimeoutMinutes": 120
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "cookieMaxAgeAtMostSeconds": 7200
+            }
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 50
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 50
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 21
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "note": "121 minutes after login, though used 21 minutes ago",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-SESS-004",
+      "title": "Unknown, expired and revoked tokens are indistinguishable",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["AUTHN-SESS-005", "AUTHZ-CORE-005"],
+      "config": {
+        "authentication": {
+          "sessions": {
+            "idleTimeoutMinutes": 60,
+            "absoluteTimeoutMinutes": 600
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "getCurrentUser",
+            "cookie": "not-a-real-token"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          },
+          "save": "unknown"
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "s1"
+        },
+        {
+          "op": "logout"
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "getCurrentUser",
+            "cookie": "$s1.cookieValue"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED",
+            "indistinguishableFrom": "unknown"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "s2"
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 61
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "getCurrentUser",
+            "cookie": "$s2.cookieValue"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED",
+            "indistinguishableFrom": "unknown"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-SESS-005",
+      "title": "Session cookie carries the required security attributes",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["SEC-COOKIE-001", "SEC-COOKIE-002", "SEC-COOKIE-004", "AUTHN-SESS-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "cookie.name": "__Host-session",
+              "cookie.httpOnly": true,
+              "cookie.secure": true,
+              "cookie.sameSite": "Lax",
+              "cookie.path": "/",
+              "cookie.domain": null,
+              "cookieMaxAgeAtMostSeconds": 2592000
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

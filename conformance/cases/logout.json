@@ -1,0 +1,213 @@
+{
+  "cases": [
+    {
+      "id": "CT-LOGOUT-001",
+      "title": "Logout revokes the session server-side and expires the cookie",
+      "category": "logout",
+      "level": "core",
+      "requirements": ["AUTHN-LOGOUT-001", "AUTHN-LOGOUT-002", "AUTHN-SESS-006"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "sess"
+        },
+        {
+          "op": "logout",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "cookieCleared": true
+            }
+          }
+        },
+        {
+          "op": "rawRequest",
+          "note": "replay the old token directly",
+          "input": {
+            "operation": "getCurrentUser",
+            "cookie": "$sess.cookieValue"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "auth.logout"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGOUT-002",
+      "title": "Logout is idempotent and reveals nothing without a session",
+      "category": "logout",
+      "level": "core",
+      "requirements": ["AUTHN-LOGOUT-003"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "logout",
+          "as": "stranger",
+          "expect": {
+            "outcome": "success"
+          },
+          "save": "anon"
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "logout",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "logout",
+          "expect": {
+            "outcome": "success",
+            "indistinguishableFrom": "anon"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGOUT-003",
+      "title": "Logout cannot be triggered with a safe method",
+      "category": "logout",
+      "level": "core",
+      "requirements": ["AUTHN-LOGOUT-004", "SEC-CSRF-002"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "note": "any response; must not change state",
+          "input": {
+            "method": "GET",
+            "operation": "logout"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-LOGOUT-004",
+      "title": "Logout from all devices revokes every session including the current one",
+      "category": "logout",
+      "level": "core",
+      "requirements": ["AUTHN-LOGOUT-005", "AUTHN-LOGOUT-006", "AUTHN-SESS-006"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "laptop",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "login",
+          "as": "phone",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "logoutAll",
+          "as": "laptop",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "as": "laptop",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "as": "phone",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "auth.sessions.revoked_all"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

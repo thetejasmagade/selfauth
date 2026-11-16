@@ -1,0 +1,160 @@
+{
+  "$comment": "Verification methods other than conformance cases (ADR 0007, specs/CONFORMANCE.md). Each mandatory requirement must appear here or in at least one case.",
+  "entries": [
+    {
+      "requirement": "IDENT-DELETE-005",
+      "methods": ["documentation"],
+      "how": "Adapter README states which data is retained after deletion (security events, tombstone) and for how long."
+    },
+    {
+      "requirement": "AUTHN-REG-003",
+      "methods": ["adapter-test"],
+      "how": "Adapter test injects a failure while writing the credential and asserts no user row remains (transaction rollback)."
+    },
+    {
+      "requirement": "AUTHN-LOGIN-003",
+      "methods": ["adapter-test", "code-review"],
+      "how": "Adapter test asserts the password verifier is invoked (against a dummy hash) when the user does not exist; reviewers confirm no early return before verification."
+    },
+    {
+      "requirement": "AUTHZ-CORE-002",
+      "methods": ["code-review"],
+      "how": "Supplements CT-AUTHZ-002: reviewers confirm every generated protected route declares requireAuth/requirePermission/authorize; adapter lint rule flags routes without a guard where feasible."
+    },
+    {
+      "requirement": "AUTHZ-PERM-001",
+      "methods": ["schema-test"],
+      "how": "selfAuthConfigSchema rejects malformed permission names (packages/spec/test/config.test.ts)."
+    },
+    {
+      "requirement": "AUTHZ-PERM-002",
+      "methods": ["schema-test"],
+      "how": "selfAuthConfigSchema rejects project permissions with the reserved 'auth.' prefix."
+    },
+    {
+      "requirement": "AUTHZ-PERM-004",
+      "methods": ["schema-test", "adapter-test"],
+      "how": "Schema rejects roles referencing undefined permissions; adapter test asserts requirePermission('undefined.perm') throws at route registration."
+    },
+    {
+      "requirement": "AUTHZ-RBAC-005",
+      "methods": ["migration-test", "code-review"],
+      "how": "Role/permission sync is a generated seed or migration; migration tests run it; reviewers confirm no role sync on application startup."
+    },
+    {
+      "requirement": "SEC-HASH-001",
+      "methods": ["adapter-test", "code-review"],
+      "how": "Supplements CT-IDENT-007: reviewers confirm a maintained Argon2id library (ADR) is used, not a hand-written implementation."
+    },
+    {
+      "requirement": "SEC-HASH-006",
+      "methods": ["adapter-test"],
+      "how": "Adapter test asserts a concurrent lightweight request completes while a password hash is being computed (non-blocking API used)."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-001",
+      "methods": ["schema-test"],
+      "how": "Supplements CT-REG-005: selfAuthConfigSchema rejects minLength below 8."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-005",
+      "methods": ["code-review"],
+      "how": "Reviewers confirm generated code has no password-age expiry or forced-rotation logic enabled by default."
+    },
+    {
+      "requirement": "SEC-TOKEN-005",
+      "methods": ["adapter-test"],
+      "how": "Frontend adapter tests (Phase 5) assert token pages send Referrer-Policy: no-referrer and submit tokens via POST from the URL fragment."
+    },
+    {
+      "requirement": "SEC-COOKIE-003",
+      "methods": ["adapter-test"],
+      "how": "Adapter test asserts startup fails when NODE_ENV=production and cookie.secure=false."
+    },
+    {
+      "requirement": "SEC-REDIRECT-001",
+      "methods": ["code-review", "adapter-test"],
+      "how": "Where any adapter accepts a redirect target, a shared same-origin-path validator is used and unit-tested with absolute, protocol-relative (//evil) and backslash URLs."
+    },
+    {
+      "requirement": "SEC-ENUM-002",
+      "methods": ["documentation"],
+      "how": "Supplements CT-REG-007: adapter README documents the enumeration trade-off of optional/off verification modes."
+    },
+    {
+      "requirement": "SEC-SECRET-001",
+      "methods": ["static-analysis", "code-review"],
+      "how": "Secret scanning in CI over templates and generated output; config schema has no secret fields."
+    },
+    {
+      "requirement": "SEC-SECRET-002",
+      "methods": ["adapter-test"],
+      "how": "Generator test asserts .env.example contains placeholders only and .gitignore covers .env."
+    },
+    {
+      "requirement": "SEC-SECRET-003",
+      "methods": ["adapter-test"],
+      "how": "Adapter test asserts startup fails when SELFAUTH_APP_BASE_URL (or a required signing key) is missing or invalid."
+    },
+    {
+      "requirement": "SEC-SECRET-004",
+      "methods": ["adapter-test", "code-review"],
+      "how": "Startup rejects CSRF secrets shorter than 32 bytes; test asserts tokens signed with SELFAUTH_CSRF_SECRET_PREVIOUS are still accepted."
+    },
+    {
+      "requirement": "SEC-AUDIT-004",
+      "methods": ["code-review"],
+      "how": "Reviewers confirm generated routes and services expose no update/delete operation for individual security events."
+    },
+    {
+      "requirement": "SEC-HTTP-002",
+      "methods": ["documentation"],
+      "how": "Adapter deployment guide requires HTTPS in production and documents HSTS."
+    },
+    {
+      "requirement": "DATA-MODEL-001",
+      "methods": ["migration-test"],
+      "how": "Supplements CT-REG-006: migration tests assert the unique indexes exist on a fresh database."
+    },
+    {
+      "requirement": "DATA-MODEL-003",
+      "methods": ["migration-test", "code-review"],
+      "how": "Migration tests apply generated native migrations; reviewers confirm no schema sync (e.g. prisma db push, autoIndex in production) at startup."
+    },
+    {
+      "requirement": "DATA-MODEL-004",
+      "methods": ["migration-test"],
+      "how": "Migration tests run generation against a pre-existing schema containing application tables and assert they are untouched."
+    },
+    {
+      "requirement": "ERR-FORMAT-003",
+      "methods": ["code-review"],
+      "how": "The conformance runner and frontend adapters branch only on error.code; reviewers reject message-text matching."
+    },
+    {
+      "requirement": "CONF-FILE-001",
+      "methods": ["schema-test"],
+      "how": "selfAuthConfigSchema uses strict objects; tests assert unknown top-level and nested keys are rejected."
+    },
+    {
+      "requirement": "CONF-FILE-002",
+      "methods": ["schema-test", "code-review"],
+      "how": "The schema defines no secret-bearing fields and rejects unknown keys, so secrets cannot be added to the config file."
+    },
+    {
+      "requirement": "CONF-FILE-003",
+      "methods": ["schema-test"],
+      "how": "Tests assert out-of-range values (TTLs, lengths, timeouts) are rejected rather than clamped."
+    },
+    {
+      "requirement": "CONF-FILE-004",
+      "methods": ["adapter-test"],
+      "how": "Each adapter validates the resolved config against its capability list and the test asserts unsupported values are rejected."
+    },
+    {
+      "requirement": "CONF-FILE-005",
+      "methods": ["schema-test"],
+      "how": "Schema rejects an unsupported major specVersion."
+    }
+  ]
+}

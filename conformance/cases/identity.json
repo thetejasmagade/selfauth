@@ -1,0 +1,546 @@
+{
+  "cases": [
+    {
+      "id": "CT-IDENT-001",
+      "title": "Emails are trimmed, NFC-normalized and lower-cased for lookup",
+      "category": "identity",
+      "level": "core",
+      "requirements": ["IDENT-EMAIL-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "  ALICE@Example.Test ",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        },
+        {
+          "op": "register",
+          "note": "decomposed e + combining acute",
+          "input": {
+            "email": "José@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "emailNormalized": "josé@example.test"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-002",
+      "title": "No provider-specific normalization: dots and +tags are distinct addresses",
+      "category": "identity",
+      "level": "core",
+      "requirements": ["IDENT-EMAIL-002"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "a.lice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "alice+tag@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-003",
+      "title": "User identifiers are server-assigned and not sequential",
+      "category": "identity",
+      "level": "core",
+      "requirements": ["IDENT-ID-001", "IDENT-ID-002"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "u1@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "u2@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "ids.opaque": true,
+              "ids.notSequential": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-004",
+      "title": "Only allowed state transitions succeed; deleted is terminal; changes are audited",
+      "category": "identity",
+      "level": "authorization",
+      "requirements": ["IDENT-STATE-002", "IDENT-STATE-005"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        },
+        {
+          "user": "admin",
+          "email": "admin@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["admin"]
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "admin",
+          "input": {
+            "email": "admin@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "note": "active -> pending is not an allowed transition",
+          "input": {
+            "user": "$alice.id",
+            "state": "pending"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CONFLICT"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "state": "suspended"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "account.state_changed"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "last.metadata.from": "active",
+              "last.metadata.to": "suspended",
+              "last.actorId": "$admin.id"
+            }
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "state": "deleted"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "setAccountState",
+          "as": "admin",
+          "input": {
+            "user": "$alice.id",
+            "state": "active"
+          },
+          "expect": {
+            "outcome": "error",
+            "codeOneOf": ["CONFLICT", "NOT_FOUND"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-005",
+      "title": "Session validation rejects users who are no longer active even if the session was not revoked",
+      "category": "identity",
+      "level": "core",
+      "requirements": ["IDENT-STATE-004", "AUTHN-SESS-003"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        },
+        {
+          "op": "mutateStorage",
+          "note": "bypasses the service layer, so sessions are not revoked",
+          "input": {
+            "entity": "user",
+            "where": {
+              "id": "$alice.id"
+            },
+            "set": {
+              "state": "suspended"
+            }
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-006",
+      "title": "Responses never contain password hashes or token material",
+      "category": "identity",
+      "level": "core",
+      "requirements": ["IDENT-PROFILE-002", "AUTHN-LOGIN-009"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "bodyHasPath": ["user.id"],
+              "bodyExcludesKeys": [
+                "password",
+                "passwordHash",
+                "secretHash",
+                "tokenHash",
+                "token",
+                "sessionToken"
+              ],
+              "bodyExcludesCookieValue": true
+            }
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "bodyExcludesKeys": ["password", "passwordHash", "secretHash", "tokenHash", "token"],
+              "bodyExcludesCookieValue": true
+            }
+          }
+        },
+        {
+          "op": "listSessions",
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "bodyExcludesKeys": ["token", "tokenHash"],
+              "bodyExcludesCookieValue": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-007",
+      "title": "Credentials are stored separately as Argon2id PHC strings with minimum parameters",
+      "category": "identity",
+      "level": "core",
+      "requirements": [
+        "IDENT-PROFILE-001",
+        "SEC-HASH-001",
+        "SEC-HASH-002",
+        "SEC-HASH-003",
+        "SEC-HASH-007"
+      ],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "emailNormalized": "alice@example.test"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "noFieldContaining": ["correct horse battery staple"],
+              "first.hasNoKeys": ["passwordHash", "secretHash"]
+            }
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "credential"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1,
+              "first.type": "password",
+              "first.secretHash.phcAlgorithm": "argon2id",
+              "first.secretHash.argon2MinParams": [
+                {
+                  "m": 19456,
+                  "t": 2,
+                  "p": 1
+                },
+                {
+                  "m": 47104,
+                  "t": 1,
+                  "p": 1
+                }
+              ],
+              "first.secretHash.saltMinBytes": 16,
+              "noFieldContaining": ["correct horse battery staple"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-IDENT-008",
+      "title": "Account deletion requires the password, revokes access, deletes credentials and releases the email",
+      "category": "identity",
+      "level": "core",
+      "requirements": [
+        "IDENT-DELETE-001",
+        "IDENT-DELETE-002",
+        "IDENT-DELETE-003",
+        "IDENT-ID-003",
+        "IDENT-STATE-003"
+      ],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "laptop",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "login",
+          "as": "phone",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "deleteAccount",
+          "as": "laptop",
+          "input": {
+            "currentPassword": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "deleteAccount",
+          "as": "laptop",
+          "input": {
+            "currentPassword": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "as": "phone",
+          "expect": {
+            "outcome": "error",
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "credential",
+            "where": {
+              "userId": "$alice.id"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 0
+            }
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "id": "$alice.id"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "first.state": "deleted",
+              "first.emailNormalized": null
+            }
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "emailNormalized": "alice@example.test"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "first.idNot": "$alice.id"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

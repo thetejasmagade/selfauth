@@ -1,0 +1,567 @@
+{
+  "cases": [
+    {
+      "id": "CT-VERIFY-001",
+      "title": "A valid verification token activates the account without creating a session",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-007", "AUTHN-VERIFY-004", "SEC-TOKEN-002", "SEC-AUDIT-001"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "save": "mail"
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "emailVerificationToken"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "noFieldContaining": ["$mail.token"],
+              "first.tokenHash": {
+                "sha256Of": "$mail.token"
+              }
+            }
+          }
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$mail.token"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": false
+          }
+        },
+        {
+          "op": "inspectStorage",
+          "input": {
+            "entity": "user",
+            "where": {
+              "emailNormalized": "alice@example.test"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "first.state": "active",
+              "first.emailVerifiedAt": {
+                "notNull": true
+              }
+            }
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "email.verified"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "count": 1
+            }
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-002",
+      "title": "Verification tokens are single-use",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-006", "SEC-TOKEN-003"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "save": "mail"
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$mail.token"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$mail.token"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "TOKEN_INVALID"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-003",
+      "title": "Expired, unknown and used tokens fail with one indistinguishable error",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-004", "AUTHN-VERIFY-005", "SEC-TOKEN-004"],
+      "given": [],
+      "steps": [
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "TOKEN_INVALID"
+          },
+          "save": "unknown"
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "save": "mail"
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 1441
+          }
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$mail.token"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "TOKEN_INVALID",
+            "indistinguishableFrom": "unknown"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-004",
+      "title": "Concurrent use of one verification token succeeds at most once",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-006", "DATA-MODEL-002"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "save": "mail"
+        },
+        {
+          "op": "concurrent",
+          "input": {
+            "steps": [
+              {
+                "op": "verifyEmail",
+                "as": "c0",
+                "input": {
+                  "token": "$mail.token"
+                }
+              },
+              {
+                "op": "verifyEmail",
+                "as": "c1",
+                "input": {
+                  "token": "$mail.token"
+                }
+              },
+              {
+                "op": "verifyEmail",
+                "as": "c2",
+                "input": {
+                  "token": "$mail.token"
+                }
+              },
+              {
+                "op": "verifyEmail",
+                "as": "c3",
+                "input": {
+                  "token": "$mail.token"
+                }
+              },
+              {
+                "op": "verifyEmail",
+                "as": "c4",
+                "input": {
+                  "token": "$mail.token"
+                }
+              }
+            ]
+          },
+          "expect": {
+            "outcome": "success",
+            "successCount": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-005",
+      "title": "Resend is indistinguishable for pending, verified and unknown emails",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-001", "SEC-ENUM-001"],
+      "given": [
+        {
+          "user": "pending",
+          "email": "pending@example.test",
+          "password": "correct horse battery staple",
+          "state": "pending"
+        },
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          },
+          "save": "pending"
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "alice@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "indistinguishableFrom": "pending"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "nobody@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "indistinguishableFrom": "pending"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "kind": "verification"
+            }
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "none": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-006",
+      "title": "Resend is rate limited per email, identically for unknown emails",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-002", "SEC-RATE-002", "SEC-RATE-004"],
+      "given": [
+        {
+          "user": "pending",
+          "email": "pending@example.test",
+          "password": "correct horse battery staple",
+          "state": "pending"
+        }
+      ],
+      "steps": [
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED",
+            "assert": {
+              "header.retry-after": {
+                "present": true
+              }
+            }
+          },
+          "save": "limited"
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "nobody@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "nobody@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "nobody@example.test"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "nobody@example.test"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED",
+            "indistinguishableFrom": "limited"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-007",
+      "title": "Email links use the configured base URL, never request headers",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["AUTHN-VERIFY-009", "AUTHN-RESET-006"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "register",
+            "headers": {
+              "Host": "evil.test",
+              "X-Forwarded-Host": "evil.test"
+            },
+            "body": {
+              "email": "carol@example.test",
+              "password": "correct horse battery staple"
+            }
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "carol@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "linkStartsWith": "$config.appBaseUrl"
+            }
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "requestPasswordReset",
+            "headers": {
+              "Host": "evil.test",
+              "X-Forwarded-Host": "evil.test"
+            },
+            "body": {
+              "email": "alice@example.test"
+            }
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "alice@example.test"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "kind": "passwordReset",
+              "linkStartsWith": "$config.appBaseUrl"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-VERIFY-008",
+      "title": "Tokens are bound to their purpose",
+      "category": "email-verification",
+      "level": "core",
+      "requirements": ["SEC-TOKEN-003"],
+      "given": [
+        {
+          "user": "pending",
+          "email": "pending@example.test",
+          "password": "correct horse battery staple",
+          "state": "pending"
+        }
+      ],
+      "steps": [
+        {
+          "op": "requestPasswordReset",
+          "input": {
+            "email": "pending@example.test"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "pending@example.test"
+          },
+          "save": "reset"
+        },
+        {
+          "op": "verifyEmail",
+          "input": {
+            "token": "$reset.token"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "TOKEN_INVALID"
+          }
+        },
+        {
+          "op": "requestEmailVerification",
+          "input": {
+            "email": "pending@example.test"
+          }
+        },
+        {
+          "op": "readLastEmail",
+          "input": {
+            "to": "pending@example.test"
+          },
+          "save": "verify"
+        },
+        {
+          "op": "resetPassword",
+          "input": {
+            "token": "$verify.token",
+            "newPassword": "a brand new passphrase 42"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "TOKEN_INVALID"
+          }
+        }
+      ]
+    }
+  ]
+}

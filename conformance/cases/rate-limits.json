@@ -1,0 +1,667 @@
+{
+  "cases": [
+    {
+      "id": "CT-RATE-001",
+      "title": "Login is limited per account, even for unknown accounts and correct passwords",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-001", "SEC-RATE-004", "AUTHN-LOGIN-006", "SEC-AUDIT-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "note": "correct password, still limited",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED",
+            "sessionCreated": false
+          },
+          "save": "limited"
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "nobody@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED",
+            "indistinguishableFrom": "limited"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "rate_limit.triggered"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "countAtLeast": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RATE-002",
+      "title": "Rate-limit blocks are temporary",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-003"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "wrong password!!"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED"
+          }
+        },
+        {
+          "op": "advanceClock",
+          "input": {
+            "minutes": 60
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success",
+            "sessionCreated": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RATE-003",
+      "title": "Login is limited per client address across accounts",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-001"],
+      "config": {
+        "authentication": {
+          "rateLimit": {
+            "login": {
+              "perAddress": {
+                "limit": 10
+              }
+            }
+          }
+        }
+      },
+      "given": [],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "spray0@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray1@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray2@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray3@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray4@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray5@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray6@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray7@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray8@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray9@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "spray-final@example.test",
+            "password": "wrong password!!"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RATE-004",
+      "title": "Forwarding headers are not trusted by default",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-005"],
+      "config": {
+        "authentication": {
+          "rateLimit": {
+            "login": {
+              "perAddress": {
+                "limit": 10
+              }
+            }
+          }
+        }
+      },
+      "given": [],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.0",
+              "Forwarded": "for=203.0.113.0"
+            },
+            "body": {
+              "email": "spray0@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.1",
+              "Forwarded": "for=203.0.113.1"
+            },
+            "body": {
+              "email": "spray1@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.2",
+              "Forwarded": "for=203.0.113.2"
+            },
+            "body": {
+              "email": "spray2@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.3",
+              "Forwarded": "for=203.0.113.3"
+            },
+            "body": {
+              "email": "spray3@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.4",
+              "Forwarded": "for=203.0.113.4"
+            },
+            "body": {
+              "email": "spray4@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.5",
+              "Forwarded": "for=203.0.113.5"
+            },
+            "body": {
+              "email": "spray5@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.6",
+              "Forwarded": "for=203.0.113.6"
+            },
+            "body": {
+              "email": "spray6@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.7",
+              "Forwarded": "for=203.0.113.7"
+            },
+            "body": {
+              "email": "spray7@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.8",
+              "Forwarded": "for=203.0.113.8"
+            },
+            "body": {
+              "email": "spray8@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "203.0.113.9",
+              "Forwarded": "for=203.0.113.9"
+            },
+            "body": {
+              "email": "spray9@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "INVALID_CREDENTIALS"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "X-Forwarded-For": "198.51.100.7"
+            },
+            "body": {
+              "email": "spray-final@example.test",
+              "password": "wrong password!!"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RATE-005",
+      "title": "Registration is rate limited",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-002"],
+      "given": [],
+      "steps": [
+        {
+          "op": "register",
+          "input": {
+            "email": "same@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "same@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "same@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "register",
+          "input": {
+            "email": "same@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED"
+          }
+        }
+      ]
+    }
+  ]
+}

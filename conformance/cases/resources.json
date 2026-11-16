@@ -1,0 +1,373 @@
+{
+  "cases": [
+    {
+      "id": "CT-RES-001",
+      "title": "Owners can act on their own resources only",
+      "category": "resources",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RES-001", "AUTHZ-RES-005"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-a",
+            "owner": "alice"
+          }
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-b",
+            "owner": "bob"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "order",
+              "id": "order-a"
+            }
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "order",
+              "id": "order-b"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "codeOneOf": ["NOT_FOUND", "FORBIDDEN"]
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "order",
+              "id": "order-missing"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "codeOneOf": ["NOT_FOUND", "FORBIDDEN"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RES-002",
+      "title": "The *_any permission overrides ownership",
+      "category": "resources",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RES-005"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "support",
+          "email": "support@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user", "support"]
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-b",
+            "owner": "bob"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "as": "support",
+          "input": {
+            "email": "support@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "as": "support",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "order",
+              "id": "order-b"
+            }
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RES-003",
+      "title": "Resource types without a registered policy are denied",
+      "category": "resources",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RES-002"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "resource": {
+            "type": "unregistered",
+            "id": "x-1",
+            "owner": "alice"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "unregistered",
+              "id": "x-1"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "codeOneOf": ["FORBIDDEN", "NOT_FOUND"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RES-004",
+      "title": "Ownership is loaded server-side, never taken from the request",
+      "category": "resources",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RES-003"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-b",
+            "owner": "bob"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "callProtected",
+          "input": {
+            "permission": "orders.view",
+            "resource": {
+              "type": "order",
+              "id": "order-b"
+            },
+            "body": {
+              "ownerId": "$alice.id"
+            },
+            "query": {
+              "ownerId": "$alice.id"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "codeOneOf": ["NOT_FOUND", "FORBIDDEN"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-RES-005",
+      "title": "List operations filter by authorization in the query",
+      "category": "resources",
+      "level": "authorization",
+      "requirements": ["AUTHZ-RES-006"],
+      "config": {
+        "authorization": {
+          "permissions": ["orders.view", "orders.view_any", "orders.create", "reports.view"],
+          "roles": {
+            "user": ["orders.view", "orders.create"],
+            "support": ["orders.view_any"],
+            "analyst": ["reports.view"],
+            "admin": []
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active",
+          "roles": ["user"]
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-a1",
+            "owner": "alice"
+          }
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-a2",
+            "owner": "alice"
+          }
+        },
+        {
+          "resource": {
+            "type": "order",
+            "id": "order-b1",
+            "owner": "bob"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "listOwned",
+          "input": {
+            "type": "order"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "ids": {
+                "sameMembers": ["order-a1", "order-a2"]
+              },
+              "driver.queryFiltered": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

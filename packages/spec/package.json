@@ -1,0 +1,30 @@
+{
+  "name": "@selfauth/spec",
+  "version": "0.0.0",
+  "description": "SelfAuth language-neutral authentication & authorization specification, requirement tooling, and configuration schema.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./specs/*": "./specs/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "specs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

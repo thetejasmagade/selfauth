@@ -1,0 +1,413 @@
+{
+  "cases": [
+    {
+      "id": "CT-CSRF-001",
+      "title": "Cross-site requests to state-changing operations are rejected and audited",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CSRF-001", "SEC-CSRF-003", "SEC-CSRF-005"],
+      "config": {
+        "http": {
+          "trustedOrigins": ["https://app.example.test"]
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "note": "login CSRF",
+          "input": {
+            "operation": "login",
+            "headers": {
+              "Sec-Fetch-Site": "cross-site",
+              "Origin": "https://evil.test"
+            },
+            "body": {
+              "email": "alice@example.test",
+              "password": "correct horse battery staple"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED",
+            "sessionCreated": false
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "register",
+            "headers": {
+              "Sec-Fetch-Site": "cross-site"
+            },
+            "body": {
+              "email": "x@example.test",
+              "password": "correct horse battery staple"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logout",
+            "headers": {
+              "Sec-Fetch-Site": "cross-site"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        },
+        {
+          "op": "inspectEvents",
+          "input": {
+            "type": "csrf.rejected"
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "countAtLeast": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-CSRF-002",
+      "title": "Untrusted Origin headers are rejected",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CSRF-003"],
+      "config": {
+        "http": {
+          "trustedOrigins": ["https://app.example.test"]
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test.evil.test"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "null"
+            }
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-CSRF-003",
+      "title": "Requests with neither Origin nor Sec-Fetch-Site need a CSRF token",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CSRF-003"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "omitHeaders": ["Origin", "Sec-Fetch-Site", "Referer", "$config.csrfHeaderName"]
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-CSRF-004",
+      "title": "Header mode requires the custom CSRF header even from a trusted origin",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CSRF-004"],
+      "config": {
+        "http": {
+          "trustedOrigins": ["https://app.example.test"],
+          "csrf": {
+            "mode": "header"
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test",
+              "Sec-Fetch-Site": "same-site"
+            },
+            "omitHeaders": ["X-SelfAuth-CSRF"]
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test",
+              "Sec-Fetch-Site": "same-site",
+              "X-SelfAuth-CSRF": "1"
+            }
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-CSRF-005",
+      "title": "Token mode with SameSite=None requires a session-bound CSRF token",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CSRF-004", "SEC-COOKIE-005"],
+      "config": {
+        "authentication": {
+          "sessions": {
+            "cookie": {
+              "sameSite": "none"
+            }
+          }
+        },
+        "http": {
+          "trustedOrigins": ["https://app.example.test"],
+          "csrf": {
+            "mode": "token"
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        },
+        {
+          "user": "bob",
+          "email": "bob@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "sess"
+        },
+        {
+          "op": "login",
+          "as": "bob",
+          "input": {
+            "email": "bob@example.test",
+            "password": "correct horse battery staple"
+          },
+          "save": "bobSess"
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test"
+            },
+            "omitCsrfToken": true
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "note": "another session's token",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test"
+            },
+            "csrfToken": "$bobSess.csrfToken"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "CSRF_FAILED"
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "operation": "logoutAll",
+            "headers": {
+              "Origin": "https://app.example.test"
+            },
+            "csrfToken": "$sess.csrfToken"
+          },
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CT-CORS-001",
+      "title": "CORS never reflects untrusted origins with credentials",
+      "category": "csrf",
+      "level": "core",
+      "requirements": ["SEC-CORS-001"],
+      "config": {
+        "http": {
+          "trustedOrigins": ["https://app.example.test"]
+        }
+      },
+      "given": [],
+      "steps": [
+        {
+          "op": "rawRequest",
+          "input": {
+            "method": "OPTIONS",
+            "operation": "login",
+            "headers": {
+              "Origin": "https://evil.test",
+              "Access-Control-Request-Method": "POST"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "header.access-control-allow-origin": {
+                "notEqual": "https://evil.test"
+              }
+            }
+          }
+        },
+        {
+          "op": "rawRequest",
+          "input": {
+            "method": "OPTIONS",
+            "operation": "login",
+            "headers": {
+              "Origin": "https://app.example.test",
+              "Access-Control-Request-Method": "POST"
+            }
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "header.access-control-allow-origin": "https://app.example.test",
+              "header.access-control-allow-credentials": "true"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
