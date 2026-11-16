@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "changeset": "changeset",
-    "e2e": "pnpm --filter @selfauth/playground-vue e2e"
+    "e2e": "pnpm --filter @selfauth/e2e e2e"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

@@ -20,7 +20,7 @@
     "db:rollback": "node --env-file-if-exists=.env src/scripts/db.ts rollback",
     "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
     "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts",
-    "e2e:server": "NODE_ENV=test PORT=3100 SELFAUTH_APP_BASE_URL=http://localhost:4173 node test/e2e-server.ts"
+    "e2e:server": "NODE_ENV=test node test/e2e-server.ts"
   },
   "engines": {
     "node": ">=22"

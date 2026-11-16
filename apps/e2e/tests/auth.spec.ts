@@ -1,22 +1,31 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test as base, type APIRequestContext, type Page } from "@playwright/test";
+import type { E2EOptions } from "../playwright.config.ts";
+
+/** Same spec for every frontend; `backendUrl` comes from the project. */
+const test = base.extend<E2EOptions>({ backendUrl: ["http://localhost:3100", { option: true }] });
 
 const PASSWORD = "correct horse battery staple";
 let counter = 0;
 const uniqueEmail = (label: string) => `${label}-${Date.now()}-${counter++}@example.test`;
 
 /** Reads the last email for `to` from the test backend and returns its link path. */
-async function mailLink(request: APIRequestContext, to: string, kind: string): Promise<string> {
+async function mailLink(
+  request: APIRequestContext,
+  backendUrl: string,
+  to: string,
+  kind: string,
+): Promise<string> {
   let mail: { kind: string; link: string } | null = null;
   await expect
     .poll(async () => {
       mail = await (
-        await request.get(`http://localhost:3100/__e2e/mail?to=${encodeURIComponent(to)}`)
+        await request.get(`${backendUrl}/__e2e/mail?to=${encodeURIComponent(to)}`)
       ).json();
       return mail?.kind;
     })
     .toBe(kind);
   const url = new URL(mail!.link);
-  expect(url.origin).toBe("http://localhost:4173");
+  expect(url.origin).toBe(new URL(test.info().project.use.baseURL!).origin); // links point at this frontend
   return `${url.pathname}${url.hash}`;
 }
 
@@ -34,10 +43,15 @@ async function signIn(page: Page, email: string, password = PASSWORD) {
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-async function verifiedUser(page: Page, request: APIRequestContext, label: string) {
+async function verifiedUser(
+  page: Page,
+  request: APIRequestContext,
+  backendUrl: string,
+  label: string,
+) {
   const email = uniqueEmail(label);
   await register(page, email);
-  await page.goto(await mailLink(request, email, "verification"));
+  await page.goto(await mailLink(request, backendUrl, email, "verification"));
   await expect(page.getByTestId("verified")).toBeVisible();
   return email;
 }
@@ -45,6 +59,7 @@ async function verifiedUser(page: Page, request: APIRequestContext, label: strin
 test("register, verify by email link, sign in, use the app, sign out", async ({
   page,
   request,
+  backendUrl,
 }) => {
   const email = uniqueEmail("alice");
   await register(page, email);
@@ -54,7 +69,7 @@ test("register, verify by email link, sign in, use the app, sign out", async ({
   await signIn(page, email);
   await expect(page.getByRole("alert")).toContainText("verify your email");
 
-  const link = await mailLink(request, email, "verification");
+  const link = await mailLink(request, backendUrl, email, "verification");
   expect(link).toMatch(/^\/verify-email#token=/);
   const verify = await page.goto(link);
   expect(verify?.headers()["referrer-policy"]).toBe("no-referrer");
@@ -87,19 +102,28 @@ test("wrong passwords and unknown accounts look the same", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveText("Email or password is incorrect.");
 });
 
-test("post-login redirects never leave the site (SEC-REDIRECT-001)", async ({ page, request }) => {
-  const email = await verifiedUser(page, request, "redirect");
+test("post-login redirects never leave the site (SEC-REDIRECT-001)", async ({
+  page,
+  request,
+  backendUrl,
+}) => {
+  const email = await verifiedUser(page, request, backendUrl, "redirect");
   for (const target of ["https://evil.test/", "//evil.test", "/\\evil.test"]) {
     await page.goto(`/login?redirect=${encodeURIComponent(target)}`);
     await signIn(page, email);
-    await expect(page).toHaveURL(/^http:\/\/localhost:4173\/notes$/);
+    await expect(page).toHaveURL(`${new URL(test.info().project.use.baseURL!).origin}/notes`);
     await expect(page.getByTestId("current-email")).toHaveText(email);
     await page.getByTestId("logout").click();
   }
 });
 
-test("password reset by email link signs out every device", async ({ browser, page, request }) => {
-  const email = await verifiedUser(page, request, "reset");
+test("password reset by email link signs out every device", async ({
+  browser,
+  page,
+  request,
+  backendUrl,
+}) => {
+  const email = await verifiedUser(page, request, backendUrl, "reset");
   await page.goto("/login");
   await signIn(page, email);
   await expect(page).toHaveURL(/\/notes$/);
@@ -110,7 +134,7 @@ test("password reset by email link signs out every device", async ({ browser, pa
   await other.getByRole("button", { name: "Send reset link" }).click();
   await expect(other.getByTestId("reset-sent")).toBeVisible();
 
-  await other.goto(await mailLink(request, email, "passwordReset"));
+  await other.goto(await mailLink(request, backendUrl, email, "passwordReset"));
   await expect(other.getByLabel("New password")).toBeVisible();
   expect(other.url()).not.toContain("token="); // stripped once the page has loaded
   await other.getByLabel("New password").fill("a completely new passphrase");
@@ -128,8 +152,9 @@ test("password reset by email link signs out every device", async ({ browser, pa
 test("bypassing frontend checks does not bypass the backend (AUTHZ-CORE-004)", async ({
   page,
   request,
+  backendUrl,
 }) => {
-  const owner = await verifiedUser(page, request, "owner");
+  const owner = await verifiedUser(page, request, backendUrl, "owner");
   await page.goto("/login");
   await signIn(page, owner);
   await page.getByLabel("New note").fill("private note");
@@ -141,7 +166,7 @@ test("bypassing frontend checks does not bypass the backend (AUTHZ-CORE-004)", a
   });
   await page.getByTestId("logout").click();
 
-  const intruder = await verifiedUser(page, request, "intruder");
+  const intruder = await verifiedUser(page, request, backendUrl, "intruder");
   await page.goto("/login");
   await signIn(page, intruder);
   await expect(page.getByTestId("current-email")).toHaveText(intruder);
@@ -163,14 +188,18 @@ test("bypassing frontend checks does not bypass the backend (AUTHZ-CORE-004)", a
   expect(results).toEqual({ read: 404, admin: 403, noCsrf: 403 });
 });
 
-test("permission-aware UI reflects role changes on refresh", async ({ page, request }) => {
-  const email = await verifiedUser(page, request, "support");
+test("permission-aware UI reflects role changes on refresh", async ({
+  page,
+  request,
+  backendUrl,
+}) => {
+  const email = await verifiedUser(page, request, backendUrl, "support");
   await page.goto("/login");
   await signIn(page, email);
   await expect(page.getByTestId("current-email")).toHaveText(email);
   await expect(page.getByTestId("support-badge")).toHaveCount(0);
   // The test-only grant route sits behind the app's CSRF middleware like every route.
-  const grant = await request.post("http://localhost:3100/__e2e/grant", {
+  const grant = await request.post(`${backendUrl}/__e2e/grant`, {
     data: { email, role: "support" },
     headers: { "X-SelfAuth-CSRF": "1" },
   });

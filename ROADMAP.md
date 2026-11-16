@@ -9,7 +9,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M2 — Monorepo Foundation | Phase 2 | ✅ pnpm + Turborepo + TS + ESLint + Prettier + Vitest + CI + Changesets |
 | M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
 | M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
-| M5 — Frontend Integrations | Phase 5 | 🟡 Vue 3 done (unit + browser tests); React next |
+| M5 — Frontend Integrations | Phase 5 | ✅ Vue 3 and React; one browser spec passes on both |
 | M6 — CLI Generator | Phase 6 | ⏳ |
 | M7 — LLM Skills | Phase 7 | ⏳ |
 | M8 — Manual Distribution | Phase 8 | ⏳ |
@@ -62,21 +62,28 @@ Deferred: MongoDB + Mongoose (after the PostgreSQL path has been used in
 anger, per the MVP plan); automatic baselining of existing non-Prisma
 databases (Phase 6 CLI).
 
-## Phase 5 — Vue 3 done
+## Phase 5 — done
 
-- `apps/playground-vue`: app-owned framework-neutral client, Vue store,
-  `useAuth()`, route guards, `<Can>`, and every auth page including the
-  email-link pages (closes SEC-TOKEN-005 and SEC-REDIRECT-001 verification).
-- 34 unit tests; 6 Playwright browser tests against the real Express backend
-  (separate CI job), including direct API calls that bypass the UI.
+- `apps/playground-vue` and `apps/playground-react`: app-owned framework-neutral
+  client (identical copies, drift-tested), plus thin Vue (store, `useAuth()`,
+  route guards, `<Can>`) and React (`AuthProvider`, `useAuth()`,
+  `<RequireAuth>`, `<GuestOnly>`, `<Can>`) layers and every auth page,
+  including the email-link pages (closes SEC-TOKEN-005 and SEC-REDIRECT-001
+  verification).
+- 47 frontend unit tests; one Playwright spec (`apps/e2e`) passes against both
+  frontends with the real Express backend (separate CI job), including direct
+  API calls that bypass the UI.
 - `docs/frontend-deployment.md` (same origin, subdomains, cross site); ADR 0017.
 
-## Next
+## Next: Phase 6 — CLI generator
 
-1. React integration over the same client design (hooks, provider, route
-   guard, `<Can>`), with a small example and browser tests.
-2. Then Phase 6: the CLI generator that writes these reference
-   implementations into a project.
+1. Turn the reference implementations into versioned templates
+   (backend core + Express adapter + store; Vue or React frontend layer).
+2. `selfauth init/add`: detect the project, plan files, generate, write
+   `selfauth.manifest.json` with template versions and content hashes.
+3. `selfauth db *` on top of `@selfauth/migration`; `doctor`, `validate`,
+   `diff`/`upgrade` (three-way, ADR 0004).
+4. Generated sample projects must pass the conformance suite in CI.
 
 ## Decisions made after Sprint 1 review
 

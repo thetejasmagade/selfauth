@@ -35,6 +35,11 @@ of ADR 0008.
 7. **Tests.** Vitest + happy-dom for the client, store, guards and components;
    Playwright (pinned to the version whose Chromium the environment ships) for
    end-to-end flows against the real Express backend, in CI as a separate job.
+   One spec (`apps/e2e`) runs against every frontend, which share labels and
+   test IDs, so "same behaviour on Vue and React" is tested rather than claimed.
+8. **Copies, checked.** Until the generator renders frontend files from one
+   template (Phase 6), the React app holds identical copies of the
+   framework-neutral files and a test fails if they drift.
 
 ## Consequences
 

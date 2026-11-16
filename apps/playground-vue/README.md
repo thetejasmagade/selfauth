@@ -50,13 +50,11 @@ Guards and `<Can>` are UX only; the backend authorizes every request.
 
 ```bash
 pnpm --filter @selfauth/playground-vue test   # unit (Vitest + happy-dom)
-pnpm e2e                                       # browser (Playwright + Chromium)
+pnpm e2e                                       # browser tests for Vue and React (apps/e2e)
 ```
 
-The browser tests build the app, start the Express e2e backend
-(`apps/playground/test/e2e-server.ts`), and cover registration with email
-verification, sign-in/out, redirects, password reset across two browsers,
-HttpOnly cookies, token stripping, and direct API calls that bypass the UI.
+The client's behaviour is unit-tested here; the React app keeps identical
+copies of the framework-neutral files and checks they match.
 
 Deployment topologies (same origin, subdomains, cross site):
 [`docs/frontend-deployment.md`](../../docs/frontend-deployment.md).
