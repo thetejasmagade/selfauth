@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -151,37 +151,52 @@ describe("every reference in the skill is real", () => {
     }
   });
 
-  it("uses only CLI commands and flags that exist", () => {
-    const help = new Map<string, string>();
-    const helpOf = (args: string[]) => {
-      const key = args.join(" ");
-      if (!help.has(key)) {
-        const r = spawnSync(process.execPath, [BIN, ...args, "--help"], { encoding: "utf8" });
-        help.set(key, r.status === 0 ? r.stdout : "");
-      }
-      return help.get(key)!;
-    };
+  // Spawns `selfauth … --help` once per distinct command, in parallel; process start-up
+  // dominates, so this gets an explicit timeout instead of the 5 s default.
+  it("uses only CLI commands and flags that exist", { timeout: 60_000 }, async () => {
+    const helpOf = (args: string[]) =>
+      new Promise<string>((done) =>
+        execFile(process.execPath, [BIN, ...args, "--help"], (error, stdout) =>
+          done(error ? "" : stdout),
+        ),
+      );
     const commandsOf = (h: string) =>
       new Set([...(h.split("Commands:")[1] ?? "").matchAll(/^ {2}([a-z-]+)/gm)].map((m) => m[1]!));
-    const top = commandsOf(helpOf([]));
-    let checked = 0;
+
+    const mentions: { where: string; cmd: string; sub?: string; flags: string[] }[] = [];
     for (const file of handWritten) {
-      const mentions = read(file).matchAll(
+      for (const [, cmd, sub, rest] of read(file).matchAll(
         /(?:npx @selfauth\/cli|(?<![\w/@.-])selfauth)[ \t]+([a-z][a-z-]*)(?:[ \t]+([a-z][a-z-]*))?([^`\n]*)/g,
-      );
-      for (const [, cmd, sub, rest] of mentions) {
-        const where = `${relative(REPO, file)}: selfauth ${cmd} ${sub ?? ""}`;
-        expect(top.has(cmd!), where).toBe(true);
+      )) {
         // "`selfauth db …`" in prose names the command group only.
-        const args = (cmd === "db" || cmd === "skill") && sub ? [cmd, sub] : [cmd!];
-        if (args.length === 2) expect(commandsOf(helpOf([cmd!])).has(sub!), where).toBe(true);
-        const h = helpOf(args);
-        for (const [flag] of (rest ?? "").matchAll(/--[a-z][a-z-]*/g))
-          expect(h, `${where} ${flag}`).toContain(flag);
-        checked++;
+        const group = (cmd === "db" || cmd === "skill") && sub;
+        mentions.push({
+          where: `${relative(REPO, file)}: selfauth ${cmd} ${sub ?? ""}`,
+          cmd: cmd!,
+          ...(group ? { sub } : {}),
+          flags: [...(rest ?? "").matchAll(/--[a-z][a-z-]*/g)].map((m) => m[0]),
+        });
       }
     }
-    expect(checked).toBeGreaterThan(20);
+    expect(mentions.length).toBeGreaterThan(20);
+
+    const keys = new Set([
+      "",
+      ...mentions.map((m) => m.cmd),
+      ...mentions.map((m) => [m.cmd, m.sub].filter(Boolean).join(" ")),
+    ]);
+    const help = new Map(
+      await Promise.all(
+        [...keys].map(async (k) => [k, await helpOf(k ? k.split(" ") : [])] as const),
+      ),
+    );
+    const top = commandsOf(help.get("")!);
+    for (const m of mentions) {
+      expect(top.has(m.cmd), m.where).toBe(true);
+      if (m.sub) expect(commandsOf(help.get(m.cmd)!).has(m.sub), m.where).toBe(true);
+      const h = help.get([m.cmd, m.sub].filter(Boolean).join(" "))!;
+      for (const flag of m.flags) expect(h, `${m.where} ${flag}`).toContain(flag);
+    }
   });
 });
 
