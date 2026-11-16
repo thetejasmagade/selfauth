@@ -1,0 +1,372 @@
+{
+  "toolkit": "selfauth",
+  "version": "0.0.0",
+  "templateVersion": "0.0.0",
+  "specVersion": "0.1",
+  "database": {
+    "type": "postgresql",
+    "orm": "prisma"
+  },
+  "ownedResources": {
+    "tables": [
+      "auth_users",
+      "auth_credentials",
+      "auth_sessions",
+      "auth_roles",
+      "auth_permissions",
+      "auth_user_roles",
+      "auth_role_permissions",
+      "auth_password_reset_tokens",
+      "auth_email_verification_tokens",
+      "auth_security_events",
+      "auth_rate_limits"
+    ],
+    "types": [
+      "auth_account_state",
+      "auth_credential_type",
+      "auth_session_revoked_reason",
+      "auth_event_outcome"
+    ],
+    "migrations": [
+      "20261116085533_selfauth_init"
+    ]
+  },
+  "options": {
+    "layout": "project",
+    "frontend": "vue",
+    "permissions": [],
+    "appBaseUrl": "http://localhost:5173"
+  },
+  "files": [
+    {
+      "path": "src/auth/types.ts",
+      "template": "express:apps/playground/src/auth/types.ts",
+      "sha256": "c3df7d58fde2175e4f22da28386bec849a00be090f185545508ed89dbd655359"
+    },
+    {
+      "path": "src/auth/index.ts",
+      "template": "express:apps/playground/src/auth/index.ts",
+      "sha256": "f54d43532dcc6321f3180c0e498910a2ff252fa0ac29f94e9111ffeb7eecc4c1"
+    },
+    {
+      "path": "src/auth/core/authorization.ts",
+      "template": "express:apps/playground/src/auth/core/authorization.ts",
+      "sha256": "aebe7f998d39ac8dcfb248548234fba376c5f7a7e71265c3aa18528fd05c47ea"
+    },
+    {
+      "path": "src/auth/core/clock.ts",
+      "template": "express:apps/playground/src/auth/core/clock.ts",
+      "sha256": "c458b5ddd0367eb6ba3e6607fe92d5350ca092ec1e29082905a78633ab64190b"
+    },
+    {
+      "path": "src/auth/core/common-passwords.ts",
+      "template": "express:apps/playground/src/auth/core/common-passwords.ts",
+      "sha256": "14ad1596f604775ecb905c7123d1db1d48b7e1a2d4d953d0efb4a9aa19367769"
+    },
+    {
+      "path": "src/auth/core/crypto.ts",
+      "template": "express:apps/playground/src/auth/core/crypto.ts",
+      "sha256": "585c48e5c5da8fb5cb60d33c259188badd7dc670383cf5ca2c33b0d3f2b29c73"
+    },
+    {
+      "path": "src/auth/core/email.ts",
+      "template": "express:apps/playground/src/auth/core/email.ts",
+      "sha256": "e8b7f338527bf217121d8e00ef3efadb5067b44f82da1a330593531c1bd0cb9a"
+    },
+    {
+      "path": "src/auth/core/errors.ts",
+      "template": "express:apps/playground/src/auth/core/errors.ts",
+      "sha256": "3654e68fd7b47abc54554e09d45a814c6dcec8b7190f7bd2e50259a8369f9e69"
+    },
+    {
+      "path": "src/auth/core/logger.ts",
+      "template": "express:apps/playground/src/auth/core/logger.ts",
+      "sha256": "2e2f902dd362c079b556893e3a48a511bfe5e9f801c182d4d50f62dc6ed55c68"
+    },
+    {
+      "path": "src/auth/core/mailer.ts",
+      "template": "express:apps/playground/src/auth/core/mailer.ts",
+      "sha256": "54458066144b229085cda5cd116f0a9d6465c73f9481552f1b45e3c537ce7aa2"
+    },
+    {
+      "path": "src/auth/core/password.ts",
+      "template": "express:apps/playground/src/auth/core/password.ts",
+      "sha256": "1397d38073de1774b7969057ab1d95664dd4b73c347b1df4bd8d5c6302ca8053"
+    },
+    {
+      "path": "src/auth/core/rate-limit.ts",
+      "template": "express:apps/playground/src/auth/core/rate-limit.ts",
+      "sha256": "182b77b4cc419397db00d0ac62897ef17d4a43d5ef2d06bb523c84ae07140221"
+    },
+    {
+      "path": "src/auth/core/service.ts",
+      "template": "express:apps/playground/src/auth/core/service.ts",
+      "sha256": "d2f246d01ce16b7b0c63ca77af53e73dca767b69ff300910887328a6b7eb757f"
+    },
+    {
+      "path": "src/auth/core/store.ts",
+      "template": "express:apps/playground/src/auth/core/store.ts",
+      "sha256": "59fc9be327a77ccdf092499c8047ab77c21328a6f713fed7f06999be1ac9a6ae"
+    },
+    {
+      "path": "src/auth/express/index.ts",
+      "template": "express:apps/playground/src/auth/express/index.ts",
+      "sha256": "863862211f0ac29c85492a5a77ed62df44ee3215c9c26affa0d1b97d9d3dbdb1"
+    },
+    {
+      "path": "src/auth/stores/memory.ts",
+      "template": "express:apps/playground/src/auth/stores/memory.ts",
+      "sha256": "50f5f8857448e1dc832267c30edd6735474ab46b3ae352740dca3fabe4994ee1"
+    },
+    {
+      "path": "src/app.ts",
+      "template": "express:apps/playground/src/app.ts",
+      "sha256": "96ff32a25cca3d6e57ca6d9a64af4e9597d7c748ed0404aaeb1d8bdeb8ef2c56"
+    },
+    {
+      "path": "src/env.ts",
+      "template": "express:apps/playground/src/env.ts",
+      "sha256": "1cf850e9a77fd9c78cebf36d5279627df10d7ca12ab2a6b991941e15a5303bfe"
+    },
+    {
+      "path": "src/errors.ts",
+      "template": "express:apps/playground/src/errors.ts",
+      "sha256": "ee5f05d24c23ca97d271616c35343dc7eae1aa932773c46954ade61745e1c179"
+    },
+    {
+      "path": "src/request-id.ts",
+      "template": "express:apps/playground/src/request-id.ts",
+      "sha256": "ffc6c616bf38a9993e332062d1bcff1e08ff218cc0c97573a15e25d5a61dcf6f"
+    },
+    {
+      "path": "src/mailer.ts",
+      "template": "express:apps/playground/src/mailer.ts",
+      "sha256": "50228c597d47d8586b75df3928c40195f1e3da7137b05a96a078df5895d4afdc"
+    },
+    {
+      "path": "src/dev-config.ts",
+      "template": "express:apps/playground/src/dev-config.ts",
+      "sha256": "cc0a1b5dcae70f69ddf3b5d725be9db0b6c7906f42c91b6a40ea8b726138eb92"
+    },
+    {
+      "path": "src/server.ts",
+      "template": "express:apps/playground/src/server.ts",
+      "sha256": "ea73d630667aba7ee59516eb5ba2fb34a16d2b8d5233f0c816d281aff558954c"
+    },
+    {
+      "path": "src/routes.ts",
+      "template": "express:apps/playground/src/routes.ts",
+      "sha256": "dc491820f181b51eaea1552b112ca52ea04164661636d47d4de6a4f974c43fc9"
+    },
+    {
+      "path": "src/example/notes.ts",
+      "template": "express:apps/playground/src/example/notes.ts",
+      "sha256": "96f98ec9fe7e66752ee380ed486d6afe1c78367f0d1017f0d1b4153b510a7380"
+    },
+    {
+      "path": "src/store.ts",
+      "template": "express:apps/playground/src/store.ts",
+      "sha256": "e21260bf47c559881f4464b2abcc5691fae42e42cab2df5b4e780d81c9772160"
+    },
+    {
+      "path": "src/auth/stores/prisma.ts",
+      "template": "express:apps/playground/src/auth/stores/prisma.ts",
+      "sha256": "0507a56dd015c07d12fcf463940638955ab39c0862c43bc0bc58c4d6a994ceb9"
+    },
+    {
+      "path": "src/scripts/seed.ts",
+      "template": "express:apps/playground/src/scripts/seed.ts",
+      "sha256": "95149407797409c17ccbb673f93ea8d6e3fbf8eddd4e63d4fc5eafdc74bf1ac5"
+    },
+    {
+      "path": "src/scripts/create-admin.ts",
+      "template": "express:apps/playground/src/scripts/create-admin.ts",
+      "sha256": "d7b63977bd6860c1f2b2c9a3dbbd200965b33bca8ec455b6af84fa060b573a7e"
+    },
+    {
+      "path": "prisma.config.ts",
+      "template": "express:apps/playground/prisma.config.ts",
+      "sha256": "b1a00775120a05801eaa75b411e382f4a029524655d7451553c7f220782624c4"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "template": "express:apps/playground/prisma/schema.prisma",
+      "sha256": "d8b6cf8f7854d5dd53208b321ed791de9e153edb6b1e26c80aae1fd8f061c772"
+    },
+    {
+      "path": "prisma/migrations/20261116085533_selfauth_init/migration.sql",
+      "template": "express:apps/playground/prisma/migrations/20261116085533_selfauth_init/migration.sql",
+      "sha256": "4b96df56e14b423e4a4999ff93d0dcea17d7d8a91c6dddda0267d7bf416436d0"
+    },
+    {
+      "path": "prisma/migrations/migration_lock.toml",
+      "template": "express:apps/playground/prisma/migrations/migration_lock.toml",
+      "sha256": "99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900"
+    },
+    {
+      "path": "web/index.html",
+      "template": "vue:apps/playground-vue/index.html",
+      "sha256": "9d3801dd0fb83d00973a63634a2fae9fe3d20cdd442336e9dd4a3c5cf1e30b6c"
+    },
+    {
+      "path": "web/vite.config.ts",
+      "template": "vue:apps/playground-vue/vite.config.ts",
+      "sha256": "71cf450af44546649a34e554fbb52470f7364ad4979a3a27f9d36da29f71f449"
+    },
+    {
+      "path": "web/src/main.ts",
+      "template": "vue:apps/playground-vue/src/main.ts",
+      "sha256": "23906c582bb036891fdba5215309499986fb5c0e6c83d00a8947333596cd40c9"
+    },
+    {
+      "path": "web/src/App.vue",
+      "template": "vue:apps/playground-vue/src/App.vue",
+      "sha256": "68f8133feb446e5dba937e698587de57af982ddf45455ed9bb31802be630e8a5"
+    },
+    {
+      "path": "web/src/router.ts",
+      "template": "vue:apps/playground-vue/src/router.ts",
+      "sha256": "bce1ad0166b85aa45909f0b48ff8b1e25d51a23597205fb240f85fe23bac504f"
+    },
+    {
+      "path": "web/src/style.css",
+      "template": "vue:apps/playground-vue/src/style.css",
+      "sha256": "8b1d0a92d0ca7bd39195ddb33d9f8713938e59b0f722401f4f59686e63302657"
+    },
+    {
+      "path": "web/src/env.d.ts",
+      "template": "vue:apps/playground-vue/src/env.d.ts",
+      "sha256": "57328ddb6aca3ed7f81065f3485ec5914156c2f3886a9c365e1112516e360382"
+    },
+    {
+      "path": "web/src/auth/client.ts",
+      "template": "vue:apps/playground-vue/src/auth/client.ts",
+      "sha256": "39ec6d16ac7fde47af5f8ed21cc29f4d79499bdf5103f73b744634aacfef2d3b"
+    },
+    {
+      "path": "web/src/auth/redirect.ts",
+      "template": "vue:apps/playground-vue/src/auth/redirect.ts",
+      "sha256": "e092042f91b52c6619e878dab1795048001af69bc6c6b11941b09849f91fcd7c"
+    },
+    {
+      "path": "web/src/auth/url-token.ts",
+      "template": "vue:apps/playground-vue/src/auth/url-token.ts",
+      "sha256": "2c8790cc896d67a726ca3bafa1fcc43367b456fa52b65a5bc6557dc1fc5785de"
+    },
+    {
+      "path": "web/src/auth/messages.ts",
+      "template": "vue:apps/playground-vue/src/auth/messages.ts",
+      "sha256": "60f2c1388682f504c8d1bd2d7095507e4435cb7c2a4aed87f86d32b0ac932e63"
+    },
+    {
+      "path": "web/src/auth/types.ts",
+      "template": "vue:apps/playground-vue/src/auth/types.ts",
+      "sha256": "7089844ca20a307247bbd96861ca1ecff8d2ab3467fb84f713b91e0af73ec46f"
+    },
+    {
+      "path": "web/src/auth/vue.ts",
+      "template": "vue:apps/playground-vue/src/auth/vue.ts",
+      "sha256": "48ecd42fb23c4c1f283777439164a6ff78b22d3b28df3002e790d4702fbed069"
+    },
+    {
+      "path": "web/src/auth/index.ts",
+      "template": "vue:apps/playground-vue/src/auth/index.ts",
+      "sha256": "e940da15a803ff338610e57ff5f1ee773e23446319c5467f9c0da6425ab0484e"
+    },
+    {
+      "path": "web/src/pages/AccountPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/AccountPage.vue",
+      "sha256": "fa090d39729ab1da82d8679e193b440f46b6770cc033f5b214384b888327c135"
+    },
+    {
+      "path": "web/src/pages/ForbiddenPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/ForbiddenPage.vue",
+      "sha256": "5f8850c5d4066d8358dd9d66f7164846df057e7d852a271d1484f86b0d60caec"
+    },
+    {
+      "path": "web/src/pages/ForgotPasswordPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/ForgotPasswordPage.vue",
+      "sha256": "e1b373ce1e1e5168341a32944c07fd7e5d8f6a32a21fd3bbb5cf21f7848fc9c4"
+    },
+    {
+      "path": "web/src/pages/HomePage.vue",
+      "template": "vue:apps/playground-vue/src/pages/HomePage.vue",
+      "sha256": "e4fad82b49e26f00cb68f760fc693e7da8ee84dbf472c9632e735ab825a6e74c"
+    },
+    {
+      "path": "web/src/pages/LoginPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/LoginPage.vue",
+      "sha256": "b039b6ed04a3fe86f72a6bf0f173b0b51a2027875a3e6df64e71b5db632cb8c8"
+    },
+    {
+      "path": "web/src/pages/NotFoundPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/NotFoundPage.vue",
+      "sha256": "f0cdc859a027fd646eef68d7075db4bedccca29714cbcc64f1f532bc8c957448"
+    },
+    {
+      "path": "web/src/pages/NotesPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/NotesPage.vue",
+      "sha256": "ca12c55225e060295240db189742f1dcbbd95a540a245b7b6750e579b6835327"
+    },
+    {
+      "path": "web/src/pages/RegisterPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/RegisterPage.vue",
+      "sha256": "f4325c0d9b0d70a379d3878828c9794523c92764683f038fd08b786b059d2898"
+    },
+    {
+      "path": "web/src/pages/ResetPasswordPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/ResetPasswordPage.vue",
+      "sha256": "995a50e85529b131fa150fbf5949556420a17f3966a0013d11dec88bdf2de86c"
+    },
+    {
+      "path": "web/src/pages/VerifyEmailPage.vue",
+      "template": "vue:apps/playground-vue/src/pages/VerifyEmailPage.vue",
+      "sha256": "0238a45cefd5a4e206d5d5d10e6a5143752079fc7bbf404b85fae4c76b3fa9cf"
+    },
+    {
+      "path": "package.json",
+      "template": "rendered:package.json",
+      "sha256": "4d146fa269018903711e460ee2ee07ac0b26b38c32dcda9cf692307db7297827"
+    },
+    {
+      "path": "tsconfig.json",
+      "template": "rendered:tsconfig",
+      "sha256": "bc2500e60e5670293f29cdabe0d910ec345dfef640d3c66d03b9c8e853cfd9ca"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "template": "rendered:tsconfig.build",
+      "sha256": "5ea2d50d8950aa8ef79a1c1cb400ce4db4f88ba1e71504e6623603859cf170b1"
+    },
+    {
+      "path": ".gitignore",
+      "template": "rendered:gitignore",
+      "sha256": "1ef1d89066862c1c1c273244088f5d2e18b9c7a36bcb4fd8bed53ec494c0dde7"
+    },
+    {
+      "path": ".env.example",
+      "template": "rendered:env-example",
+      "sha256": "ff206d6910a5439c6f483fc6776d5913afda62f60e082a6d5c1aa397ad07e934"
+    },
+    {
+      "path": "README.md",
+      "template": "rendered:readme",
+      "sha256": "bc14b59bcc56ead866c565f8c82760f7f0d79767826130a8c0e0795e8100d773"
+    },
+    {
+      "path": "src/selfauth.config.ts",
+      "template": "rendered:config",
+      "sha256": "185b7813a66f6580c971679a098e9d96c2ccebe19ecc2facdecd1a19c570315f"
+    },
+    {
+      "path": "web/package.json",
+      "template": "rendered:web-package.json",
+      "sha256": "42e91035292485a7b52a1f0e23c2691e7958f377f340ed8fa2df522f71f63204"
+    },
+    {
+      "path": "web/tsconfig.json",
+      "template": "rendered:web-tsconfig",
+      "sha256": "468f8f86eaec96e669ba40c8552acf4cdd90ee70ebf1d2f1685c37db3161e81d"
+    }
+  ]
+}

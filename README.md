@@ -48,7 +48,7 @@ selfauth/
 ├── apps/playground-react/ React reference frontend
 ├── apps/e2e/            One Playwright spec run against both frontends
 ├── docs/adr/           Architecture decision records
-├── templates/          (Phase 6/8) Application-owned code templates
+├── templates/          Copyable standalone projects (manual install, no CLI)
 ├── skills/selfauth/    The `selfauth` agent skill (Claude Code, Codex, Cursor)
 ├── integrations/       How to install the skill for each agent
 └── examples/           Sample projects (existing-express-app: skill acceptance)
@@ -56,6 +56,8 @@ selfauth/
 
 Start with:
 
+- [`docs/`](docs/README.md): install with the CLI, by hand, or with an agent;
+  API reference; upgrading
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — components and boundaries
 - [`DECISIONS.md`](DECISIONS.md) — why things are the way they are
 - [`packages/spec/specs/`](packages/spec/specs/) — what every implementation must do
