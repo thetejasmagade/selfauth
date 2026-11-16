@@ -8,3 +8,6 @@ coverage/
 !.env.example
 .DS_Store
 *.log
+
+# Prisma client is generated (pnpm generate)
+apps/playground/src/generated/

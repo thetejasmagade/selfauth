@@ -19,6 +19,25 @@ jobs:
     strategy:
       matrix:
         node: [22, 24]
+    services:
+      # Real database for the Prisma store, migration tests and the conformance suite.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: selfauth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/selfauth_test
+      # Fail instead of skipping if the database is not configured.
+      SELFAUTH_REQUIRE_POSTGRES: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

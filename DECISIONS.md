@@ -20,3 +20,4 @@ Index of Architecture Decision Records (ADRs). Full text lives in
 | [0013](docs/adr/0013-mit-license.md) | MIT for SelfAuth; generated output also 0BSD | Accepted |
 | [0014](docs/adr/0014-argon2-library-for-node.md) | `@node-rs/argon2` for Node.js adapters | Accepted |
 | [0015](docs/adr/0015-rate-limiter-implementation.md) | Small clock-injectable rate limiter with pluggable store | Accepted |
+| [0016](docs/adr/0016-postgresql-prisma-and-migration-orchestration.md) | PostgreSQL via Prisma 7; migration orchestration with safety analysis | Accepted |

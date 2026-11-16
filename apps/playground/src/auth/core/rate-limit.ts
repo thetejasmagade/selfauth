@@ -17,21 +17,31 @@ export interface RateLimitRecord {
   lastBlockAt: number;
 }
 
-/** Storage for limiter state. Use a shared store across instances in production (SEC-RATE-006). */
+/**
+ * Storage for limiter state. Use a shared store across instances in
+ * production (SEC-RATE-006). `update` MUST be atomic per key: concurrent
+ * updates of one key are serialized, so parallel attempts cannot all read
+ * the same count.
+ */
 export interface RateLimitStore {
-  get(key: string): Promise<RateLimitRecord | undefined>;
-  set(key: string, record: RateLimitRecord): Promise<void>;
+  update<T>(
+    key: string,
+    fn: (current: RateLimitRecord | undefined) => { next?: RateLimitRecord; result: T },
+  ): Promise<T>;
   delete(key: string): Promise<void>;
 }
 
 /** Per-process store. Only correct for a single application instance. */
 export class MemoryRateLimitStore implements RateLimitStore {
   private readonly records = new Map<string, RateLimitRecord>();
-  async get(key: string) {
-    return this.records.get(key);
-  }
-  async set(key: string, record: RateLimitRecord) {
-    this.records.set(key, record);
+  async update<T>(
+    key: string,
+    fn: (current: RateLimitRecord | undefined) => { next?: RateLimitRecord; result: T },
+  ): Promise<T> {
+    // Synchronous read-modify-write: atomic within one Node.js process.
+    const { next, result } = fn(this.records.get(key));
+    if (next) this.records.set(key, next);
+    return result;
   }
   async delete(key: string) {
     this.records.delete(key);
@@ -62,8 +72,11 @@ export class RateLimiter {
     this.clock = clock;
   }
 
-  private async load(key: string, rule: LimitRule, now: number): Promise<RateLimitRecord> {
-    const existing = await this.store.get(key);
+  private load(
+    existing: RateLimitRecord | undefined,
+    rule: LimitRule,
+    now: number,
+  ): RateLimitRecord {
     const windowMs = rule.windowSeconds * 1000;
     if (!existing) {
       return {
@@ -97,30 +110,36 @@ export class RateLimiter {
   /** Whether the key is currently blocked, without counting a hit. */
   async check(key: string, rule: LimitRule): Promise<LimitResult> {
     const now = this.clock.now().getTime();
-    const record = await this.load(key, rule, now);
-    return this.blocked(record, now) ?? { allowed: true, retryAfterSeconds: 0, justBlocked: false };
+    return this.store.update(key, (current) => ({
+      result: this.blocked(this.load(current, rule, now), now) ?? {
+        allowed: true,
+        retryAfterSeconds: 0,
+        justBlocked: false,
+      },
+    }));
   }
 
   /** Count a hit. Rejected (and not counted) while blocked. */
   async hit(key: string, rule: LimitRule): Promise<LimitResult> {
     const now = this.clock.now().getTime();
-    const record = await this.load(key, rule, now);
-    const blocked = this.blocked(record, now);
-    if (blocked) return blocked;
-    record.count += 1;
-    let justBlocked = false;
-    if (record.count >= rule.limit) {
-      record.strikes += 1;
-      const duration = Math.min(
-        rule.windowSeconds * 1000 * 2 ** (record.strikes - 1),
-        MAX_BLOCK_MS,
-      );
-      record.blockedUntil = now + duration;
-      record.lastBlockAt = now;
-      justBlocked = true;
-    }
-    await this.store.set(key, record);
-    return { allowed: true, retryAfterSeconds: 0, justBlocked };
+    return this.store.update(key, (current) => {
+      const record = this.load(current, rule, now);
+      const blocked = this.blocked(record, now);
+      if (blocked) return { result: blocked };
+      record.count += 1;
+      let justBlocked = false;
+      if (record.count >= rule.limit) {
+        record.strikes += 1;
+        const duration = Math.min(
+          rule.windowSeconds * 1000 * 2 ** (record.strikes - 1),
+          MAX_BLOCK_MS,
+        );
+        record.blockedUntil = now + duration;
+        record.lastBlockAt = now;
+        justBlocked = true;
+      }
+      return { next: record, result: { allowed: true, retryAfterSeconds: 0, justBlocked } };
+    });
   }
 
   async reset(key: string): Promise<void> {

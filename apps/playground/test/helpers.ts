@@ -10,21 +10,37 @@ import {
   type Auth,
 } from "../src/auth/index.ts";
 import { createLogger, MemoryLogSink } from "../src/auth/core/logger.ts";
+import type { RateLimitStore } from "../src/auth/core/rate-limit.ts";
+import type { AuthStore } from "../src/auth/core/store.ts";
+import {
+  createPrismaClient,
+  PrismaAuthStore,
+  PrismaRateLimitStore,
+} from "../src/auth/stores/prisma.ts";
+import { createTestSchema, TEST_DATABASE_URL, type TestSchema } from "./postgres.ts";
 import { loadEnv, type Env } from "../src/env.ts";
 import { getRequestId } from "../src/request-id.ts";
 
 export const TEST_BASE_URL = "https://app.example.test";
 export const TEST_CSRF_SECRET = Buffer.alloc(32, 7);
 
+export type StoreKind = "memory" | "postgres";
+
 export interface TestApp {
   app: express.Express;
   auth: Auth;
   config: SelfAuthConfig;
   env: Env;
-  store: MemoryAuthStore;
+  store: AuthStore;
+  /** Set for the memory store. */
+  memory?: MemoryAuthStore;
+  /** Set for the postgres store. */
+  prisma?: PrismaAuthStore;
+  schema?: TestSchema;
   mailer: MemoryMailer;
   clock: ManualClock;
   logs: MemoryLogSink;
+  close(): Promise<void>;
 }
 
 export async function buildTestApp(
@@ -32,6 +48,7 @@ export async function buildTestApp(
     config?: SelfAuthConfig;
     nodeEnv?: Env["nodeEnv"];
     mount?: (app: express.Express, auth: Auth) => void;
+    store?: StoreKind;
   } = {},
 ): Promise<TestApp> {
   const config =
@@ -42,7 +59,23 @@ export async function buildTestApp(
     ...loadEnv({ NODE_ENV: nodeEnv, SELFAUTH_APP_BASE_URL: TEST_BASE_URL }),
     csrfSecret: TEST_CSRF_SECRET,
   };
-  const store = new MemoryAuthStore();
+  let store: AuthStore;
+  let rateLimitStore: RateLimitStore | undefined;
+  let memory: MemoryAuthStore | undefined;
+  let prisma: PrismaAuthStore | undefined;
+  let schema: TestSchema | undefined;
+  if (options.store === "postgres") {
+    schema = await createTestSchema();
+    const db = createPrismaClient({
+      connectionString: TEST_DATABASE_URL!,
+      schema: schema.schema,
+      max: 4,
+    });
+    store = prisma = new PrismaAuthStore(db);
+    rateLimitStore = new PrismaRateLimitStore(db);
+  } else {
+    store = memory = new MemoryAuthStore();
+  }
   await syncRoles(store, config);
   const mailer = new MemoryMailer();
   const clock = new ManualClock();
@@ -56,6 +89,7 @@ export async function buildTestApp(
     nodeEnv,
     requestId: getRequestId,
     csrfSecret: TEST_CSRF_SECRET,
+    ...(rateLimitStore ? { rateLimitStore } : {}),
   });
   const app = createApp({
     env,
@@ -64,5 +98,22 @@ export async function buildTestApp(
     logger: createLogger(logs),
     ...(options.mount ? { mount: options.mount } : {}),
   });
-  return { app, auth, config, env, store, mailer, clock, logs };
+  const close = async () => {
+    await prisma?.db.$disconnect();
+    await schema?.drop();
+  };
+  return {
+    app,
+    auth,
+    config,
+    env,
+    store,
+    ...(memory ? { memory } : {}),
+    ...(prisma ? { prisma } : {}),
+    ...(schema ? { schema } : {}),
+    mailer,
+    clock,
+    logs,
+    close,
+  };
 }

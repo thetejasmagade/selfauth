@@ -2,3 +2,9 @@ packages:
   - "packages/*"
   - "conformance"
   - "apps/*"
+
+# Packages allowed to run install scripts (pnpm blocks all others by default).
+# Prisma downloads its schema engine for migrations.
+onlyBuiltDependencies:
+  - "@prisma/engines"
+  - prisma

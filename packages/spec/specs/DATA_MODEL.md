@@ -106,11 +106,17 @@ for; must equal the user's current `emailNormalized` at use).
 | userId, actorId | id? | not FKs (events outlive users) |
 | ipAddress, userAgent, requestId | string? | |
 | metadata | JSON object | redacted per SEC-AUDIT-003 |
+| seq | monotonic integer (optional) | insertion order, since timestamps can tie |
+
+### RateLimit — `auth_rate_limits` (optional)
+
+Shared limiter state for multi-instance deployments (SEC-RATE-006): `key`
+(PK), `count`, `windowEndsAt`, `blockedUntil`, `strikes`, `lastBlockAt`.
+Updates of one key MUST be serialized (e.g. row lock). Adapters MAY use
+another shared store (Redis) instead.
 
 ### Not modeled here
 
-- **Rate-limit counters** — an adapter concern (memory, Redis, or a table); see
-  SEC-RATE-006.
 - **MFA, OAuth accounts, passkeys, API tokens** — see
   [OPTIONAL_CAPABILITIES](OPTIONAL_CAPABILITIES.md).
 

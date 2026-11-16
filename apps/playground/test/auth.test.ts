@@ -209,8 +209,8 @@ describe("registration is atomic (AUTHN-REG-003)", () => {
       .set(csrf)
       .send({ email: "b@example.test", password: PASSWORD });
     expect(res.status).toBe(500);
-    expect(t.store.inspect("user")).toHaveLength(0);
-    expect(t.store.inspect("credential")).toHaveLength(0);
+    expect(t.memory!.inspect("user")).toHaveLength(0);
+    expect(t.memory!.inspect("credential")).toHaveLength(0);
   });
 });
 

@@ -6,25 +6,40 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "generate": "prisma generate",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "dev": "node --env-file-if-exists=.env --watch src/server.ts",
-    "start": "node --env-file-if-exists=.env dist/server.js"
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "db:status": "node --env-file-if-exists=.env src/scripts/db.ts status",
+    "db:plan": "node --env-file-if-exists=.env src/scripts/db.ts plan",
+    "db:migrate": "node --env-file-if-exists=.env src/scripts/db.ts migrate",
+    "db:migrate:create": "node --env-file-if-exists=.env src/scripts/db.ts generate",
+    "db:validate": "node --env-file-if-exists=.env src/scripts/db.ts validate",
+    "db:rollback": "node --env-file-if-exists=.env src/scripts/db.ts rollback",
+    "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
+    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "cookie": "^2.0.2",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@selfauth/conformance": "workspace:*",
+    "@selfauth/migration": "workspace:*",
     "@selfauth/spec": "workspace:*",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "prisma": "7.10.1",
     "supertest": "^7.3.2"
   }
 }
