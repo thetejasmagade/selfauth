@@ -228,10 +228,6 @@
           "target": "web/src/style.css"
         },
         {
-          "source": "apps/playground-vue/src/selfauth.config.json",
-          "target": "web/src/selfauth.config.json"
-        },
-        {
           "source": "apps/playground-vue/src/env.d.ts",
           "target": "web/src/env.d.ts"
         },
@@ -296,10 +292,6 @@
         {
           "source": "apps/playground-react/src/style.css",
           "target": "web/src/style.css"
-        },
-        {
-          "source": "apps/playground-react/src/selfauth.config.json",
-          "target": "web/src/selfauth.config.json"
         },
         {
           "source": "apps/playground-react/src/auth/client.ts",

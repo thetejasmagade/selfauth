@@ -1,9 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { describeError, useAuth } from "../../auth/index.ts";
-import shared from "../../selfauth.config.json";
-
-const minLength = shared.password.minLength;
 
 export function RegisterPage() {
   const auth = useAuth();
@@ -63,10 +60,10 @@ export function RegisterPage() {
               name="password"
               type="password"
               autoComplete="new-password"
-              minLength={minLength}
+              minLength={8}
               required
             />
-            <small>At least {minLength} characters. A few unrelated words work well.</small>
+            <small>At least 8 characters. A few unrelated words work well.</small>
           </label>
           {error && (
             <p className="error" role="alert">

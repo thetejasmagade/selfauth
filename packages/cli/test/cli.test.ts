@@ -126,15 +126,7 @@ describe("planInit with a frontend", () => {
   it("configures the example permissions, frontend origin and client package", async () => {
     const files = await planInit(answers("memory", "react"));
     const config = files.find((f) => f.path === "server/src/config/selfauth.config.ts")!.content;
-    // The password limits are imported from the shared file, not written here.
-    expect(config).toContain('import shared from "./selfauth.config.json" with { type: "json" }');
-    expect(config).toContain("shared.password.minLength");
-    const literal = JSON.parse(
-      config
-        .slice(config.indexOf("= ") + 2, config.lastIndexOf(";"))
-        .replace("shared.password.minLength", "8")
-        .replace("shared.password.maxLength", "128"),
-    );
+    const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
     expect(literal.adapter.frontend).toBe("react");
     expect(literal.authorization.permissions).toEqual([
       "orders.view",
@@ -189,17 +181,10 @@ describe("planInit with a frontend", () => {
     const paths = files.map((f) => f.path);
     // Nothing of the backend or frontend sits at the root except the workspace files.
     const rootFiles = paths.filter((p) => !p.includes("/"));
-    expect(rootFiles.sort()).toEqual([
-      ".gitignore",
-      "README.md",
-      "package.json",
-      "selfauth.config.json",
-    ]);
-    expect(paths).toContain("scripts/sync-config.mjs");
+    expect(rootFiles.sort()).toEqual([".gitignore", "README.md", "package.json"]);
     const root = JSON.parse(files.find((f) => f.path === "package.json")!.content);
     expect(root.workspaces).toEqual(["server", "client"]);
     expect(root.scripts.dev).toContain("concurrently");
-    expect(root.scripts.sync).toBe("node scripts/sync-config.mjs");
     expect(root.scripts["db:create-admin"]).toBe("npm run db:create-admin -w server --");
     expect(
       JSON.parse(files.find((f) => f.path === "server/package.json")!.content).scripts,
@@ -207,19 +192,6 @@ describe("planInit with a frontend", () => {
     // A pattern with a slash in the middle is anchored at the .gitignore, so it must be **/.
     expect(files.find((f) => f.path === ".gitignore")!.content).toContain("**/src/generated/");
     expect(paths).toContain("server/.env.example");
-
-    // One file to edit: the root selfauth.config.json, copied into both packages before they run.
-    const content = (path: string) => files.find((f) => f.path === path)!.content;
-    const shared = content("selfauth.config.json");
-    expect(JSON.parse(shared).password).toEqual({ minLength: 8, maxLength: 128 });
-    expect(content("server/src/config/selfauth.config.json")).toBe(shared);
-    expect(content("client/src/selfauth.config.json")).toBe(shared);
-    for (const dir of ["server", "client"]) {
-      const scripts = JSON.parse(content(`${dir}/package.json`)).scripts;
-      expect(scripts.sync).toBe("node ../scripts/sync-config.mjs");
-      expect(scripts.predev).toBe("npm run sync");
-      expect(scripts.prebuild).toBe("npm run sync");
-    }
     expect(paths).toContain("server/prisma/schema.prisma");
     expect(paths).toContain("client/vite.config.ts");
   });

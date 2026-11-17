@@ -213,7 +213,7 @@
     {
       "path": "package.json",
       "template": "rendered:package.json",
-      "sha256": "e64fc6034d54c0e17cc903c6307d7ecc0be074e2ce188744cb78ba7395cd87c3"
+      "sha256": "2f992d37f253cedd8efa488c80b7118bf983a42f3ba925d2f0fd2e52cdcea1bb"
     },
     {
       "path": "tsconfig.json",
@@ -233,12 +233,7 @@
     {
       "path": "src/config/selfauth.config.ts",
       "template": "rendered:config",
-      "sha256": "591b506724abf227894be8621eeafd63b2abb7b24a5d8d44f91675810021044e"
-    },
-    {
-      "path": "src/config/selfauth.config.json",
-      "template": "rendered:shared-config",
-      "sha256": "57f09e6064af4cd7658e10f4e339efc72640d62f4096980e91485809c6529946"
+      "sha256": "681fd94a264c14cb22bd5d1fd69ae819fb35e3a5bfcb02241c5563de8a13b3f9"
     }
   ]
 }

@@ -16,7 +16,6 @@ import {
   type InitAnswers,
 } from "../src/index.js";
 import { flatLayoutMoves } from "../src/project.js";
-import { renderConfig } from "../src/render.js";
 
 /**
  * Projects made with SelfAuth ≤ 0.3 keep their app files side by side in src/. `upgrade
@@ -75,41 +74,6 @@ async function unwindWorkspace(dir: string, name: string): Promise<void> {
 }
 
 /**
- * A two-package project as it was before the shared root selfauth.config.json: no root file, no
- * sync script and no server copy, the password limits written in the server's config, and no
- * `sync`/`pre*` scripts. (Its frontend pages are already the new ones, and keep their copy of the
- * file, which is what `upgrade` leaves behind.) Migrated projects must end up exactly like this.
- */
-async function withoutSharedConfig(dir: string, answers: InitAnswers): Promise<void> {
-  const fs = await import("node:fs/promises");
-  const { sha256, buildConfig } = await import("../src/index.js");
-  await fs.rm(join(dir, "selfauth.config.json"));
-  await fs.rm(join(dir, "scripts"), { recursive: true });
-  await fs.rm(join(dir, "server/src/config/selfauth.config.json"));
-  await writeFile(
-    join(dir, "server/src/config/selfauth.config.ts"),
-    renderConfig(buildConfig(answers)),
-  );
-  for (const pkg of ["package.json", "server/package.json", "client/package.json"]) {
-    const data = JSON.parse(await readFile(join(dir, pkg), "utf8"));
-    for (const name of Object.keys(data.scripts))
-      if (name === "sync" || name.startsWith("pre")) delete data.scripts[name];
-    await writeFile(join(dir, pkg), json(data));
-  }
-  const path = join(dir, "server", "selfauth.manifest.json");
-  const manifest = JSON.parse(await readFile(path, "utf8"));
-  manifest.files = manifest.files.filter(
-    (f: { path: string }) => f.path !== "src/config/selfauth.config.json",
-  );
-  for (const dirName of ["server", "client"]) {
-    const file = join(dir, dirName, "selfauth.manifest.json");
-    const m = dirName === "server" ? manifest : JSON.parse(await readFile(file, "utf8"));
-    for (const f of m.files) f.sha256 = sha256(await readFile(join(dir, dirName, f.path), "utf8"));
-    await writeFile(file, json(m));
-  }
-}
-
-/**
  * Writes a project, then takes it back to an older layout. `structure: 2` is SelfAuth 0.4/0.5
  * (grouped src/, full-stack projects with src/ and web/ side by side); `1` is SelfAuth 0.3 and
  * earlier (a flat src/ as well).
@@ -124,7 +88,6 @@ async function flatProject(
     dir,
     options.add ? await planAdd(answers, undefined, { srcDir }) : await planInit(answers),
   );
-  if (!options.add && answers.frontend !== "none") await withoutSharedConfig(dir, answers);
   const grouped = await tree(dir);
   if (!options.add && answers.frontend !== "none") await unwindWorkspace(dir, answers.name);
   if (options.structure === 2) return { dir, grouped };

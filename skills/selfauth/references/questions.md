@@ -211,17 +211,6 @@ cover both. An API-only project stays a single package with `src/`.
 → [guides/manual-integration.md](guides/manual-integration.md),
 [guides/upgrading.md](guides/upgrading.md#moving-to-the-two-package-layout)
 
-**How do I change the minimum password length?** In a full-stack project, edit
-`password.minLength` in the root `selfauth.config.json`: it is the one place, and
-the server and the frontend both read it (`npm run sync` copies it into
-`server/` and `client/`, and `dev`, `build` and `test` run it for you; rebuild
-the client). It cannot go below 8, and `selfauth validate` says so. In an
-API-only project, edit `authentication.password.minLength` in
-`src/config/selfauth.config.ts`. A project made before the root file existed has
-no root file: change `server/src/config/selfauth.config.ts` and
-`client/src/selfauth.config.json` (arrives with `selfauth upgrade`).
-→ [guides/customization.md](guides/customization.md)
-
 **Does upgrading change my database?** It updates files, including new
 migration files. Applying migrations is a separate, reviewed step
 (`selfauth db plan`). → [guides/upgrading.md](guides/upgrading.md), [guides/database.md](guides/database.md)

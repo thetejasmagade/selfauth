@@ -40,9 +40,8 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   });
 }
 
-export function renderConfig(config: SelfAuthConfig, options: { shared?: boolean } = {}): string {
-  if (!options.shared) {
-    return `import type { SelfAuthConfig } from "../auth/types.ts";
+export function renderConfig(config: SelfAuthConfig): string {
+  return `import type { SelfAuthConfig } from "../auth/types.ts";
 
 /**
  * SelfAuth configuration: behavior only, never secrets (CONF-FILE-002).
@@ -51,81 +50,10 @@ export function renderConfig(config: SelfAuthConfig, options: { shared?: boolean
  */
 export const config: SelfAuthConfig = ${JSON.stringify(config, null, 2)};
 `;
-  }
-  // Full-stack: the password limits come from selfauth.config.json (project root), so the
-  // server and the frontend always agree. Placeholders are swapped for the imported values.
-  const marked = {
-    ...config,
-    authentication: {
-      ...config.authentication,
-      password: { ...config.authentication.password, minLength: "@min", maxLength: "@max" },
-    },
-  };
-  const body = JSON.stringify(marked, null, 2)
-    .replace('"@min"', "shared.password.minLength")
-    .replace('"@max"', "shared.password.maxLength");
-  return `import type { SelfAuthConfig } from "../auth/types.ts";
-import shared from "./selfauth.config.json" with { type: "json" };
-
-/**
- * SelfAuth configuration: behavior only, never secrets (CONF-FILE-002).
- * Every default is a secure starting point and can be changed within the
- * bounds in CONFIGURATION_SPEC.md. Check changes with \`npx selfauth validate\`.
- *
- * The password length limits are not set here: they come from selfauth.config.json
- * in the project root (copied next to this file by \`npm run sync\`), which the
- * frontend reads too. Edit them there.
- */
-export const config: SelfAuthConfig = ${body};
-`;
-}
-
-/** selfauth.config.json: the browser-safe settings the server and the frontend share. */
-export function renderSharedConfig(config: SelfAuthConfig): string {
-  const { minLength, maxLength } = config.authentication.password;
-  return `{
-  "_note": "Browser-safe settings shared by server and client. Edit selfauth.config.json in the project root, not this copy: \`npm run sync\` (it also runs before dev, build and test) copies it here. Never put secrets in it.",
-  "password": { "minLength": ${minLength}, "maxLength": ${maxLength} }
-}
-`;
-}
-
-/** scripts/sync-config.mjs: copies the root selfauth.config.json into server/ and client/. */
-export function renderSyncScript(): string {
-  return `// Copies selfauth.config.json (project root) into server/ and client/, so each package imports a
-// file inside its own folder. Runs before dev, build, test and typecheck, and as \`npm run sync\`.
-import { copyFileSync, existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const source = join(root, "selfauth.config.json");
-if (existsSync(source)) {
-  const text = readFileSync(source, "utf8");
-  const password = JSON.parse(text).password;
-  for (const key of ["minLength", "maxLength"]) {
-    if (!Number.isInteger(password?.[key])) {
-      throw new Error(\`selfauth.config.json: password.\${key} must be a whole number\`);
-    }
-  }
-  for (const folder of ["server/src/config", "client/src"]) {
-    const target = join(root, folder, "selfauth.config.json");
-    if (!existsSync(target) || readFileSync(target, "utf8") !== text) copyFileSync(source, target);
-  }
-}
-`;
 }
 
 /** Full-stack projects (a frontend was chosen) are two packages in an npm workspace. */
 export const isWorkspace = (answers: Pick<InitAnswers, "frontend">) => answers.frontend !== "none";
-
-/** `sync` plus a `pre<name>` hook for each script, so the shared config is current before it runs. */
-function syncScripts(names: string[]): Record<string, string> {
-  return {
-    sync: "node ../scripts/sync-config.mjs",
-    ...Object.fromEntries(names.map((n) => [`pre${n}`, "npm run sync"])),
-  };
-}
 
 export function renderPackageJson(
   answers: InitAnswers,
@@ -147,8 +75,6 @@ export function renderPackageJson(
     typecheck: "tsc -p tsconfig.json --noEmit",
     test: 'node --test "test/**/*.test.ts"',
   };
-  if (isWorkspace(answers))
-    Object.assign(scripts, syncScripts(["dev", "build", "test", "typecheck"]));
   if (answers.database === "postgresql") {
     Object.assign(scripts, {
       generate: "prisma generate",
@@ -227,7 +153,6 @@ export function renderWebPackageJson(
         build: "vite build",
         preview: "vite preview",
         typecheck: info.typecheck,
-        ...syncScripts(["dev", "build", "typecheck"]),
       },
       dependencies: pick(info.dependencies),
       devDependencies: pick(info.devDependencies),
@@ -286,10 +211,7 @@ export function renderEnvExample(answers: InitAnswers): string {
 }
 
 /** Workspace root package.json: runs both packages (`concurrently` so it also works on Windows). */
-export function renderRootPackageJson(
-  answers: InitAnswers,
-  options: { shared?: boolean } = { shared: true },
-): string {
+export function renderRootPackageJson(answers: InitAnswers): string {
   const pg = answers.database === "postgresql";
   const scripts: Record<string, string> = {
     dev: 'concurrently -k -n server,client -c blue,green "npm run dev -w server" "npm run dev -w client"',
@@ -300,8 +222,6 @@ export function renderRootPackageJson(
     typecheck: "npm run typecheck -w server && npm run typecheck -w client",
     test: "npm run test -w server",
   };
-  // Projects migrated from the one-package layout have no root selfauth.config.json to sync.
-  if (options.shared) scripts["sync"] = "node scripts/sync-config.mjs";
   if (pg) {
     Object.assign(scripts, {
       "db:migrate": "npm run db:migrate -w server",
@@ -351,7 +271,6 @@ function serverRows(answers: InitAnswers): Row[] {
     ["  app.ts", "builds the Express app: middleware, routes, error handling"],
     ["  config/", ""],
     ["    selfauth.config.ts", "your authentication settings: roles, permissions, limits"],
-    ...(web ? ([["    selfauth.config.json", "copy of the root file: don't edit"]] as Row[]) : []),
     ["    env.ts", "environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)"],
     ["    dev-config.ts", "cookie settings for local http development"],
     ["  routes/", ""],
@@ -379,7 +298,6 @@ function clientRows(answers: InitAnswers): Row[] {
       `  ${answers.frontend === "vue" ? "main.ts, App.vue, router.ts" : "main.tsx, App.tsx"}`,
       "entry point, app shell and routes",
     ],
-    ["  selfauth.config.json", "copy of the root file: don't edit"],
     ["  auth/", "SelfAuth's frontend module: API client, session state, route guards, <Can>"],
     [
       "  pages/auth/",
@@ -409,8 +327,6 @@ export function renderLayout(answers: InitAnswers): string {
         ...indent(clientRows(answers)),
         ["  package.json", "its own package"],
         ["  selfauth.manifest.json", "which files SelfAuth generated"],
-        ["selfauth.config.json", "password length limits, shared by server and client: edit here"],
-        ["scripts/sync-config.mjs", "copies selfauth.config.json into server/ and client/"],
         ["package.json", "workspace root: `npm run dev` starts both"],
       ]
     : [

@@ -31,7 +31,6 @@ server/                        the Express API (PostgreSQL)
     app.ts                     builds the Express app: middleware, routes, error handling
     config/
       selfauth.config.ts       your authentication settings: roles, permissions, limits
-      selfauth.config.json     copy of the root file: don't edit
       env.ts                   environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)
       dev-config.ts            cookie settings for local http development
     routes/
@@ -50,14 +49,11 @@ server/                        the Express API (PostgreSQL)
 client/                        the react frontend (Vite)
   src/
     main.tsx, App.tsx          entry point, app shell and routes
-    selfauth.config.json       copy of the root file: don't edit
     auth/                      SelfAuth's frontend module: API client, session state, route guards, <Can>
     pages/auth/                the five account screens: login, register, verify email, forgot and reset password
     pages/                     your pages (account, notes): replace the notes example
   package.json                 its own package
   selfauth.manifest.json       which files SelfAuth generated
-selfauth.config.json           password length limits, shared by server and client: edit here
-scripts/sync-config.mjs        copies selfauth.config.json into server/ and client/
 package.json                   workspace root: `npm run dev` starts both
 ```
 

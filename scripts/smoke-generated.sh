@@ -109,8 +109,6 @@ else
     WEB2="$WORK/web2"
     mkdir -p "$WEB2"
     (cd client && tar --exclude=node_modules --exclude=dist --exclude=src/auth --exclude=selfauth.manifest.json -cf - .) | tar -xf - -C "$WEB2"
-    # Outside the workspace there is no root file to sync from (docs/customization.md): drop the hooks.
-    (cd "$WEB2" && node -e 'const f="package.json",p=JSON.parse(require("fs").readFileSync(f));for(const k of Object.keys(p.scripts))if(k==="sync"||k.startsWith("pre"))delete p.scripts[k];require("fs").writeFileSync(f,JSON.stringify(p,null,2))')
     # Re-point only imports of the module (…/auth/index.ts), not the pages/auth/ folder.
     grep -rl '/auth/index.ts' "$WEB2/src" | xargs sed -i 's#/auth/index\.ts#/selfauth/index.ts#g'
     (cd "$WEB2" && node "$CLI" add-frontend --yes > "$WORK/add-frontend.log" \
