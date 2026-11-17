@@ -114,7 +114,7 @@
     {
       "path": "src/auth/fastify/index.ts",
       "template": "fastify:apps/playground-fastify/src/auth/fastify/index.ts",
-      "sha256": "7ba81b38004248f2890808e8855ada2afaf93a62846436663c224afb45287e9b"
+      "sha256": "e7b20a5b0ec3af5524244fccc5d25ae9bde7e50e403c6fd862c756433deff991"
     },
     {
       "path": "src/auth/stores/memory.ts",
