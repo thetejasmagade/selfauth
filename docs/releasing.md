@@ -11,12 +11,16 @@ provenance. Generated projects depend on none of them.
    scope, and reserve the unscoped package name **`selfauth`**. Without the
    unscoped name, anyone could publish a package that `npx selfauth`
    resolves to.
-2. Create an npm **granular access token** with publish rights to those
-   packages. Add it as the `NPM_TOKEN` repository secret (Settings → Secrets
-   and variables → Actions).
-3. After the first publish, you may switch each package to **trusted
-   publishing** (npm → package settings → Trusted publisher: this repository,
-   workflow `release.yml`). Then remove the token.
+2. First publish only: an npm **granular access token** with publish rights,
+   stored as the `NPM_TOKEN` repository secret. Trusted publishing can only
+   be configured for packages that already exist.
+3. Then, for **each of the five packages**, open npm → the package →
+   Settings → **Trusted publisher** → GitHub Actions: repository
+   `thetejasmagade/selfauth`, workflow `release.yml` (no environment).
+   `release.yml` publishes through OIDC with no stored token.
+4. Delete the `NPM_TOKEN` secret and revoke the token on npm. Optionally set
+   each package's publishing access to "Require two-factor authentication and
+   disallow tokens".
 
 ## Every release
 

@@ -4,7 +4,9 @@ name: Release
 # "Release: version packages" PR from the pending .changeset/*.md files, or,
 # once that PR is merged, publishes the new versions to npm with provenance.
 # Nothing is published until a maintainer merges the release PR.
-# Setup (once): docs/releasing.md. Needs the NPM_TOKEN repository secret.
+# Publishes with npm trusted publishing (OIDC): no npm token is stored. Each package
+# needs this repository + release.yml registered as its trusted publisher.
+# Setup (once): docs/releasing.md.
 
 on:
   push:
@@ -13,7 +15,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write # npm provenance
+  id-token: write # npm trusted publishing + provenance
 
 concurrency:
   group: release
@@ -32,6 +34,8 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships an older npm.
+      - run: npm install -g npm@^11.5.1 && npm --version
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - uses: changesets/action@v1
@@ -42,5 +46,3 @@ jobs:
           commit: "Release: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
