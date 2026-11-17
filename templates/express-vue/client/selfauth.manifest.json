@@ -52,6 +52,11 @@
       "sha256": "8b1d0a92d0ca7bd39195ddb33d9f8713938e59b0f722401f4f59686e63302657"
     },
     {
+      "path": "src/selfauth.config.json",
+      "template": "vue:apps/playground-vue/src/selfauth.config.json",
+      "sha256": "57f09e6064af4cd7658e10f4e339efc72640d62f4096980e91485809c6529946"
+    },
+    {
       "path": "src/env.d.ts",
       "template": "vue:apps/playground-vue/src/env.d.ts",
       "sha256": "57328ddb6aca3ed7f81065f3485ec5914156c2f3886a9c365e1112516e360382"
@@ -94,7 +99,7 @@
     {
       "path": "src/pages/AccountPage.vue",
       "template": "vue:apps/playground-vue/src/pages/AccountPage.vue",
-      "sha256": "28c6bb5cb5e92df72643c5f713a028e6037f05e24fe1abdbb04d807b68d6018b"
+      "sha256": "656ff3c7bc32d322ee94f8c2524925f8dc447243d343df12c453718f6bc3e975"
     },
     {
       "path": "src/pages/ForbiddenPage.vue",
@@ -129,12 +134,12 @@
     {
       "path": "src/pages/auth/RegisterPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/RegisterPage.vue",
-      "sha256": "c2a4d7bda5e41ba698304ef9c80a5c4314b74921869928de4118e14d03cef42a"
+      "sha256": "5433a6cf0f6fd3abef178d379610204ca133f01e1f22c674d2a12a1a615dc1ed"
     },
     {
       "path": "src/pages/auth/ResetPasswordPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/ResetPasswordPage.vue",
-      "sha256": "e76083fe61f79a881ce14e5210b88aaf523a7cc1f69a1ded133734f459fd99a6"
+      "sha256": "7008e6fbb159b1f4ab5b2899a07ba869b5d0d925554480e75299fba31a4ed97a"
     },
     {
       "path": "src/pages/auth/VerifyEmailPage.vue",
@@ -144,7 +149,7 @@
     {
       "path": "package.json",
       "template": "rendered:web-package.json",
-      "sha256": "c11117eed253280e2a9e1b85b58afc0628d0da1bb917115463b14dc535a74dc4"
+      "sha256": "929be456692adff72242a0f896f48bcbc63af294e130110292c7ca68ede118fa"
     },
     {
       "path": "tsconfig.json",

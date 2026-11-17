@@ -103,6 +103,20 @@ your `.env`, extra dependencies and scripts all come along. The generated
 `selfauth doctor`, `validate`, `diff` and `upgrade` work at the root and cover
 both packages.
 
+### The shared `selfauth.config.json`
+
+New full-stack projects have a root `selfauth.config.json` that both packages
+read for the password length limits ([customization](customization.md)). A
+project moved with `--reorganize` (or made with an earlier version) does not
+have it: its server config still holds the numbers, and the frontend's copy
+`client/src/selfauth.config.json` arrives with the next `selfauth upgrade`, with
+the default limits (8 and 128). Until you set up the root file, change the
+password length in both places (`server/src/config/selfauth.config.ts` and
+`client/src/selfauth.config.json`). To adopt the root file: copy the root file
+and `scripts/sync-config.mjs` from a new project, add the `sync` and `pre*`
+scripts to the three `package.json` files, and import the limits in the server
+config as a new project does.
+
 ## Without the CLI (manual installations)
 
 1. Compare your files with the new release's

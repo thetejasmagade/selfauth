@@ -17,6 +17,7 @@
     "start": "npm run start -w server",
     "typecheck": "npm run typecheck -w server && npm run typecheck -w client",
     "test": "npm run test -w server",
+    "sync": "node scripts/sync-config.mjs",
     "db:migrate": "npm run db:migrate -w server",
     "db:status": "npm run db:status -w server",
     "db:seed": "npm run db:seed -w server",

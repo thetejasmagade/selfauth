@@ -297,13 +297,16 @@ async function applyWorkspace(dir: string, plan: WorkspacePlan): Promise<void> {
 
   await writeFile(
     join(dir, "package.json"),
-    renderRootPackageJson({
-      name: baseName,
-      database: manifest.database.type === "postgresql" ? "postgresql" : "memory",
-      frontend: frontend === "react" ? "react" : "vue",
-      permissions: manifest.options?.permissions ?? [],
-      appBaseUrl: manifest.options?.appBaseUrl ?? "http://localhost:5173",
-    }),
+    renderRootPackageJson(
+      {
+        name: baseName,
+        database: manifest.database.type === "postgresql" ? "postgresql" : "memory",
+        frontend: frontend === "react" ? "react" : "vue",
+        permissions: manifest.options?.permissions ?? [],
+        appBaseUrl: manifest.options?.appBaseUrl ?? "http://localhost:5173",
+      },
+      { shared: false },
+    ),
   );
 
   // .gitignore stays at the root: a pattern with a slash in the middle is anchored there.

@@ -1,0 +1,4 @@
+{
+  "_note": "Browser-safe settings shared by server and client. Edit selfauth.config.json in the project root, not this copy: `npm run sync` (it also runs before dev, build and test) copies it here. Never put secrets in it.",
+  "password": { "minLength": 8, "maxLength": 128 }
+}

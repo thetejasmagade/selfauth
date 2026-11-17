@@ -1,9 +1,14 @@
 import type { SelfAuthConfig } from "../auth/types.ts";
+import shared from "./selfauth.config.json" with { type: "json" };
 
 /**
  * SelfAuth configuration: behavior only, never secrets (CONF-FILE-002).
  * Every default is a secure starting point and can be changed within the
  * bounds in CONFIGURATION_SPEC.md. Check changes with `npx selfauth validate`.
+ *
+ * The password length limits are not set here: they come from selfauth.config.json
+ * in the project root (copied next to this file by `npm run sync`), which the
+ * frontend reads too. Edit them there.
  */
 export const config: SelfAuthConfig = {
   "specVersion": "0.1",
@@ -29,8 +34,8 @@ export const config: SelfAuthConfig = {
       "tokenTtlMinutes": 30
     },
     "password": {
-      "minLength": 8,
-      "maxLength": 128,
+      "minLength": shared.password.minLength,
+      "maxLength": shared.password.maxLength,
       "rejectCommon": true,
       "hashing": {
         "memoryKiB": 19456,

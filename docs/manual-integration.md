@@ -26,6 +26,11 @@ the API and the Vite dev server together. The dev server on :5173 proxies
 `/auth` and `/api` to the API. One `npm install` at the root installs both
 packages, and `npm run build`, `typecheck` and `test` run them too.
 
+The root also holds `selfauth.config.json`, the shared password length limits the
+API and the frontend both read (see [customization](customization.md)).
+`scripts/sync-config.mjs` copies it into `server/` and `client/`; the packages run
+it for you before `dev`, `build`, `test` and `typecheck`.
+
 Try it:
 
 ```bash

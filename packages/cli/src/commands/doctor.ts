@@ -9,6 +9,7 @@ import {
   projectDirs,
   projectPath,
   readEnvFile,
+  sharedConfigDrift,
 } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
@@ -37,6 +38,8 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
 
   if (manifest.options?.layout === "frontend" || manifest.options?.layout === "client") {
     // The frontend module has no configuration, mailer or database: only its files can drift.
+    const stale = await sharedConfigDrift(dir);
+    if (stale) report.warnings.push(stale);
     const drift = await fileDrift(dir, manifest);
     for (const m of drift.missing) report.warnings.push(`generated file deleted: ${m}`);
     if (drift.modified.length)
@@ -53,6 +56,8 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
 
   const { config, errors } = await loadConfig(dir, manifest);
   report.errors.push(...errors);
+  const stale = await sharedConfigDrift(dir);
+  if (stale) report.warnings.push(stale);
   if (config) {
     const a = config.authentication;
     if (a.registration.revealExistingEmail)

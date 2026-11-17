@@ -2,6 +2,9 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { describeError, useAuth, type SessionSummary } from "../auth/index.ts";
+import shared from "../selfauth.config.json";
+
+const minLength = shared.password.minLength;
 
 const auth = useAuth();
 const router = useRouter();
@@ -66,7 +69,7 @@ onMounted(() => loadSessions().catch((e) => (error.value = describeError(e))));
           v-model="newPassword"
           type="password"
           autocomplete="new-password"
-          minlength="8"
+          :minlength="minLength"
           required
       /></label>
       <button type="submit">Change password</button>
