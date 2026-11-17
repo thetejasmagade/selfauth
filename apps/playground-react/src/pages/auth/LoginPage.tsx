@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { describeError, safeRedirect, useAuth } from "../auth/index.ts";
+import { describeError, safeRedirect, useAuth } from "../../auth/index.ts";
 
 export function LoginPage() {
   const auth = useAuth();

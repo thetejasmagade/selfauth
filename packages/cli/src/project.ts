@@ -34,6 +34,38 @@ export const FLAT_LAYOUT: Record<string, string> = {
   "src/routes/notes.ts": "src/example/notes.ts",
 };
 
+/** The five SelfAuth screens now live in web/src/pages/auth/; the app's own pages stay in pages/. */
+const AUTH_PAGES = [
+  "LoginPage",
+  "RegisterPage",
+  "VerifyEmailPage",
+  "ForgotPasswordPage",
+  "ResetPasswordPage",
+];
+
+/**
+ * Every file the grouped layout moved, as old path → new path, for a project with these
+ * options (project-relative). The frontend's pages are part of it: before structure 2 they sat
+ * side by side in web/src/pages/.
+ */
+export function flatLayoutMoves(options: {
+  layout?: string | undefined;
+  srcDir?: string | undefined;
+  frontend?: string | undefined;
+}): Record<string, string> {
+  const add = options.layout === "add";
+  const rebase = (target: string) => (add ? addLayoutPath(target, options.srcDir) : target);
+  const moves = Object.fromEntries(
+    Object.entries(FLAT_LAYOUT).map(([grouped, flat]) => [rebase(flat), rebase(grouped)]),
+  );
+  const ext = options.frontend === "vue" ? "vue" : options.frontend === "react" ? "tsx" : null;
+  if (ext && options.layout !== "add" && options.layout !== "frontend") {
+    for (const page of AUTH_PAGES)
+      moves[`web/src/pages/${page}.${ext}`] = `web/src/pages/auth/${page}.${ext}`;
+  }
+  return moves;
+}
+
 /** True for a project generated with the old flat src/ (no `structure` in its manifest). */
 export function hasFlatLayout(manifest: Manifest | null): boolean {
   return (manifest?.options?.structure ?? 1) < 2 && manifest?.options?.layout !== "frontend";

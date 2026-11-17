@@ -43,7 +43,12 @@ src/
   scripts/              seed (roles) and create-admin
 test/                   smoke tests for the authentication wiring (npm test)
 prisma/                 database schema and migrations
-web/                    the react frontend (its src/auth/ is the API client and guards)
+web/                    the react frontend (Vite)
+  src/
+    main.tsx, App.tsx   entry point, app shell and routes
+    auth/               SelfAuth's frontend module: API client, session state, route guards, <Can>
+    pages/auth/         the five account screens: login, register, verify email, forgot and reset password
+    pages/              your pages (account, notes): replace the notes example
 selfauth.manifest.json  which files SelfAuth generated (used by doctor, diff, upgrade)
 ```
 

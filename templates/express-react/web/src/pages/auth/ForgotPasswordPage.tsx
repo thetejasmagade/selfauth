@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { describeError, useAuth } from "../auth/index.ts";
+import { describeError, useAuth } from "../../auth/index.ts";
 
 export function ForgotPasswordPage() {
   const auth = useAuth();

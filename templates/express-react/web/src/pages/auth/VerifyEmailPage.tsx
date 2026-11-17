@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import { describeError, takeTokenFromFragment, useAuth } from "../auth/index.ts";
+import { describeError, takeTokenFromFragment, useAuth } from "../../auth/index.ts";
 
 export function VerifyEmailPage() {
   const auth = useAuth();

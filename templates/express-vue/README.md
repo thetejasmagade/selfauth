@@ -27,24 +27,29 @@ development. Before production, implement `createMailer()` in
 
 ```text
 src/
-  server.ts             starts the server
-  app.ts                builds the Express app: middleware, routes, error handling
+  server.ts                      starts the server
+  app.ts                         builds the Express app: middleware, routes, error handling
   config/
-    selfauth.config.ts  your authentication settings: roles, permissions, limits
-    env.ts              environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)
-    dev-config.ts       cookie settings for local http development
+    selfauth.config.ts           your authentication settings: roles, permissions, limits
+    env.ts                       environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)
+    dev-config.ts                cookie settings for local http development
   routes/
-    index.ts            your routes: guard them with auth.requireAuth / requirePermission
-    notes.ts            example: permissions and ownership (replace it)
-  email/mailer.ts       plug in your email provider here
-  db/store.ts           picks the data store (PostgreSQL, or in-memory without DATABASE_URL)
-  http/                 error responses and request ids
-  auth/                 SelfAuth's generated authentication code (core/, express/, stores/)
-  scripts/              seed (roles) and create-admin
-test/                   smoke tests for the authentication wiring (npm test)
-prisma/                 database schema and migrations
-web/                    the vue frontend (its src/auth/ is the API client and guards)
-selfauth.manifest.json  which files SelfAuth generated (used by doctor, diff, upgrade)
+    index.ts                     your routes: guard them with auth.requireAuth / requirePermission
+    notes.ts                     example: permissions and ownership (replace it)
+  email/mailer.ts                plug in your email provider here
+  db/store.ts                    picks the data store (PostgreSQL, or in-memory without DATABASE_URL)
+  http/                          error responses and request ids
+  auth/                          SelfAuth's generated authentication code (core/, express/, stores/)
+  scripts/                       seed (roles) and create-admin
+test/                            smoke tests for the authentication wiring (npm test)
+prisma/                          database schema and migrations
+web/                             the vue frontend (Vite)
+  src/
+    main.ts, App.vue, router.ts  entry point, app shell and routes
+    auth/                        SelfAuth's frontend module: API client, session state, route guards, <Can>
+    pages/auth/                  the five account screens: login, register, verify email, forgot and reset password
+    pages/                       your pages (home, account, notes, forbidden, 404): replace the notes example
+selfauth.manifest.json           which files SelfAuth generated (used by doctor, diff, upgrade)
 ```
 
 Authentication behaviour is configuration (`src/config/selfauth.config.ts`), not code you

@@ -15,8 +15,7 @@ import {
   runValidation,
   type InitAnswers,
 } from "../src/index.js";
-import { FLAT_LAYOUT } from "../src/project.js";
-import { addLayoutPath } from "../src/plan.js";
+import { flatLayoutMoves } from "../src/project.js";
 
 /**
  * Projects made with SelfAuth ≤ 0.3 keep their app files side by side in src/. `upgrade
@@ -49,11 +48,20 @@ async function flatProject(
     options.add ? await planAdd(answers, undefined, { srcDir }) : await planInit(answers),
   );
   const grouped = await tree(dir);
-  const rebase = (t: string) => (options.add ? addLayoutPath(t, srcDir) : t);
+  // Reverse of what `--reorganize` does: grouped path → the flat path SelfAuth 0.3 used.
   const mapping = Object.fromEntries(
-    Object.entries(FLAT_LAYOUT).map(([grouped, flat]) => [rebase(grouped), rebase(flat)]),
+    Object.entries(
+      flatLayoutMoves({
+        layout: options.add ? "add" : "project",
+        srcDir,
+        frontend: answers.frontend,
+      }),
+    ).map(([flat, grouped]) => [grouped, flat]),
   );
-  const plan = await planMoves(dir, mapping, [options.add ? srcDir : "src", "test"]);
+  const scan = options.add
+    ? [srcDir, "test"]
+    : ["src", "test", ...(answers.frontend === "none" ? [] : ["web/src"])];
+  const plan = await planMoves(dir, mapping, scan);
   const { rename, rmdir, mkdir, writeFile: write } = await import("node:fs/promises");
   const { dirname } = await import("node:path");
   for (const m of plan.moves) {
@@ -81,6 +89,7 @@ describe("selfauth upgrade --reorganize", () => {
     ["memory, API only", { ...base, database: "memory", frontend: "none" }],
     ["postgresql, API only", { ...base, database: "postgresql", frontend: "none" }],
     ["memory, Vue (notes example)", { ...base, database: "memory", frontend: "vue" }],
+    ["postgresql, React", { ...base, database: "postgresql", frontend: "react" }],
   ] as const)("restores exactly the grouped layout (%s)", async (_name, answers) => {
     const { dir, grouped } = await flatProject(answers as InitAnswers);
     expect(existsSync(join(dir, "src/env.ts"))).toBe(true);
@@ -101,6 +110,13 @@ describe("selfauth upgrade --reorganize", () => {
         .sort(),
     );
     expect(existsSync(join(dir, "src/example"))).toBe(false);
+    if (answers.frontend !== "none") {
+      const ext = answers.frontend === "vue" ? "vue" : "tsx";
+      expect(existsSync(join(dir, `web/src/pages/auth/LoginPage.${ext}`))).toBe(true);
+      expect(existsSync(join(dir, `web/src/pages/LoginPage.${ext}`))).toBe(false);
+      // the application's own pages stay where they were
+      expect(existsSync(join(dir, `web/src/pages/NotesPage.${ext}`))).toBe(true);
+    }
   });
 
   it("leaves a project that validates, with nothing for upgrade to change", async () => {

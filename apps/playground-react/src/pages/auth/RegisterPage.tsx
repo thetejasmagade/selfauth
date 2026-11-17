@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { describeError, useAuth } from "../auth/index.ts";
+import { describeError, useAuth } from "../../auth/index.ts";
 
 export function RegisterPage() {
   const auth = useAuth();

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { describeError, safeRedirect, useAuth } from "../auth/index.ts";
+import { describeError, safeRedirect, useAuth } from "../../auth/index.ts";
 
 const auth = useAuth();
 const route = useRoute();

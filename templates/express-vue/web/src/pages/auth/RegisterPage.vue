@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { describeError, useAuth } from "../auth/index.ts";
+import { describeError, useAuth } from "../../auth/index.ts";
 
 const auth = useAuth();
 const router = useRouter();

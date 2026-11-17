@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { describeError, useAuth } from "../auth/index.ts";
+import { describeError, useAuth } from "../../auth/index.ts";
 
 const auth = useAuth();
 const email = ref("");

@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rename, rmdir, writeFile } from "node:fs/promises";
 import { dirname, join, posix } from "node:path";
 import { MANIFEST_FILE, manifestSchema, type Manifest } from "@selfauth/migration";
-import { addLayoutPath, LAYOUT_STRUCTURE, sha256 } from "./plan.js";
-import { FLAT_LAYOUT, hasFlatLayout } from "./project.js";
+import { LAYOUT_STRUCTURE, sha256 } from "./plan.js";
+import { flatLayoutMoves, hasFlatLayout } from "./project.js";
 
 /**
  * `selfauth upgrade --reorganize`: moves a project made with SelfAuth ≤ 0.3 (app files side by
@@ -13,7 +13,7 @@ import { FLAT_LAYOUT, hasFlatLayout } from "./project.js";
  */
 
 const SKIP = new Set(["node_modules", "dist", "build", "coverage", ".git", "generated"]);
-const SOURCE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
+const SOURCE = /\.(?:[cm]?[jt]s|[jt]sx|vue)$/;
 /** `from "./x"`, `import("./x")`, `import "./x"`, `export … from "./x"`. */
 const IMPORT = /((?:from|import)\s*\(?\s*)(["'])(\.{1,2}\/[^"']*|\.{1,2})\2/g;
 
@@ -108,13 +108,18 @@ export async function planReorganize(
   }
   const add = manifest.options?.layout === "add";
   const srcDir = manifest.options?.srcDir ?? "src";
-  const rebase = (target: string) => (add ? addLayoutPath(target, srcDir) : target);
-  const mapping = Object.fromEntries(
-    Object.entries(FLAT_LAYOUT).map(([grouped, flat]) => [rebase(flat), rebase(grouped)]),
-  );
-  // Project layout: src/ and test/. Add layout: the whole source folder, because the
-  // application's own files may import from selfauth/.
-  const scan = [add ? srcDir : "src", "test"].map((d) => (d === "." ? "" : d));
+  const mapping = flatLayoutMoves({
+    layout: manifest.options?.layout,
+    srcDir,
+    frontend: manifest.options?.frontend,
+  });
+  // Project layout: src/, test/ and the frontend's src. Add layout: the whole source folder,
+  // because the application's own files may import from selfauth/.
+  const scan = [
+    add ? srcDir : "src",
+    "test",
+    ...(!add && (manifest.options?.frontend ?? "none") !== "none" ? ["web/src"] : []),
+  ].map((d) => (d === "." ? "" : d));
   const computed = await planMoves(dir, mapping, scan);
   const problems = [...computed.problems];
   if (computed.moves.length === 0)

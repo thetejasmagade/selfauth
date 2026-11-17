@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { describeError, takeTokenFromFragment, useAuth } from "../auth/index.ts";
+import { describeError, takeTokenFromFragment, useAuth } from "../../auth/index.ts";
 
 const auth = useAuth();
 const status = ref<"working" | "verified" | "failed">("working");

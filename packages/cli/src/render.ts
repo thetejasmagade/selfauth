@@ -258,7 +258,24 @@ export function renderLayout(answers: InitAnswers): string {
     ...(pg ? ([["prisma/", "database schema and migrations"]] as [string, string][]) : []),
     ...(web
       ? ([
-          ["web/", `the ${answers.frontend} frontend (its src/auth/ is the API client and guards)`],
+          ["web/", `the ${answers.frontend} frontend (Vite)`],
+          ["  src/", ""],
+          [
+            `    ${answers.frontend === "vue" ? "main.ts, App.vue, router.ts" : "main.tsx, App.tsx"}`,
+            "entry point, app shell and routes",
+          ],
+          [
+            "    auth/",
+            "SelfAuth's frontend module: API client, session state, route guards, <Can>",
+          ],
+          [
+            "    pages/auth/",
+            "the five account screens: login, register, verify email, forgot and reset password",
+          ],
+          [
+            "    pages/",
+            `your pages (${answers.frontend === "vue" ? "home, account, notes, forbidden, 404" : "account, notes"}): replace the notes example`,
+          ],
         ] as [string, string][])
       : []),
     ["selfauth.manifest.json", "which files SelfAuth generated (used by doctor, diff, upgrade)"],
