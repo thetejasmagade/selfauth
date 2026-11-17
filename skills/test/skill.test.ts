@@ -138,7 +138,8 @@ describe("every reference in the skill is real", () => {
   it("cites only requirement IDs the specification defines", async () => {
     const ids = new Set((await loadRequirements()).map((r) => r.id));
     for (const file of handWritten) {
-      for (const [id] of read(file).matchAll(/\b[A-Z]+(?:-[A-Z]+)+-\d{3}\b/g))
+      // CT-* are conformance case IDs, not requirement IDs.
+      for (const [id] of read(file).matchAll(/\b(?!CT-)[A-Z]+(?:-[A-Z]+)+-\d{3}\b/g))
         expect(ids.has(id), `${relative(REPO, file)} cites ${id}`).toBe(true);
     }
   });

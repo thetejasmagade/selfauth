@@ -35,9 +35,11 @@ the SelfAuth frontend client).
 
 Create the first administrator after registering: `npm run db:create-admin you@example.com`.
 
-## Checks (optional)
+## Checks
 
-The SelfAuth CLI is a development tool; the app never needs it to run.
+`npm test` runs smoke tests of the authentication wiring in `test/` (no database needed).
+They are yours to extend. The SelfAuth CLI is a development tool and optional; the app never
+needs it to run.
 
 ```bash
 npx selfauth doctor     # configuration and production-readiness warnings

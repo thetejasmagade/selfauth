@@ -164,6 +164,14 @@ describe("startup safety", () => {
     expect(() => createAuth(options({ config, nodeEnv: "development" }))).not.toThrow();
   });
 
+  it("refuses configuration the adapter cannot honour (CONF-FILE-004)", () => {
+    const config = parseConfig({
+      ...BASE,
+      adapter: { backend: "express", database: "mongodb", orm: "mongoose" },
+    });
+    expect(() => createAuth(options({ config }))).toThrow(/does not support database 'mongodb'/);
+  });
+
   it("refuses token-mode CSRF without a strong secret (SEC-SECRET-003)", () => {
     const config = parseConfig({ ...BASE, http: { csrf: { mode: "token" } } });
     expect(() => createAuth(options({ config }))).toThrow(/CSRF secret/);

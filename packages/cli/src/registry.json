@@ -99,6 +99,11 @@
           "layout": "project"
         },
         {
+          "source": "packages/cli/template-variants/smoke.test.ts",
+          "target": "test/auth.smoke.test.ts",
+          "layout": "project"
+        },
+        {
           "source": "packages/cli/template-variants/routes.ts",
           "target": "src/routes.ts",
           "when": {

@@ -58,6 +58,7 @@ elif [[ "$MODE" == "manual" ]]; then
   if grep -q '@selfauth/\|"selfauth"' package.json; then echo "FAIL template depends on SelfAuth"; exit 1; fi
   npm install --no-audit --no-fund --loglevel=error
   npm run -s typecheck
+  expect "the template's own tests pass" "$(npm test 2>&1)" "# pass 6"
   npm run -s build
   cp .env.example .env
   START=(node --env-file=.env dist/server.js)
@@ -72,6 +73,7 @@ else
   step "npm install, typecheck, build"
   npm install --no-audit --no-fund --loglevel=error
   npm run -s typecheck
+  expect "the generated project's own tests pass" "$(npm test 2>&1)" "# pass 6"
   npm run -s build
   if [[ "$MODE" != "none" ]]; then
     step "frontend ($MODE): install, typecheck, build"
@@ -137,6 +139,7 @@ if [[ "$MODE" != "manual" ]]; then
   VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
   echo "$VALIDATION"
   expect "validate-auth passes" "$VALIDATION" "RESULT: PASS"
+  [[ "$MODE" != "add" ]] && expect "validate-auth ran the project's tests" "$VALIDATION" "PASS    backend: test"
   expect "skill reports SelfAuth installed" "$(skill detect-project.ts .)" "**Recommendation: upgrade**"
 fi
 

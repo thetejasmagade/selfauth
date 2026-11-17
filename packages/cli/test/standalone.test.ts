@@ -89,3 +89,30 @@ describe.each(variants)("%s runs without SelfAuth", (_name, plan) => {
     }
   });
 });
+
+describe.each(variants)(
+  "%s keeps secrets out of the repository (SEC-SECRET-002)",
+  (_name, plan) => {
+    it("ships placeholders only in .env.example and git-ignores .env", async () => {
+      const files = await plan();
+      const example = files.find((f) => f.path === ".env.example");
+      const gitignore = files.find((f) => f.path === ".gitignore");
+      if (!example) return; // `add` writes under src/selfauth/ and leaves .env handling to the project
+      for (const line of example.content.split("\n")) {
+        if (!line.trim() || line.startsWith("#")) continue;
+        const [key, ...rest] = line.split("=");
+        const value = rest.join("=");
+        if (/SECRET|KEY|TOKEN|PASSWORD/i.test(key!)) {
+          expect(["", "change-me"], `${key} must be empty or a placeholder`).toContain(value);
+        }
+        // Connection strings may carry credentials only for a local development database.
+        for (const [, host] of value.matchAll(/:\/\/[^@/]*@([^:/]+)/g)) {
+          expect(["localhost", "127.0.0.1"], `${key} credentials for ${host}`).toContain(host);
+        }
+      }
+      const ignored = gitignore!.content.split("\n");
+      expect(ignored).toContain(".env");
+      expect(ignored).toContain("!.env.example");
+    });
+  },
+);
