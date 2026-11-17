@@ -1,6 +1,6 @@
 {
   "name": "@selfauth/spec",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "SelfAuth language-neutral authentication & authorization specification, requirement tooling, and configuration schema.",
   "license": "MIT",
   "repository": {

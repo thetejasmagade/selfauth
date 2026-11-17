@@ -1,5 +1,29 @@
 # @selfauth/cli
 
+## 0.7.0
+
+### Minor Changes
+
+- 7dbea79: The default minimum password length is now 8 (was 12). 8 is the floor the specification allows
+  (SEC-PWPOLICY-001), and common-password rejection stays on by default. Projects set it in
+  `selfauth.config.ts` (`authentication.password.minLength`, up to 1024); existing projects keep the value
+  in their own config. The generated frontends' hint and `minlength` attribute follow the default,
+  conformance case CT-REG-005 now checks the boundary at 8 (7 rejected, 8 accepted), and `selfauth doctor` no
+  longer warns about every project for having a minimum below 12.
+
+### Patch Changes
+
+- 19eb350: `selfauth db` now explains a missing `DATABASE_URL` instead of ending in Prisma's bare "Connection url is
+  empty". It reads the environment and the project's `.env` itself (tolerating CRLF line endings, a byte-order
+  mark and quotes), hands the value to Prisma explicitly, ignores an empty shell variable that would hide
+  `.env`, and reports what it found, where it looked, and when the value is the `.env.example` placeholder
+  or not a PostgreSQL URL. The database guide gains a troubleshooting section (URL-encoding passwords, and
+  using a direct or session-mode connection for migrations on Supabase and other pooled databases).
+- Updated dependencies [19eb350]
+- Updated dependencies [7dbea79]
+  - @selfauth/migration@0.7.0
+  - @selfauth/spec@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes
