@@ -1,5 +1,16 @@
 # @selfauth/cli
 
+## 0.8.1
+
+### Patch Changes
+
+- 71cdbb1: Docs: list the three frontend pages to edit when you change the password length.
+- 5ee63a8: Reverts the shared root `selfauth.config.json` added in 0.8.0. The password length is set again in the server's `selfauth.config.ts` only, and generated projects no longer have the root file, `scripts/sync-config.mjs`, the `sync`/`pre*` scripts or the copies in `server/` and `client/`. The frontend's register, reset and account pages go back to a fixed `minlength` hint, and the docs now list the three pages to edit when you change the password length. Projects made with 0.8.0 can delete the root `selfauth.config.json`, `scripts/` and the copies, and the `sync` and `pre*` scripts, though leaving them does no harm.
+- Updated dependencies [71cdbb1]
+- Updated dependencies [5ee63a8]
+  - @selfauth/spec@0.8.1
+  - @selfauth/migration@0.8.1
+
 ## 0.8.0
 
 ### Minor Changes
