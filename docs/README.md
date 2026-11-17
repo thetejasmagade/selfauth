@@ -9,6 +9,9 @@
 **Reference**
 - [API reference](api/README.md): HTTP, server and client
 - [Database schema and migrations](database.md)
+- [Data retention after account deletion](data-retention.md)
+- [Conformance and support matrix](conformance.md)
+- [Security review](security-review.md)
 - [Customization and extension points](customization.md)
 - [Frontend deployment](frontend-deployment.md): same origin, subdomains,
   cross site

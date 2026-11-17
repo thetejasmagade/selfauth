@@ -70,6 +70,7 @@ export function renderPackageJson(
     build: "tsc -p tsconfig.build.json",
     start: "node --env-file-if-exists=.env dist/server.js",
     typecheck: "tsc -p tsconfig.json --noEmit",
+    test: 'node --test "test/**/*.test.ts"',
   };
   if (answers.frontend !== "none") {
     Object.assign(scripts, {
@@ -124,7 +125,7 @@ export function renderTsconfig(): { base: string; build: string } {
       skipLibCheck: true,
       rootDir: ".",
     },
-    include: ["src"],
+    include: ["src", "test"],
   };
   const build = {
     extends: "./tsconfig.json",
@@ -255,9 +256,11 @@ verification, password reset/change, sessions, admin). Add your own routes in
 Browsers must send \`X-SelfAuth-CSRF: 1\` on state-changing requests (or use
 the SelfAuth frontend client).
 ${pg ? "\nCreate the first administrator after registering: `npm run db:create-admin you@example.com`.\n" : ""}
-## Checks (optional)
+## Checks
 
-The SelfAuth CLI is a development tool; the app never needs it to run.
+\`npm test\` runs smoke tests of the authentication wiring in \`test/\` (no database needed).
+They are yours to extend. The SelfAuth CLI is a development tool and optional; the app never
+needs it to run.
 
 \`\`\`bash
 npx selfauth doctor     # configuration and production-readiness warnings

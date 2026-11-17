@@ -35,8 +35,18 @@ export interface Auth extends ExpressAuth {
   hasher: PasswordHasher;
 }
 
+/** Stores this adapter implements; the configuration schema also allows others (e.g. MongoDB). */
+const SUPPORTED_DATABASES: readonly string[] = ["postgresql", "memory"];
+
 export function createAuth(options: CreateAuthOptions): Auth {
   const { config, nodeEnv } = options;
+  // CONF-FILE-004: the schema describes every adapter; this one implements only some of it.
+  if (!SUPPORTED_DATABASES.includes(config.adapter.database)) {
+    throw new Error(
+      `The Express adapter does not support database '${config.adapter.database}' ` +
+        `(supported: ${SUPPORTED_DATABASES.join(", ")}; CONF-FILE-004)`,
+    );
+  }
   // SEC-COOKIE-003: insecure cookies only outside production.
   if (nodeEnv === "production" && !config.authentication.sessions.cookie.secure) {
     throw new Error("authentication.sessions.cookie.secure must be true in production");

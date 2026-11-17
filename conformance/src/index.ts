@@ -4,3 +4,5 @@ export * from "./coverage.js";
 export * from "./runner/driver.js";
 export * from "./runner/run.js";
 export { checkAssertions, resolvePath } from "./runner/assertions.js";
+export * from "./compliance.js";
+export * from "./render.js";

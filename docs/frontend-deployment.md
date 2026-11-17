@@ -65,4 +65,8 @@ problem, move to topology 1 or 2.
   `<meta name="referrer">` tag) and remove the fragment immediately
   (SEC-TOKEN-005).
 - Post-login redirects must go through `safeRedirect` (SEC-REDIRECT-001).
-- Serve everything over HTTPS in production, with HSTS (SEC-HTTP-002).
+- Serve everything over HTTPS in production (SEC-HTTP-002). The server refuses
+  to start in production when `SELFAUTH_APP_BASE_URL` is not `https://`, and
+  the session cookie is `Secure`. Add HSTS at your proxy or host, for example
+  `Strict-Transport-Security: max-age=31536000; includeSubDomains`, once you
+  are sure every subdomain serves HTTPS.

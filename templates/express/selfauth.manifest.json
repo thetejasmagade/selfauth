@@ -46,7 +46,7 @@
     {
       "path": "src/auth/index.ts",
       "template": "express:apps/playground/src/auth/index.ts",
-      "sha256": "f54d43532dcc6321f3180c0e498910a2ff252fa0ac29f94e9111ffeb7eecc4c1"
+      "sha256": "79a81de8126f1492ddf32370bec9765baa5debd1a31de30dc0fac53bcfa48d35"
     },
     {
       "path": "src/auth/core/authorization.ts",
@@ -154,6 +154,11 @@
       "sha256": "ea73d630667aba7ee59516eb5ba2fb34a16d2b8d5233f0c816d281aff558954c"
     },
     {
+      "path": "test/auth.smoke.test.ts",
+      "template": "express:packages/cli/template-variants/smoke.test.ts",
+      "sha256": "0a064d39c7e1c49e70235d6f7224f8aece02af6fedcb1028af35b9db7140da5a"
+    },
+    {
       "path": "src/routes.ts",
       "template": "express:packages/cli/template-variants/routes.ts",
       "sha256": "3a23b1d1369134607cfb11ffdf3488c12e571e209b624f1ad1df1b13d337d11c"
@@ -201,12 +206,12 @@
     {
       "path": "package.json",
       "template": "rendered:package.json",
-      "sha256": "0789a4db330587a000a060914f932aff40e9fb89d35f458ac2e442c509288613"
+      "sha256": "e6fd5339d86fcbae0331452fa567854646cebc2f8bdd983bbea0c231707bf1c1"
     },
     {
       "path": "tsconfig.json",
       "template": "rendered:tsconfig",
-      "sha256": "bc2500e60e5670293f29cdabe0d910ec345dfef640d3c66d03b9c8e853cfd9ca"
+      "sha256": "8ee2351ed8808f7a8e146ac0f535db33736998ee734cf5c97008374d5a7d14cc"
     },
     {
       "path": "tsconfig.build.json",
@@ -226,7 +231,7 @@
     {
       "path": "README.md",
       "template": "rendered:readme",
-      "sha256": "874ba90be8e8c15d911fc9e4050bedeae43b2769cba4d4887578475ece5e0255"
+      "sha256": "d60dc5acb45a026086da5067b575e149b935e9bc40d42f5996631dce5a8360e8"
     },
     {
       "path": "src/selfauth.config.ts",

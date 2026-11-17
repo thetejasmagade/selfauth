@@ -252,3 +252,19 @@ describe("configJsonSchema", () => {
     expect(schema.additionalProperties).toBe(false);
   });
 });
+
+describe("password policy defaults", () => {
+  it("has no password expiry or forced rotation setting (SEC-PWPOLICY-005)", () => {
+    const password = parseConfig(minimal).authentication.password;
+    expect(Object.keys(password).sort()).toEqual([
+      "hashing",
+      "maxLength",
+      "minLength",
+      "rejectCommon",
+    ]);
+    // A rotation setting would be rejected as an unknown key, so it cannot be switched on either.
+    expect(() =>
+      parseConfig({ ...minimal, authentication: { password: { maxAgeDays: 90 } } }),
+    ).toThrow();
+  });
+});

@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
     "generate": "prisma generate",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",

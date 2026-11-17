@@ -102,3 +102,35 @@ describe("loadEnv (SEC-SECRET-003)", () => {
     ).toBe(32);
   });
 });
+
+describe("route guards (AUTHZ-CORE-002)", () => {
+  // A small lint: every route the generated application registers names a guard from `auth`
+  // in its first lines, or sits on `auth.protectedRoutes()`, which denies anything unguarded.
+  const files = [
+    "src/example/notes.ts",
+    "src/routes.ts",
+    "../../packages/cli/template-variants/routes.ts",
+  ];
+  const ROUTE = /\b\w+\.(?:get|post|put|patch|delete|all)\(\s*["'`][^"'`]*["'`]/g;
+  const GUARD = /auth\.(requireAuth|requirePermission|authorizeResource)\b/;
+
+  it("declares a guard on every route", async () => {
+    const { readFile } = await import("node:fs/promises");
+    let routes = 0;
+    for (const file of files) {
+      const source = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
+      const usesProtected = /auth\.protectedRoutes\(\)/.test(source);
+      for (const m of source.matchAll(ROUTE)) {
+        routes++;
+        const head = source.slice(m.index, m.index + 220);
+        expect(GUARD.test(head) || usesProtected, `${file}: unguarded route ${m[0]}`).toBe(true);
+      }
+    }
+    expect(routes).toBeGreaterThanOrEqual(4);
+  });
+
+  it("would catch an unguarded route", () => {
+    const bad = 'api.get("/x", (_req, res) => { res.json({}); });';
+    expect(GUARD.test(bad.slice(0, 220))).toBe(false);
+  });
+});

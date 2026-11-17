@@ -13,7 +13,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M6 — CLI Generator | Phase 6 | ✅ init (backend + Vue/React), add, diff/upgrade, doctor, validate, db |
 | M7 — LLM Skills | Phase 7 | ✅ |
 | M8 — Manual Distribution | Phase 8 | ✅ (publishing awaits npm setup) |
-| M9 — Security and Conformance | Phase 9 | ⏳ |
+| M9 — Security and Conformance | Phase 9 | ✅ Levels, sign-offs, support matrix, security review, CodeQL + gitleaks, tests in generated projects |
 | M10 — Additional Frameworks | Phase 10 | ⏳ |
 | M11 — Stable Open-source Release | Phase 12 | ⏳ |
 
@@ -131,14 +131,22 @@ databases (Phase 6 CLI).
 - Tested: no generated variant depends on, imports or contacts anything
   from SelfAuth (ADR 0021).
 
+## Phase 9 — done
+
+- Compliance levels computed from case results and sign-offs (`evaluateLevels`, ADR 0022).
+  Express: PostgreSQL store published at production-profile (self-assessed), in-memory at
+  authorization.
+- Every non-case requirement has a sign-off with evidence; CI fails on a missing one.
+- Generated [support matrix](docs/conformance.md): versions, known limitations, coverage by area.
+- [Security review](docs/security-review.md): 8 findings, all closed; independent audit is a 1.0 gate.
+- CI: CodeQL and gitleaks (`.github/workflows/security.yml`).
+- `selfauth init` projects ship a smoke test suite (`npm test`), so `validate-auth` runs tests.
+
 ## Next
 
-1. Maintainer: create the npm org `selfauth`, reserve `selfauth`, add
-   `NPM_TOKEN`, then merge the release PR (docs/releasing.md).
-2. Phase 9: conformance levels, security review and quality gates. Also tests
-   inside generated projects, so `validate-auth` can run them instead of
-   reporting `test` as skipped.
-3. Later: MongoDB + Mongoose, Prisma schema merging for `add`.
+1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").
+2. Phase 10: more frameworks and languages. Each adds its own adapter record and sign-offs.
+3. Later: MongoDB + Mongoose, Prisma schema merging for `add`, tests for the `add` layout.
 
 ## Decisions made after Sprint 1 review
 
