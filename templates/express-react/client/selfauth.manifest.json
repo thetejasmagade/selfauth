@@ -84,7 +84,7 @@
     {
       "path": "src/pages/AccountPage.tsx",
       "template": "react:apps/playground-react/src/pages/AccountPage.tsx",
-      "sha256": "c0578d4308258c04710c7b7143e2b236f284fff1c2a574f14e138cded180714e"
+      "sha256": "5c6003b9c2344d5676ce701c4d6a771832a98c402fa21d023f4c5592d7909a88"
     },
     {
       "path": "src/pages/NotesPage.tsx",
@@ -104,12 +104,12 @@
     {
       "path": "src/pages/auth/RegisterPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/RegisterPage.tsx",
-      "sha256": "13bd198e0060c8a3623e3cbc5d305e4ce833abea7870d1dfa8d33f05e33e07e3"
+      "sha256": "6d237204ef941f81394880dd15b0b65db3ac3bc6273d79b28c59f9b59239e83c"
     },
     {
       "path": "src/pages/auth/ResetPasswordPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/ResetPasswordPage.tsx",
-      "sha256": "134047572301d9fc68ef894d8a752f418e68eb8d0bbcc43d3a06a2958a26b862"
+      "sha256": "44b7e700ffc98971462a21736ee1a255e6c0dfd21160cb414e67bd1765948888"
     },
     {
       "path": "src/pages/auth/VerifyEmailPage.tsx",

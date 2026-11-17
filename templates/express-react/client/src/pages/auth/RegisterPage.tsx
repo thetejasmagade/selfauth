@@ -60,10 +60,10 @@ export function RegisterPage() {
               name="password"
               type="password"
               autoComplete="new-password"
-              minLength={12}
+              minLength={8}
               required
             />
-            <small>At least 12 characters. A few unrelated words work well.</small>
+            <small>At least 8 characters. A few unrelated words work well.</small>
           </label>
           {error && (
             <p className="error" role="alert">

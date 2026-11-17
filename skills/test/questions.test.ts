@@ -310,7 +310,7 @@ describe("answers that quote the product stay true", () => {
     expect(config.authentication.emailVerification.mode).toBe("required");
     expect(config.authentication.registration.revealExistingEmail).toBe(false);
     expect(config.authentication.registration.signInAfterRegistration).toBe(false);
-    expect(config.authentication.password.minLength).toBe(12);
+    expect(config.authentication.password.minLength).toBe(8);
     expect(config.http.csrf.mode).toBe("header");
     expect(questions).toContain("__Host-session");
     expect(SYSTEM_ROLES).toEqual(["admin", "user"]);

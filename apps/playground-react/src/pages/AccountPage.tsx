@@ -75,7 +75,7 @@ export function AccountPage() {
               onChange={(e) => setNewPassword(e.target.value)}
               type="password"
               autoComplete="new-password"
-              minLength={12}
+              minLength={8}
               required
             />
           </label>

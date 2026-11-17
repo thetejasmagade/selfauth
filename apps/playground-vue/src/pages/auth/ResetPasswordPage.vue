@@ -44,7 +44,7 @@ async function submit() {
         name="password"
         type="password"
         autocomplete="new-password"
-        minlength="12"
+        minlength="8"
         required
     /></label>
     <p v-if="error" class="error" role="alert">{{ error }}</p>

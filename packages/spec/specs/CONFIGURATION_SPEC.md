@@ -41,7 +41,7 @@ and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
 | `authentication.registration.revealExistingEmail` | boolean | `false` | `true` returns `EMAIL_TAKEN` for registered emails (privacy trade-off, SEC-ENUM-004) |
 | `authentication.registration.signInAfterRegistration` | boolean | `false` | requires `revealExistingEmail: true` and verification mode `optional`/`off` |
 | `authentication.passwordReset.tokenTtlMinutes` | int | `30` | 5 – 60 |
-| `authentication.password.minLength` | int | `12` | ≥ 8, ≤ `maxLength` |
+| `authentication.password.minLength` | int | `8` | ≥ 8, ≤ `maxLength` |
 | `authentication.password.maxLength` | int | `128` | 64 – 1024 |
 | `authentication.password.rejectCommon` | boolean | `true` | offline list |
 | `authentication.password.hashing.memoryKiB` | int | `19456` (19 MiB) | ≥ 19456 when `iterations` ≥ 2; ≥ 47104 when `iterations` = 1 (SEC-HASH-002) |

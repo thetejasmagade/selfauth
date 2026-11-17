@@ -238,7 +238,7 @@
     {
       "path": "src/config/selfauth.config.ts",
       "template": "rendered:config",
-      "sha256": "47366a68b2c30098dadb823055ef7ad4c257c2855b094426bc42046e1deea193"
+      "sha256": "1a86aa4ad27912687b1d526e9d3defb936f57eb951027ce153fadf217ad24cdb"
     }
   ]
 }

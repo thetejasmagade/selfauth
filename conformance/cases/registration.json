@@ -279,7 +279,7 @@
           "op": "register",
           "input": {
             "email": "alice@example.test",
-            "password": "elevenchars"
+            "password": "seven 7"
           },
           "expect": {
             "outcome": "error",
@@ -299,10 +299,10 @@
         },
         {
           "op": "register",
-          "note": "exactly 12 characters including a space",
+          "note": "exactly 8 characters including a space",
           "input": {
             "email": "alice@example.test",
-            "password": "twelve chars"
+            "password": "eight ch"
           },
           "expect": {
             "outcome": "success"

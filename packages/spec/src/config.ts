@@ -107,7 +107,7 @@ export const selfAuthConfigSchema = z
           .prefault({}),
         password: z
           .strictObject({
-            minLength: int(8, 1024).default(12),
+            minLength: int(8, 1024).default(8),
             maxLength: int(64, 1024).default(128),
             rejectCommon: z.boolean().default(true),
             hashing: z

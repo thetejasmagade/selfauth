@@ -1,4 +1,5 @@
 import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
+import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
 import { databaseDir, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
@@ -32,7 +33,28 @@ export async function db(
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);
     return 1;
   }
-  const adapter = new PrismaMigrationAdapter({ cwd: dir });
+  // These commands connect to the database; the others (validate, rollback) read files only.
+  let env: NodeJS.ProcessEnv | undefined;
+  if (["status", "plan", "migrate", "generate"].includes(command)) {
+    const found = await readDatabaseEnv(dir);
+    if (!found.url) {
+      fail("DATABASE_URL is not set, so there is no database to connect to.");
+      say(`  environment variable:  ${found.environment}`);
+      say(`  ${found.path}:  ${found.envFile}`);
+      info(
+        `Add a line like DATABASE_URL=postgresql://user:password@host:5432/dbname to ${found.path} (and save the file), or set the variable in your shell.`,
+      );
+      return 1;
+    }
+    const problems = databaseUrlProblems(found.url);
+    if (problems.length) {
+      fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
+      return 1;
+    }
+    // Hand the value to Prisma directly, so it does not depend on prisma.config.ts finding .env.
+    env = { ...process.env, DATABASE_URL: found.url };
+  }
+  const adapter = new PrismaMigrationAdapter({ cwd: dir, ...(env ? { env } : {}) });
   try {
     switch (command) {
       case "status": {
