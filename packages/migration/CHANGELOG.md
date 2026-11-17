@@ -1,5 +1,32 @@
 # @selfauth/migration
 
+## 0.6.0
+
+### Minor Changes
+
+- 21d7f85: Full-stack projects are now two real packages. `selfauth init --frontend vue|react` makes `server/` (the
+  Express API: its own `package.json`, `tsconfig`, `.env.example`, `src/`, `test/`, `prisma/`) and `client/`
+  (the Vue or React app) in one npm workspace, with a thin root: `package.json` (`npm run dev` starts both,
+  one `npm install` installs both), `README.md` and `.gitignore`. API-only projects are unchanged.
+  
+  - Each package has its own `selfauth.manifest.json`. `doctor`, `validate`, `diff` and `upgrade` run at the
+    workspace root over both packages, or inside either package; `db` finds the server from anywhere.
+  - `selfauth upgrade --reorganize` also moves an existing full-stack project (made with 0.5 or earlier)
+    into this layout: whole folders move, `package.json` and the manifest are split, the root is created,
+    and your own files, `.env`, scripts and dependencies come along. Round-trip tests restore exactly what
+    `init` writes.
+  - Prisma is found in a parent folder (npm hoists it to the workspace root), and `detect` no longer flags
+    SelfAuth's own files in a workspace as foreign authentication code.
+  - The ownership manifest gains the `server` and `client` layouts and `structure: 3`.
+
+### Patch Changes
+
+- d526c8a: `selfauth db …` now works on Windows. It ran Prisma through `node_modules/.bin/prisma`, a shell script that
+  Windows cannot execute, so `selfauth db plan` failed with an empty message (`prisma migrate status
+  failed:`). The CLI now starts Prisma's entry script with Node, which works everywhere, finds Prisma in a
+  parent folder (npm workspaces hoist it), and says what is wrong when Prisma is not installed or the
+  process cannot start, instead of an empty message.
+
 ## 0.5.0
 
 ### Minor Changes
