@@ -4,10 +4,17 @@ import { createInterface } from "node:readline/promises";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
 import type { InitAnswers } from "../render.js";
-import { frontendInfo, type Database, type Frontend } from "../templates.js";
+import {
+  BACKENDS,
+  frontendInfo,
+  type Backend,
+  type Database,
+  type Frontend,
+} from "../templates.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface InitOptions {
+  backend?: string;
   database?: string;
   frontend?: string;
   permissions?: string;
@@ -52,6 +59,16 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
   if (!project.empty) info("Directory is not empty; existing files will never be overwritten.");
 
+  let backend = options.backend as Backend | undefined;
+  if (!backend && interactive)
+    backend = (await ask(`Backend? ${BACKENDS.join(" | ")}`, "express")) as Backend;
+  backend ??= "express";
+  if (!BACKENDS.includes(backend)) {
+    fail(
+      `Unsupported backend '${backend}'. Supported: ${BACKENDS.join(", ")} (see \`selfauth list\`).`,
+    );
+    return 1;
+  }
   let database = options.database as Database | undefined;
   if (!database && interactive)
     database = (await ask(`Database? ${DATABASES.join(" | ")}`, "postgresql")) as Database;
@@ -83,6 +100,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
         .toLowerCase()
         .replace(/[^a-z0-9-]+/g, "-")
         .replace(/^-+|-+$/g, "") || "app",
+    backend,
     database,
     frontend,
     permissions: (permissions ?? "")
@@ -103,7 +121,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
 
   say(
-    `\nPlan: create ${files.length} files (Express + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {

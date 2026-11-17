@@ -18,6 +18,7 @@ import {
   renderWebTsconfig,
   type InitAnswers,
 } from "./render.js";
+import type { Backend } from "./templates.js";
 import {
   frontendAuthFiles,
   frontendInfo,
@@ -45,7 +46,7 @@ export const sha256 = (content: string) =>
 
 /** Files copied from the reference implementations (template id `<stack>:<source path>`). */
 export async function templateFiles(
-  answers: Pick<InitAnswers, "database" | "frontend">,
+  answers: Pick<InitAnswers, "database" | "frontend" | "backend">,
   source: TemplateSource,
   layout: "project" | "add" = "project",
   srcDir = "src",
@@ -65,12 +66,14 @@ export async function templateFiles(
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
   const adapt = (target: string, content: string) =>
     layout === "add" ? adaptForAdd(target, content, srcDir) : content;
+  const backend = answers.backend ?? "express";
   for (const entry of stackFiles({
+    backend,
     database: answers.database,
     frontend: answers.frontend,
     layout,
   })) {
-    const stack = entry.target.startsWith("web/") ? answers.frontend : "express";
+    const stack = entry.target.startsWith("web/") ? answers.frontend : backend;
     if (entry.directory) {
       for (const rel of await source.listDirectory(entry.source)) {
         const path = place(rebase(`${entry.target}/${rel}`));
@@ -160,6 +163,7 @@ export function buildManifest(
       layout,
       srcDir,
       structure,
+      backend: answers.backend ?? "express",
       frontend: answers.frontend,
       permissions: answers.permissions,
       appBaseUrl: answers.appBaseUrl,
@@ -176,8 +180,9 @@ export function buildManifest(
 export async function ownedResources(
   database: InitAnswers["database"],
   source: TemplateSource,
+  backend: Backend = "express",
 ): Promise<Manifest["ownedResources"]> {
-  const manifestSource = stackDependencies(database).manifest;
+  const manifestSource = stackDependencies(database, backend).manifest;
   return manifestSource
     ? (JSON.parse(await source.read(manifestSource)) as Manifest).ownedResources
     : { tables: [], types: [], migrations: [] };
@@ -190,7 +195,7 @@ export async function planInit(
 ): Promise<PlannedFile[]> {
   if (isWorkspace(answers)) return planWorkspace(answers, source);
   const files = await templateFiles(answers, source);
-  const deps = stackDependencies(answers.database);
+  const deps = stackDependencies(answers.database, answers.backend);
   const versions = await source.versions();
   const ts = renderTsconfig();
   files.push(
@@ -210,7 +215,9 @@ export async function planInit(
       content: renderConfig(buildConfig(answers)),
     },
   );
-  files.push(buildManifest(answers, files, await ownedResources(answers.database, source)));
+  files.push(
+    buildManifest(answers, files, await ownedResources(answers.database, source, answers.backend)),
+  );
   return files;
 }
 
@@ -229,7 +236,11 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
     {
       path: "package.json",
       template: "rendered:package.json",
-      content: renderPackageJson(answers, stackDependencies(answers.database), versions),
+      content: renderPackageJson(
+        answers,
+        stackDependencies(answers.database, answers.backend),
+        versions,
+      ),
     },
     { path: "tsconfig.json", template: "rendered:tsconfig", content: ts.base },
     { path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build },
@@ -243,7 +254,7 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
   const serverManifest = buildManifest(
     answers,
     server,
-    await ownedResources(answers.database, source),
+    await ownedResources(answers.database, source, answers.backend),
     "server",
     "src",
     WORKSPACE_STRUCTURE,

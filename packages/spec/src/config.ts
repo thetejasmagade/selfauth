@@ -77,7 +77,7 @@ export const selfAuthConfigSchema = z
       .regex(/^\d+\.\d+$/)
       .default(SPEC_VERSION),
     adapter: z.strictObject({
-      backend: z.enum(["express"]),
+      backend: z.enum(["express", "fastify"]),
       frontend: z.enum(["vue", "react", "none"]).default("none"),
       database: z.enum(["postgresql", "mongodb", "memory"]),
       orm: z.enum(["prisma", "mongoose", "none"]),

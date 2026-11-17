@@ -6,8 +6,12 @@ import registry from "./registry.json" with { type: "json" };
 
 export type Database = "memory" | "postgresql";
 export type Frontend = "none" | "vue" | "react";
+export type Backend = "express" | "fastify";
+export const BACKENDS: readonly Backend[] = ["express", "fastify"];
 
 export interface Selection {
+  /** The HTTP framework; Express when not given. */
+  backend?: Backend;
   database: Database;
   frontend: Frontend;
   /** "add": integrating into an existing project (no app shell, no example routes). */
@@ -38,6 +42,7 @@ const REPOSITORY = fileURLToPath(new URL("../../../", import.meta.url));
 export const VERSION_SOURCES = [
   "package.json",
   "apps/playground/package.json",
+  "apps/playground-fastify/package.json",
   registry.frontends.vue.versionsFrom,
   registry.frontends.react.versionsFrom,
 ];
@@ -103,7 +108,9 @@ function applies(file: RegistryFile, sel: Selection): boolean {
 
 /** Backend files for a selection, plus the frontend's files under web/. */
 export function stackFiles(sel: Selection): RegistryFile[] {
-  const backend = (registry.stacks.express.files as RegistryFile[]).filter((f) => applies(f, sel));
+  const backend = (registry.stacks[sel.backend ?? "express"].files as RegistryFile[]).filter((f) =>
+    applies(f, sel),
+  );
   if (sel.frontend === "none") return backend;
   return [...backend, ...(registry.frontends[sel.frontend].files as RegistryFile[])];
 }
@@ -115,18 +122,21 @@ export function frontendAuthFiles(frontend: "vue" | "react"): RegistryFile[] {
   );
 }
 
-export function stackDependencies(database: Database): {
+export function stackDependencies(
+  database: Database,
+  backend: Backend = "express",
+): {
   dependencies: string[];
   devDependencies: string[];
   manifest?: string;
 } {
-  const express = registry.stacks.express;
+  const stack = registry.stacks[backend];
   if (database !== "postgresql")
-    return { dependencies: express.dependencies, devDependencies: express.devDependencies };
+    return { dependencies: stack.dependencies, devDependencies: stack.devDependencies };
   return {
-    dependencies: [...express.dependencies, ...express.postgresql.dependencies],
-    devDependencies: [...express.devDependencies, ...express.postgresql.devDependencies],
-    manifest: express.postgresql.manifest,
+    dependencies: [...stack.dependencies, ...stack.postgresql.dependencies],
+    devDependencies: [...stack.devDependencies, ...stack.postgresql.devDependencies],
+    manifest: stack.postgresql.manifest,
   };
 }
 

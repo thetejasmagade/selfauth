@@ -11,7 +11,7 @@ anything, and nothing contacts a SelfAuth service. Requirements: Node.js ≥
 ## New project
 
 ```bash
-cp -r templates/express my-app          # API only. Or express-vue / express-react (see below)
+cp -r templates/express my-app          # API only. Or express-vue / express-react, or fastify / fastify-vue / fastify-react (see below)
 cd my-app
 npm install                              # express, cookie, @node-rs/argon2, Prisma: nothing from SelfAuth
 cp .env.example .env                     # set DATABASE_URL (or remove it to use the in-memory store in development)
@@ -19,6 +19,11 @@ npm run db:migrate                       # = prisma migrate deploy: review prism
 npm run db:seed                          # writes the roles from src/config/selfauth.config.ts
 npm run dev                              # API on :3000; emails are printed to the console
 ```
+
+`fastify`, `fastify-vue` and `fastify-react` are the same projects on Fastify 5: the
+same core, stores and frontends, and a Fastify adapter instead of the Express one
+(`npm install` pulls `fastify` in place of `express`; `HOST` sets the interface the
+server listens on, `0.0.0.0` by default).
 
 `express-vue` and `express-react` are full-stack projects made of two packages in
 one npm workspace: the API in `server/` and the frontend in `client/`. The steps

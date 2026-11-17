@@ -20,6 +20,15 @@ const variants: [string, () => Promise<PlannedFile[]>][] = [
         ],
     ),
   ),
+  ...(["memory", "postgresql"] as const).flatMap((database) =>
+    (["none", "vue"] as const).map(
+      (frontend) =>
+        [
+          `init fastify ${database}/${frontend}`,
+          () => planInit({ ...base, backend: "fastify", database, frontend }),
+        ] as [string, () => Promise<PlannedFile[]>],
+    ),
+  ),
   ...(["memory", "postgresql"] as const).map(
     (database) =>
       [`add ${database}`, () => planAdd({ ...base, database, frontend: "none" })] as [

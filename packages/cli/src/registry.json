@@ -197,6 +197,198 @@
         "devDependencies": ["prisma", "@types/pg"],
         "manifest": "apps/playground/selfauth.manifest.json"
       }
+    },
+    "fastify": {
+      "files": [
+        {
+          "source": "apps/playground-fastify/src/auth/types.ts",
+          "target": "src/auth/types.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/index.ts",
+          "target": "src/auth/index.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/authorization.ts",
+          "target": "src/auth/core/authorization.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/clock.ts",
+          "target": "src/auth/core/clock.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/common-passwords.ts",
+          "target": "src/auth/core/common-passwords.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/crypto.ts",
+          "target": "src/auth/core/crypto.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/email.ts",
+          "target": "src/auth/core/email.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/errors.ts",
+          "target": "src/auth/core/errors.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/logger.ts",
+          "target": "src/auth/core/logger.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/mailer.ts",
+          "target": "src/auth/core/mailer.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/password.ts",
+          "target": "src/auth/core/password.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/rate-limit.ts",
+          "target": "src/auth/core/rate-limit.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/service.ts",
+          "target": "src/auth/core/service.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/core/store.ts",
+          "target": "src/auth/core/store.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/fastify/index.ts",
+          "target": "src/auth/fastify/index.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/stores/memory.ts",
+          "target": "src/auth/stores/memory.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/app.ts",
+          "target": "src/app.ts",
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground-fastify/src/config/env.ts",
+          "target": "src/config/env.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/http/errors.ts",
+          "target": "src/http/errors.ts",
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground-fastify/src/http/request-id.ts",
+          "target": "src/http/request-id.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/email/mailer.ts",
+          "target": "src/email/mailer.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/config/dev-config.ts",
+          "target": "src/config/dev-config.ts"
+        },
+        {
+          "source": "apps/playground-fastify/src/server.ts",
+          "target": "src/server.ts",
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/smoke.fastify.test.ts",
+          "target": "test/auth.smoke.test.ts",
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/routes.fastify.ts",
+          "target": "src/routes/index.ts",
+          "when": {
+            "frontend": "none"
+          },
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground-fastify/src/routes/index.ts",
+          "target": "src/routes/index.ts",
+          "when": {
+            "frontend": "any"
+          },
+          "layout": "project"
+        },
+        {
+          "source": "apps/playground-fastify/src/routes/notes.ts",
+          "target": "src/routes/notes.ts",
+          "when": {
+            "frontend": "any"
+          },
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/store.memory.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "memory"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/src/db/store.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/src/auth/stores/prisma.ts",
+          "target": "src/auth/stores/prisma.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/prisma.config.ts",
+          "target": "prisma.config.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/prisma/schema.prisma",
+          "target": "prisma/schema.prisma",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-fastify/prisma/migrations",
+          "target": "prisma/migrations",
+          "directory": true,
+          "when": {
+            "database": "postgresql"
+          }
+        }
+      ],
+      "dependencies": ["fastify", "cookie", "@node-rs/argon2"],
+      "devDependencies": ["typescript", "@types/node"],
+      "postgresql": {
+        "dependencies": ["@prisma/client", "@prisma/adapter-pg", "pg"],
+        "devDependencies": ["prisma", "@types/pg"],
+        "manifest": "apps/playground-fastify/selfauth.manifest.json"
+      }
     }
   },
   "frontends": {

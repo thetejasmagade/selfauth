@@ -35,6 +35,7 @@ export const GUIDES = [
   "upgrading.md",
   "data-retention.md",
   "conformance.md",
+  "conformance-fastify.md",
   "security-review.md",
   "api/README.md",
   "api/http.md",

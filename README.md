@@ -13,7 +13,7 @@ SelfAuth is **not** a hosted identity provider, auth server, or runtime SDK.
 Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
-> **Status: pre-alpha.** Spec, conformance suite, Express + PostgreSQL backend,
+> **Status: pre-alpha.** Spec, conformance suite, Express and Fastify backends with PostgreSQL,
 > Vue/React frontends, a CLI (`init`, `add`, `upgrade`, migrations), and a
 > `selfauth` skill for coding agents. See [`ROADMAP.md`](ROADMAP.md).
 
@@ -44,6 +44,7 @@ selfauth/
 ├── packages/migration/ Migration orchestration + SQL safety analysis (@selfauth/migration)
 ├── conformance/        Language-neutral conformance cases and runner (@selfauth/conformance)
 ├── apps/playground/    Express reference implementation (memory or PostgreSQL)
+├── apps/playground-fastify/  Fastify reference implementation (same core, Fastify adapter)
 ├── apps/playground-vue/   Vue 3 reference frontend
 ├── apps/playground-react/ React reference frontend
 ├── apps/e2e/            One Playwright spec run against both frontends

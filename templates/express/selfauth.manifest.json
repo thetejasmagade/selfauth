@@ -35,6 +35,7 @@
     "layout": "project",
     "srcDir": "src",
     "structure": 2,
+    "backend": "express",
     "frontend": "none",
     "permissions": [],
     "appBaseUrl": "http://localhost:5173"
@@ -43,7 +44,7 @@
     {
       "path": "src/auth/types.ts",
       "template": "express:apps/playground/src/auth/types.ts",
-      "sha256": "c3df7d58fde2175e4f22da28386bec849a00be090f185545508ed89dbd655359"
+      "sha256": "5b3bb5972698969315d4a0c03728b004d661f0039178064aa30a21e35db1953f"
     },
     {
       "path": "src/auth/index.ts",
@@ -233,7 +234,7 @@
     {
       "path": "README.md",
       "template": "rendered:readme",
-      "sha256": "db57fae981e649d988bfeb0a25bb2e3646faff321725b533a4065d9f6599779a"
+      "sha256": "0d9bd8b70b3d65c6be617793f71b97c5162eb76a410bd67e6c2973bd7a6e3696"
     },
     {
       "path": "src/config/selfauth.config.ts",

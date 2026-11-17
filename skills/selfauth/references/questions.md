@@ -33,12 +33,14 @@ the generator is fetched from npm, once.
 
 ## What is supported
 
-**Which stacks are supported?** Express 5 + TypeScript (Node.js 22.18 or
-newer), PostgreSQL through Prisma 7 or an in-memory store, and Vue or React
-frontends. Run `selfauth list` for the authoritative list.
+**Which stacks are supported?** Express 5 or Fastify 5 + TypeScript (Node.js
+22.18 or newer), PostgreSQL through Prisma 7 or an in-memory store, and Vue or React frontends.
+An existing project can use `selfauth add` only if it is Express; Fastify is for
+new projects (`selfauth init --backend fastify`). Run `selfauth list` for the
+authoritative list.
 → [framework-support](framework-support.md)
 
-**Fastify, NestJS, Next.js, Django, MongoDB, MySQL, Mongoose?** Not supported.
+**NestJS, Next.js, Koa, Django, MongoDB, MySQL, Mongoose, or adding SelfAuth to an existing Fastify app?** Not supported.
 Say so and stop; never port the Express code or write an adapter.
 MongoDB/Mongoose are planned, not built. → [framework-support](framework-support.md)
 
@@ -48,6 +50,11 @@ specification lists some of these as optional capabilities that no adapter
 builds yet. → [framework-support](framework-support.md),
 [guides/conformance.md#known-limitations](guides/conformance.md#known-limitations)
 
+**How well tested is the Fastify backend?** All 87 conformance cases pass on it
+with both stores, and CI generates and exercises Fastify projects. It is
+published at the authorization level; production-profile is not claimed yet.
+→ [guides/conformance-fastify.md](guides/conformance-fastify.md)
+
 **Is the in-memory store OK in production?** No. It loses data on restart and
 keeps rate limits per process. The app refuses to start with it when
 `NODE_ENV=production`. It is capped at authorization level.
@@ -55,7 +62,7 @@ keeps rate limits per process. The app refuses to start with it when
 
 ## Using it
 
-**I'm starting a new project.** `selfauth init <dir> --database postgresql
+**I'm starting a new project.** `selfauth init <dir> [--backend express|fastify] --database postgresql
 --frontend none|vue|react --permissions a.b,c.d`. Show the `--dry-run` first.
 → SKILL.md step 6
 

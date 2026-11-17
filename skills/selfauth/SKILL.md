@@ -1,8 +1,8 @@
 ---
 name: selfauth
-description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express + TypeScript projects, with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
+description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express or Fastify + TypeScript projects, with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
 license: MIT
-compatibility: Node.js >= 22.18. Supports Express 5 + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
+compatibility: Node.js >= 22.18. Supports Express 5 (new and existing projects) and Fastify 5 (new projects) + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
   version: "0.8.1"
   spec: "0.1"
@@ -52,9 +52,10 @@ from this skill's files, not from memory.
    token generation, cookies, CSRF, rate limiting, JWTs and permission checks.
    If the CLI can't generate it, say so and stop. Don't improvise.
 2. **Never invent adapters.** Only what `selfauth list` reports is supported
-   (see [framework-support](references/framework-support.md)). For Fastify,
-   NestJS, Next.js, Django, Mongo or anything else unsupported, stop and report
-   it. Don't port the Express code.
+   (see [framework-support](references/framework-support.md)). For NestJS,
+   Next.js, Django, Mongo, an existing Fastify app (`add` is Express only; a new
+   Fastify project is `init --backend fastify`) or anything else unsupported,
+   stop and report it. Don't port the Express code.
 3. **Never bypass the CLI.** Don't copy files out of the SelfAuth repository by
    hand when `init`, `add` or `upgrade` covers the case.
 4. **Never replace or remove existing authentication without approval.** If
@@ -163,7 +164,7 @@ Wait for approval. Then run it for real with `--yes`:
 
 ```bash
 # new project
-selfauth init my-app --database postgresql --frontend react --permissions orders.view,orders.create --yes
+selfauth init my-app --backend express --database postgresql --frontend react --permissions orders.view,orders.create --yes
 # existing Express project (writes under <src>/selfauth/ only; --src if detect says so)
 selfauth add --database memory --permissions orders.view --yes --install
 # existing Vue or React app, in its own folder

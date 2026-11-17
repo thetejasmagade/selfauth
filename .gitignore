@@ -11,6 +11,7 @@ coverage/
 
 # Prisma client is generated (pnpm generate)
 apps/playground/src/generated/
+apps/playground-fastify/src/generated/
 
 # Playwright output
 test-results/

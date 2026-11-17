@@ -136,7 +136,10 @@ export async function detectProject(dir: string): Promise<ProjectInfo> {
     info.typescript = "typescript" in deps || entries.includes("tsconfig.json");
     info.prisma ||= "prisma" in deps || "@prisma/client" in deps;
     info.existingAuth = AUTH_PACKAGES.filter((p) => p in deps);
-    info.otherFrameworks = OTHER_FRAMEWORKS.filter((p) => p in deps);
+    // A Fastify project that SelfAuth generated is supported (upgrade, doctor, validate).
+    info.otherFrameworks = OTHER_FRAMEWORKS.filter(
+      (p) => p in deps && !(p === "fastify" && info.selfauth),
+    );
     info.databaseClients = DATABASE_CLIENTS.filter((p) => p in deps);
     info.esm = pkg.type === "module";
   }
