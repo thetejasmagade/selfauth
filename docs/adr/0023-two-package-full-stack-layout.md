@@ -40,3 +40,31 @@ not say it was the server. Renaming `src` to `server` alone would have left `tes
   projects; only the flat `src/` of 0.3 and earlier must be reorganized first.
 - Generated `README.md` and `.gitignore` are the project's own once written; `--reorganize` patches the
   one `.gitignore` line it must and leaves the README to the developer.
+
+## Update: one shared `selfauth.config.json` for the settings the browser needs
+
+Changing the password length took two edits that had to agree: the server's `selfauth.config.ts` and
+the frontend's hard-coded `minlength` hint. A tester changed only the server and the form still asked
+for the old length.
+
+- A workspace root now also holds `selfauth.config.json`, which carries only browser-safe settings
+  (today `password.minLength` and `maxLength`; never secrets). It is the single place to edit them.
+- **Each package imports a copy inside its own folder**, not the root file. Importing `../../..` from
+  `server/` would need `rootDir` to cover the whole workspace, which moves the build output to
+  `dist/server/src/` and breaks `start`, and would change every existing project's tsconfig. A copy
+  leaves tsconfig, the build output and Vite untouched.
+- `scripts/sync-config.mjs` writes the copies (`server/src/config/selfauth.config.json`,
+  `client/src/selfauth.config.json`). Each package's `dev`, `build`, `test` and `typecheck` run
+  `npm run sync` first, so the copies cannot be forgotten, and the script does nothing when the root
+  file is absent. It checks that both limits are whole numbers; the specification's bounds are still
+  enforced by `selfauth validate` and the server's start-up check, on the server's copy.
+- The server's config imports the limits instead of writing them. `selfauth doctor` warns when a copy
+  differs from the root file; `validate` does not report a refreshed copy as "a generated file you
+  changed".
+- The client's copy is an ordinary template file (the reference frontends contain it), so
+  `selfauth upgrade` adds it to older projects. Those keep their hard-coded server limits and have no
+  root file until the developer adds one (documented in `docs/upgrading.md`); `--reorganize` does not
+  create it, because it cannot rewrite the developer's config safely.
+- The server config file keeps its name, `selfauth.config.ts`, next to the JSON copy: renaming it would
+  have touched every manifest, reference app and upgrade path for a clarity gain the folder names
+  already give.

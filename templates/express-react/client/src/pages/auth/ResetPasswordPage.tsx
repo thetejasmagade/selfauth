@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { describeError, takeTokenFromFragment, useAuth } from "../../auth/index.ts";
+import shared from "../../selfauth.config.json";
+
+const minLength = shared.password.minLength;
 
 export function ResetPasswordPage() {
   const auth = useAuth();
@@ -53,7 +56,7 @@ export function ResetPasswordPage() {
               name="password"
               type="password"
               autoComplete="new-password"
-              minLength={8}
+              minLength={minLength}
               required
             />
           </label>

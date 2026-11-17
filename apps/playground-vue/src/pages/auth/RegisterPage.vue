@@ -2,6 +2,9 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { describeError, useAuth } from "../../auth/index.ts";
+import shared from "../../selfauth.config.json";
+
+const minLength = shared.password.minLength;
 
 const auth = useAuth();
 const router = useRouter();
@@ -48,10 +51,10 @@ async function submit() {
         name="password"
         type="password"
         autocomplete="new-password"
-        minlength="8"
+        :minlength="minLength"
         required
       />
-      <small>At least 8 characters. A few unrelated words work well.</small>
+      <small>At least {{ minLength }} characters. A few unrelated words work well.</small>
     </label>
     <p v-if="error" class="error" role="alert">{{ error }}</p>
     <button :disabled="busy" type="submit">Create account</button>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { describeError, takeTokenFromFragment, useAuth } from "../../auth/index.ts";
+import shared from "../../selfauth.config.json";
+
+const minLength = shared.password.minLength;
 
 const auth = useAuth();
 const token = ref<string | null>(null);
@@ -44,7 +47,7 @@ async function submit() {
         name="password"
         type="password"
         autocomplete="new-password"
-        minlength="8"
+        :minlength="minLength"
         required
     /></label>
     <p v-if="error" class="error" role="alert">{{ error }}</p>
