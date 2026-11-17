@@ -1,6 +1,6 @@
 {
   "name": "@selfauth/migration",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "SelfAuth migration orchestration: adapter contract, SQL safety analysis, ownership manifest, and a Prisma adapter that drives native Prisma Migrate.",
   "license": "MIT",
   "repository": {
