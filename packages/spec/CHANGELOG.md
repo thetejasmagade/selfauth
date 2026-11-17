@@ -1,5 +1,11 @@
 # @selfauth/spec
 
+## 0.10.0
+
+### Minor Changes
+
+- 9dc30ee: The Vue and React starter pages are now plain, unstyled HTML. The stylesheet (`web/src/style.css`, or `client/src/style.css`) and the styling-only class names are gone, so you can bring your own design system without undoing ours. The semantic markup is unchanged (labels, `role="alert"`, `autocomplete`, password inputs).
+
 ## 0.9.0
 
 ### Minor Changes
