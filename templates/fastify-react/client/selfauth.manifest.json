@@ -80,37 +80,37 @@
     {
       "path": "src/pages/AccountPage.tsx",
       "template": "react:apps/playground-react/src/pages/AccountPage.tsx",
-      "sha256": "6ac80b93b89564dd28831291a3bf922925957064905546d11ce74d2125d7a219"
+      "sha256": "437d230201ceec27a8c00a1f086988e7019e0e0370d9d455086ae1d4430b689c"
     },
     {
       "path": "src/pages/NotesPage.tsx",
       "template": "react:apps/playground-react/src/pages/NotesPage.tsx",
-      "sha256": "2e17abd5e481e219c44155663ae22bdd8d5d51a348b6bcf8074156a3786e21b0"
+      "sha256": "b42a8507e351099dfcd999450ea76ad3f792af256b90da4947487622d8f46d57"
     },
     {
       "path": "src/pages/auth/ForgotPasswordPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/ForgotPasswordPage.tsx",
-      "sha256": "a4cd997ad769229d81e0ca4ec56826618f48ea82d03b52efcb9027ab7422b1c9"
+      "sha256": "8b27fe2589a89653b32469bce16c8bf3c79490fa095165451a85c7d67ac4f5fc"
     },
     {
       "path": "src/pages/auth/LoginPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/LoginPage.tsx",
-      "sha256": "aa4043412b928b488b939e7ab3e2156e9168bbaca984971cfac7ea31c8978c47"
+      "sha256": "d92656423032a796410a5366fff466d6619c8380561d28acc3e7ef15160e7292"
     },
     {
       "path": "src/pages/auth/RegisterPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/RegisterPage.tsx",
-      "sha256": "f25dcc2fad25594a767f3d3714097f94882318639b5c14469cb707cebc902b62"
+      "sha256": "a5b1e83d77a121c290feeb922b768fae93e5d588fe539c4284d425b2818e3982"
     },
     {
       "path": "src/pages/auth/ResetPasswordPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/ResetPasswordPage.tsx",
-      "sha256": "d97345080ea137ddf386376d18cfca227be39354542a6fae2d13fd8fbd0f82a1"
+      "sha256": "c6c4f9ca9dd830257dfffad36841e2a1e0aadb38d61f4d443ab0c8ab2ba64825"
     },
     {
       "path": "src/pages/auth/VerifyEmailPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/VerifyEmailPage.tsx",
-      "sha256": "dee98682c8e7a7c711d07177e87a2bbb201c13da08dc353bbd6dab85fb168acb"
+      "sha256": "271d6502b37d570d4c11e44ad577a2ab0784a2c493c35e94d53f6660e8190285"
     },
     {
       "path": "package.json",

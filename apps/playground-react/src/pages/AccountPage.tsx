@@ -83,11 +83,7 @@ export function AccountPage() {
         </form>
       </section>
       {message && <p>{message}</p>}
-      {error && (
-        <p role="alert">
-          {error}
-        </p>
-      )}
+      {error && <p role="alert">{error}</p>}
       <section>
         <h2>Signed-in devices</h2>
         <ul data-testid="sessions">
@@ -97,18 +93,12 @@ export function AccountPage() {
               {s.current ? (
                 <strong>(this device)</strong>
               ) : (
-                <button onClick={() => void revoke(s.id)}>
-                  Sign out
-                </button>
+                <button onClick={() => void revoke(s.id)}>Sign out</button>
               )}
             </li>
           ))}
         </ul>
-        <button
-         
-          data-testid="logout-all"
-          onClick={() => void logoutEverywhere()}
-        >
+        <button data-testid="logout-all" onClick={() => void logoutEverywhere()}>
           Sign out everywhere
         </button>
       </section>

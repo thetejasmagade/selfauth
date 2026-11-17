@@ -38,11 +38,7 @@ export function ForgotPasswordPage() {
               required
             />
           </label>
-          {error && (
-            <p role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button type="submit">Send reset link</button>
         </form>
       )}

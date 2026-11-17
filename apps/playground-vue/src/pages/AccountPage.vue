@@ -85,8 +85,6 @@ onMounted(() => loadSessions().catch((e) => (error.value = describeError(e))));
         <button v-else @click="revoke(s.id)">Sign out</button>
       </li>
     </ul>
-    <button data-testid="logout-all" @click="logoutEverywhere">
-      Sign out everywhere
-    </button>
+    <button data-testid="logout-all" @click="logoutEverywhere">Sign out everywhere</button>
   </section>
 </template>

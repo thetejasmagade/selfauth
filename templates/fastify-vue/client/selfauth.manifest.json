@@ -90,7 +90,7 @@
     {
       "path": "src/pages/AccountPage.vue",
       "template": "vue:apps/playground-vue/src/pages/AccountPage.vue",
-      "sha256": "e1882bdeef62dd247805466f712e4b3e31546ada824131f8c8c289476141d56b"
+      "sha256": "91829293eca8b80ab16fc6653c2a52b8f959402f5aa001075cf63955d1288e18"
     },
     {
       "path": "src/pages/ForbiddenPage.vue",

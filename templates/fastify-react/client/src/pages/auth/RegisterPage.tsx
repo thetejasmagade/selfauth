@@ -65,11 +65,7 @@ export function RegisterPage() {
             />
             <small>At least 8 characters. A few unrelated words work well.</small>
           </label>
-          {error && (
-            <p role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button disabled={busy} type="submit">
             Create account
           </button>

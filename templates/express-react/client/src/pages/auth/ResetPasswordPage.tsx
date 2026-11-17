@@ -57,11 +57,7 @@ export function ResetPasswordPage() {
               required
             />
           </label>
-          {error && (
-            <p role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button type="submit">Change password</button>
         </form>
       ) : token === null ? (

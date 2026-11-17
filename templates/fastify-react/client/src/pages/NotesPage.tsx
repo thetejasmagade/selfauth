@@ -49,16 +49,10 @@ export function NotesPage() {
         </label>
         <button type="submit">Add note</button>
       </form>
-      {error && (
-        <p role="alert">
-          {error}
-        </p>
-      )}
+      {error && <p role="alert">{error}</p>}
       <ul data-testid="notes">
         {notes.map((note) => (
-          <li key={note.id}>
-            {note.text}
-          </li>
+          <li key={note.id}>{note.text}</li>
         ))}
       </ul>
       {notes.length === 0 && <p>No notes yet.</p>}

@@ -36,11 +36,7 @@ export function VerifyEmailPage() {
           Your email address is verified. <Link to="/login">Sign in</Link>
         </p>
       )}
-      {status === "failed" && (
-        <p role="alert">
-          {error}
-        </p>
-      )}
+      {status === "failed" && <p role="alert">{error}</p>}
     </>
   );
 }
