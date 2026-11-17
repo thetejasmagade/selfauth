@@ -40,17 +40,6 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   });
 }
 
-/**
- * The password policy section is found by key. Its length limits are plain numbers, not a
- * password, and reading the field by name would make static analysis treat them as one when
- * generated files are hashed.
- */
-const POLICY_KEY = "password";
-function lengthLimits(config: SelfAuthConfig): { minLength: number; maxLength: number } {
-  const entry = Object.entries(config.authentication).find(([key]) => key === POLICY_KEY);
-  return entry![1] as { minLength: number; maxLength: number };
-}
-
 export function renderConfig(config: SelfAuthConfig, options: { shared?: boolean } = {}): string {
   if (!options.shared) {
     return `import type { SelfAuthConfig } from "../auth/types.ts";
@@ -67,13 +56,10 @@ export const config: SelfAuthConfig = ${JSON.stringify(config, null, 2)};
   // server and the frontend always agree. Placeholders are swapped for the imported values.
   const marked = {
     ...config,
-    authentication: Object.fromEntries(
-      Object.entries(config.authentication).map(([key, value]) =>
-        key === POLICY_KEY
-          ? [key, { ...(value as object), minLength: "@min", maxLength: "@max" }]
-          : [key, value],
-      ),
-    ),
+    authentication: {
+      ...config.authentication,
+      password: { ...config.authentication.password, minLength: "@min", maxLength: "@max" },
+    },
   };
   const body = JSON.stringify(marked, null, 2)
     .replace('"@min"', "shared.password.minLength")
@@ -96,7 +82,7 @@ export const config: SelfAuthConfig = ${body};
 
 /** selfauth.config.json: the browser-safe settings the server and the frontend share. */
 export function renderSharedConfig(config: SelfAuthConfig): string {
-  const { minLength, maxLength } = lengthLimits(config);
+  const { minLength, maxLength } = config.authentication.password;
   return `{
   "_note": "Browser-safe settings shared by server and client. Edit selfauth.config.json in the project root, not this copy: \`npm run sync\` (it also runs before dev, build and test) copies it here. Never put secrets in it.",
   "password": { "minLength": ${minLength}, "maxLength": ${maxLength} }
