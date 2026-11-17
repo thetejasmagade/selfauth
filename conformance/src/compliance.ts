@@ -91,22 +91,32 @@ export interface CaseResult {
   error?: string;
 }
 
-/** Runs every case against a driver. Never throws: a failing case is a result. */
+/**
+ * Runs every case against a driver, at most `concurrency` at a time (each case may open its own
+ * database connections). Never throws: a failing case is a result. Results keep the case order.
+ */
 export async function runSuite(
   cases: readonly ConformanceCase[],
   createDriver: DriverFactory,
+  options: { concurrency?: number } = {},
 ): Promise<CaseResult[]> {
-  return Promise.all(
-    cases.map(async (c): Promise<CaseResult> => {
+  const results: CaseResult[] = new Array<CaseResult>(cases.length);
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    for (let i = next++; i < cases.length; i = next++) {
+      const c = cases[i]!;
       const base = { id: c.id, title: c.title, category: c.category, level: c.level };
       try {
         await runCase(c, createDriver);
-        return { ...base, passed: true };
+        results[i] = { ...base, passed: true };
       } catch (error) {
-        return { ...base, passed: false, error: (error as Error).message };
+        results[i] = { ...base, passed: false, error: (error as Error).message };
       }
-    }),
-  );
+    }
+  };
+  const workers = Math.max(1, Math.min(options.concurrency ?? 4, cases.length));
+  await Promise.all(Array.from({ length: workers }, worker));
+  return results;
 }
 
 // ---------------------------------------------------------------------------------------------
