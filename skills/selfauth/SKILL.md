@@ -4,7 +4,7 @@ description: Add, check or upgrade email/password authentication, sessions, role
 license: MIT
 compatibility: Node.js >= 22.18. Supports Express 5 + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   spec: "0.1"
 ---
 
