@@ -1,7 +1,7 @@
 {
   "toolkit": "selfauth",
-  "version": "0.3.0",
-  "templateVersion": "0.3.0",
+  "version": "0.4.0",
+  "templateVersion": "0.4.0",
   "specVersion": "0.1",
   "database": {
     "type": "postgresql",
