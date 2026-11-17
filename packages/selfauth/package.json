@@ -1,6 +1,6 @@
 {
   "name": "selfauth",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "SelfAuth CLI (`npx selfauth`): generate project-local authentication you own. Alias of @selfauth/cli.",
   "license": "MIT",
   "repository": {
