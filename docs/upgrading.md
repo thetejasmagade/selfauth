@@ -33,6 +33,43 @@ Then:
 4. **Update the agent skill** if you installed one:
    `npx selfauth skill install --agent … --update`.
 
+## Moving to the grouped layout
+
+SelfAuth 0.3 and earlier put the app files side by side in `src/`. Newer
+releases group them by responsibility:
+
+| Before | After |
+| --- | --- |
+| `src/selfauth.config.ts`, `src/env.ts`, `src/dev-config.ts` | `src/config/` |
+| `src/mailer.ts` | `src/email/mailer.ts` |
+| `src/store.ts` | `src/db/store.ts` |
+| `src/errors.ts`, `src/request-id.ts` | `src/http/` |
+| `src/routes.ts`, `src/example/notes.ts` | `src/routes/index.ts`, `src/routes/notes.ts` |
+
+`src/auth/`, `src/scripts/`, `prisma/` and `web/` don't move. A project made
+with the old layout keeps working: `doctor` and `validate` still understand
+it. But `selfauth upgrade` refuses to update it, because the new templates
+import each other from the new places. Move it with one command:
+
+```bash
+git commit -am "before reorganizing"        # so you can review the diff
+npx selfauth upgrade --reorganize --dry-run  # lists every move and import change
+npx selfauth upgrade --reorganize            # asks first; --yes to skip
+npm run typecheck && npm test
+npx selfauth upgrade                         # now offers newer templates as usual
+```
+
+It moves the files and rewrites the relative imports that point at them, in
+`src/` and `test/` (for `selfauth add` projects: your whole source folder, since
+your own files may import from `selfauth/`). Only paths change; no file's logic
+is touched. A generated file you hadn't edited stays "unedited" in the
+manifest, and a file you had edited stays yours. It stops without changing
+anything if a target file already exists.
+
+If you reorganize by hand instead, edit `selfauth.manifest.json` too (the
+`path` of each moved file, and `"structure": 2` under `options`), or
+`validate` reports the old paths as missing.
+
 ## Without the CLI (manual installations)
 
 1. Compare your files with the new release's

@@ -34,6 +34,7 @@
   "options": {
     "layout": "add",
     "srcDir": "src",
+    "structure": 2,
     "frontend": "none",
     "permissions": [],
     "appBaseUrl": "http://localhost:5173"
@@ -120,29 +121,29 @@
       "sha256": "50f5f8857448e1dc832267c30edd6735474ab46b3ae352740dca3fabe4994ee1"
     },
     {
-      "path": "src/selfauth/env.ts",
-      "template": "express:apps/playground/src/env.ts",
+      "path": "src/selfauth/config/env.ts",
+      "template": "express:apps/playground/src/config/env.ts",
       "sha256": "1cf850e9a77fd9c78cebf36d5279627df10d7ca12ab2a6b991941e15a5303bfe"
     },
     {
-      "path": "src/selfauth/request-id.ts",
-      "template": "express:apps/playground/src/request-id.ts",
+      "path": "src/selfauth/http/request-id.ts",
+      "template": "express:apps/playground/src/http/request-id.ts",
       "sha256": "ffc6c616bf38a9993e332062d1bcff1e08ff218cc0c97573a15e25d5a61dcf6f"
     },
     {
-      "path": "src/selfauth/mailer.ts",
-      "template": "express:apps/playground/src/mailer.ts",
-      "sha256": "50228c597d47d8586b75df3928c40195f1e3da7137b05a96a078df5895d4afdc"
+      "path": "src/selfauth/email/mailer.ts",
+      "template": "express:apps/playground/src/email/mailer.ts",
+      "sha256": "fdcd05041d3c4238d2096efa25e2811d99130407a68bd939fc7a160d7610c7a3"
     },
     {
-      "path": "src/selfauth/dev-config.ts",
-      "template": "express:apps/playground/src/dev-config.ts",
-      "sha256": "cc0a1b5dcae70f69ddf3b5d725be9db0b6c7906f42c91b6a40ea8b726138eb92"
+      "path": "src/selfauth/config/dev-config.ts",
+      "template": "express:apps/playground/src/config/dev-config.ts",
+      "sha256": "c963fb2297c376da43d61582e747ea8e2593ba31450da6dc119ae1d15eeee748"
     },
     {
-      "path": "src/selfauth/store.ts",
-      "template": "express:apps/playground/src/store.ts",
-      "sha256": "e21260bf47c559881f4464b2abcc5691fae42e42cab2df5b4e780d81c9772160"
+      "path": "src/selfauth/db/store.ts",
+      "template": "express:apps/playground/src/db/store.ts",
+      "sha256": "760ed52b193d5cbbe3b33409c23cde60880c0e8e9989016d3a217df5183052d0"
     },
     {
       "path": "src/selfauth/auth/stores/prisma.ts",
@@ -152,7 +153,7 @@
     {
       "path": "src/selfauth/scripts/seed.ts",
       "template": "express:apps/playground/src/scripts/seed.ts",
-      "sha256": "95149407797409c17ccbb673f93ea8d6e3fbf8eddd4e63d4fc5eafdc74bf1ac5"
+      "sha256": "bce9f18a37b0c259fd938411a8cd8d81da4572c6590ab1531285094f20b0143d"
     },
     {
       "path": "src/selfauth/scripts/create-admin.ts",
@@ -182,12 +183,12 @@
     {
       "path": "src/selfauth/setup.ts",
       "template": "express:packages/cli/template-variants/setup.ts",
-      "sha256": "269987fac5538116338546113c83c3d4647cdac1cacda4f90d81e9a93df568b9"
+      "sha256": "c351ed918aadb954aa6564367084145ef4982705bdcde7f49a8c5f76f6328451"
     },
     {
-      "path": "src/selfauth/selfauth.config.ts",
+      "path": "src/selfauth/config/selfauth.config.ts",
       "template": "rendered:config",
-      "sha256": "54d26cf2a967e4b0aaef7b76d7c7be5d4c7df954b25d80e5846f3a79d0232cd8"
+      "sha256": "47366a68b2c30098dadb823055ef7ad4c257c2855b094426bc42046e1deea193"
     }
   ]
 }

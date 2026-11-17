@@ -2,13 +2,13 @@
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth/index.ts";
 import { createLogger } from "./auth/core/logger.ts";
-import { localDevelopmentConfig } from "./dev-config.ts";
-import { EnvError, loadEnv } from "./env.ts";
-import { createMailer } from "./mailer.ts";
-import { getRequestId } from "./request-id.ts";
-import { mountRoutes } from "./routes.ts";
-import { config as baseConfig } from "./selfauth.config.ts";
-import { createStores } from "./store.ts";
+import { localDevelopmentConfig } from "./config/dev-config.ts";
+import { EnvError, loadEnv } from "./config/env.ts";
+import { createMailer } from "./email/mailer.ts";
+import { getRequestId } from "./http/request-id.ts";
+import { mountRoutes } from "./routes/index.ts";
+import { config as baseConfig } from "./config/selfauth.config.ts";
+import { createStores } from "./db/store.ts";
 
 try {
   const env = loadEnv();

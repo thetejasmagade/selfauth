@@ -15,10 +15,10 @@ import { checkPasswordPolicy, PasswordHasher } from "../src/auth/core/password.t
 import { MemoryRateLimitStore, RateLimiter } from "../src/auth/core/rate-limit.ts";
 import { HTTP_STATUS } from "../src/auth/express/index.ts";
 import { createAuth, DevConsoleMailer, MemoryAuthStore, MemoryMailer } from "../src/auth/index.ts";
-import { getRequestId } from "../src/request-id.ts";
-import { localDevelopmentConfig } from "../src/dev-config.ts";
-import { config as playgroundConfig } from "../src/selfauth.config.ts";
-import { mountNotes } from "../src/example/notes.ts";
+import { getRequestId } from "../src/http/request-id.ts";
+import { localDevelopmentConfig } from "../src/config/dev-config.ts";
+import { config as playgroundConfig } from "../src/config/selfauth.config.ts";
+import { mountNotes } from "../src/routes/notes.ts";
 import { buildTestApp, TEST_BASE_URL } from "./helpers.ts";
 
 const BASE = { adapter: { backend: "express", database: "postgresql", orm: "prisma" } } as const;

@@ -9,11 +9,11 @@ import express from "express";
 import { createApp } from "../src/app.ts";
 import { createAuth, MemoryAuthStore, MemoryMailer, syncRoles } from "../src/auth/index.ts";
 import { createLogger, MemoryLogSink } from "../src/auth/core/logger.ts";
-import { loadEnv } from "../src/env.ts";
-import { mountNotes } from "../src/example/notes.ts";
-import { getRequestId } from "../src/request-id.ts";
-import { localDevelopmentConfig } from "../src/dev-config.ts";
-import { config as baseConfig } from "../src/selfauth.config.ts";
+import { loadEnv } from "../src/config/env.ts";
+import { mountNotes } from "../src/routes/notes.ts";
+import { getRequestId } from "../src/http/request-id.ts";
+import { localDevelopmentConfig } from "../src/config/dev-config.ts";
+import { config as baseConfig } from "../src/config/selfauth.config.ts";
 
 if (process.env["NODE_ENV"] !== "test") throw new Error("e2e-server runs only with NODE_ENV=test");
 

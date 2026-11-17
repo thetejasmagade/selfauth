@@ -190,7 +190,7 @@ for the API. In short:
 - Browsers must send `X-SelfAuth-CSRF: 1` on every POST, PUT, PATCH and DELETE.
   That includes the application's existing fetch calls, because CSRF protection
   covers the whole app (SEC-CSRF-004).
-- Email: `createMailer()` in `mailer.ts` needs a real provider before
+- Email: `createMailer()` in `email/mailer.ts` needs a real provider before
   production. That is a manual item unless the developer names a provider and
   gives you its API usage. Never hard-code the API key.
 
@@ -224,7 +224,7 @@ Use this shape. Be exact; never round "mostly works" up to "done".
 **Your files I changed:** src/server.ts (wiring, 2 lines), tsconfig.json (2 options), …
 **Verified:** validate-auth RESULT: PASS — validate ✓, doctor ✓ (2 warnings), typecheck ✓, tests ✓ (41), live probes ✓
 **Not verified:** <every SKIPPED check, and why>
-**Manual steps left:** email provider in src/selfauth/mailer.ts; DATABASE_URL in production; …
+**Manual steps left:** email provider in src/selfauth/email/mailer.ts; DATABASE_URL in production; …
 **Warnings from doctor:** …
 **Not supported / not done:** …
 ```
@@ -247,6 +247,10 @@ Migrate, with safety analysis on top:
   errors as blocking and report its warnings.
 - `selfauth validate` checks the config schema, which generated files the
   developer changed, and the Prisma schema against the manifest.
+- If `upgrade` says the project uses the flat `src/` layout (SelfAuth 0.3 and
+  earlier), the developer commits first, then runs `selfauth upgrade
+  --reorganize --dry-run` and `--reorganize`. It moves files and rewrites
+  imports. Run the project's typecheck and tests afterwards.
 - `selfauth diff`, then `selfauth upgrade`: files the developer never edited
   are updated. Edited files get a `<file>.selfauth-new` proposal next to them.
   Merge it with the developer and delete it afterwards. Deleted files stay

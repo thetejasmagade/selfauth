@@ -39,6 +39,12 @@ export const manifestSchema = z.strictObject({
       layout: z.enum(["project", "add", "frontend"]).default("project"),
       /** Source folder the `add` and `frontend` layouts write under, relative to the manifest. */
       srcDir: z.string().default("src"),
+      /**
+       * Folder structure of the generated app code. 1: the flat src/ of SelfAuth 0.3 and earlier
+       * (src/env.ts, src/mailer.ts, …); 2: grouped by responsibility (src/config/, src/email/, …).
+       * Manifests written before this field existed are structure 1.
+       */
+      structure: z.number().int().min(1).default(1),
       frontend: z.enum(["none", "vue", "react"]).default("none"),
       permissions: z.array(z.string()).default([]),
       appBaseUrl: z.string().optional(),

@@ -221,14 +221,14 @@ describe("selfauth add in another layout", () => {
     expect((await runValidation(dir)).ok).toBe(true);
     const report = await diagnose(dir);
     expect(report.errors).toEqual([]);
-    expect(report.warnings.join(" ")).toMatch(/server\/selfauth\/mailer\.ts/);
+    expect(report.warnings.join(" ")).toMatch(/server\/selfauth\/email\/mailer\.ts/);
 
     const plan = await planUpgrade(dir);
     expect(plan.items.every((i) => i.status === "unchanged")).toBe(true);
     await applyUpgrade(dir, plan);
 
-    await writeFile(join(dir, "server/selfauth/mailer.ts"), "// mine\n");
-    expect((await runValidation(dir)).notes.join(" ")).toContain("server/selfauth/mailer.ts");
+    await writeFile(join(dir, "server/selfauth/email/mailer.ts"), "// mine\n");
+    expect((await runValidation(dir)).notes.join(" ")).toContain("server/selfauth/email/mailer.ts");
   });
 
   it("is detected from the Express entry file and offered with --src", async () => {

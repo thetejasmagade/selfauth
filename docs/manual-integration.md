@@ -14,7 +14,7 @@ cd my-app
 npm install                              # express, cookie, @node-rs/argon2, Prisma: nothing from SelfAuth
 cp .env.example .env                     # set DATABASE_URL (or remove it to use the in-memory store in development)
 npm run db:migrate                       # = prisma migrate deploy: review prisma/migrations/*/migration.sql first
-npm run db:seed                          # writes the roles from src/selfauth.config.ts
+npm run db:seed                          # writes the roles from src/config/selfauth.config.ts
 npm run dev                              # API on :3000; emails are printed to the console
 ```
 
@@ -74,7 +74,7 @@ Requirements: ESM (`"type": "module"`), Express 5 (the tested version), and Type
    ```
 5. **Configure the environment.** Set `SELFAUTH_APP_BASE_URL` (your
    frontend's URL, used in email links), plus `DATABASE_URL` for PostgreSQL.
-   See `src/selfauth/env.ts`.
+   See `src/selfauth/config/env.ts`.
 6. **PostgreSQL only.** Add `src/selfauth/generated/` to `.gitignore`, then
    run:
 
@@ -92,7 +92,7 @@ to a real app, and CI runs that app's own tests before and after.
 
 ## Before production
 
-- **Email**: implement `createMailer()` in `mailer.ts` with your provider.
+- **Email**: implement `createMailer()` in `email/mailer.ts` with your provider.
   The server refuses to start in production until you do.
 - **HTTPS**: `SELFAUTH_APP_BASE_URL` must use `https://`. Cookies are
   `Secure` and `__Host-` prefixed. Behind a proxy, set `http.trustProxy`.

@@ -5,7 +5,7 @@
  */
 import { syncRoles } from "../auth/index.ts";
 import { createPrismaClient, PrismaAuthStore } from "../auth/stores/prisma.ts";
-import { config } from "../selfauth.config.ts";
+import { config } from "../config/selfauth.config.ts";
 
 const url = process.env["DATABASE_URL"];
 if (!url) throw new Error("DATABASE_URL is required");

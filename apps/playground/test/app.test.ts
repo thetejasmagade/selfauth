@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { EnvError, loadEnv } from "../src/env.ts";
+import { EnvError, loadEnv } from "../src/config/env.ts";
 import { buildTestApp } from "./helpers.ts";
 
 describe("playground app", async () => {
@@ -107,8 +107,8 @@ describe("route guards (AUTHZ-CORE-002)", () => {
   // A small lint: every route the generated application registers names a guard from `auth`
   // in its first lines, or sits on `auth.protectedRoutes()`, which denies anything unguarded.
   const files = [
-    "src/example/notes.ts",
-    "src/routes.ts",
+    "src/routes/notes.ts",
+    "src/routes/index.ts",
     "../../packages/cli/template-variants/routes.ts",
   ];
   const ROUTE = /\b\w+\.(?:get|post|put|patch|delete|all)\(\s*["'`][^"'`]*["'`]/g;

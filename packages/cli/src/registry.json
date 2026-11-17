@@ -73,25 +73,25 @@
           "layout": "project"
         },
         {
-          "source": "apps/playground/src/env.ts",
-          "target": "src/env.ts"
+          "source": "apps/playground/src/config/env.ts",
+          "target": "src/config/env.ts"
         },
         {
-          "source": "apps/playground/src/errors.ts",
-          "target": "src/errors.ts",
+          "source": "apps/playground/src/http/errors.ts",
+          "target": "src/http/errors.ts",
           "layout": "project"
         },
         {
-          "source": "apps/playground/src/request-id.ts",
-          "target": "src/request-id.ts"
+          "source": "apps/playground/src/http/request-id.ts",
+          "target": "src/http/request-id.ts"
         },
         {
-          "source": "apps/playground/src/mailer.ts",
-          "target": "src/mailer.ts"
+          "source": "apps/playground/src/email/mailer.ts",
+          "target": "src/email/mailer.ts"
         },
         {
-          "source": "apps/playground/src/dev-config.ts",
-          "target": "src/dev-config.ts"
+          "source": "apps/playground/src/config/dev-config.ts",
+          "target": "src/config/dev-config.ts"
         },
         {
           "source": "apps/playground/src/server.ts",
@@ -105,23 +105,23 @@
         },
         {
           "source": "packages/cli/template-variants/routes.ts",
-          "target": "src/routes.ts",
+          "target": "src/routes/index.ts",
           "when": {
             "frontend": "none"
           },
           "layout": "project"
         },
         {
-          "source": "apps/playground/src/routes.ts",
-          "target": "src/routes.ts",
+          "source": "apps/playground/src/routes/index.ts",
+          "target": "src/routes/index.ts",
           "when": {
             "frontend": "any"
           },
           "layout": "project"
         },
         {
-          "source": "apps/playground/src/example/notes.ts",
-          "target": "src/example/notes.ts",
+          "source": "apps/playground/src/routes/notes.ts",
+          "target": "src/routes/notes.ts",
           "when": {
             "frontend": "any"
           },
@@ -129,14 +129,14 @@
         },
         {
           "source": "packages/cli/template-variants/store.memory.ts",
-          "target": "src/store.ts",
+          "target": "src/db/store.ts",
           "when": {
             "database": "memory"
           }
         },
         {
-          "source": "apps/playground/src/store.ts",
-          "target": "src/store.ts",
+          "source": "apps/playground/src/db/store.ts",
+          "target": "src/db/store.ts",
           "when": {
             "database": "postgresql"
           }

@@ -116,14 +116,14 @@ describe("planUpgrade / applyUpgrade (ADR 0004)", () => {
     // Simulate a template file that is new in this release: not on disk, not in the manifest.
     manifest.files = manifest.files.filter(
       (f: { path: string }) =>
-        f.path !== "src/auth/core/email.ts" && f.path !== "src/dev-config.ts",
+        f.path !== "src/auth/core/email.ts" && f.path !== "src/config/dev-config.ts",
     );
     await writeFile(manifestPath, JSON.stringify(manifest));
     await rm(join(dir, "src/auth/core/email.ts"));
     // dev-config.ts exists but the manifest does not claim it: ownership is ambiguous.
-    await writeFile(join(dir, "src/dev-config.ts"), "// someone else's file\n");
+    await writeFile(join(dir, "src/config/dev-config.ts"), "// someone else's file\n");
     // You deleted a generated file on purpose.
-    await rm(join(dir, "src/routes.ts"));
+    await rm(join(dir, "src/routes/index.ts"));
 
     const plan = await planUpgrade(dir);
     const status = Object.fromEntries(
@@ -131,13 +131,15 @@ describe("planUpgrade / applyUpgrade (ADR 0004)", () => {
     );
     expect(status).toEqual({
       "src/auth/core/email.ts": "add",
-      "src/dev-config.ts": "conflict",
-      "src/routes.ts": "deleted",
+      "src/config/dev-config.ts": "conflict",
+      "src/routes/index.ts": "deleted",
     });
     await applyUpgrade(dir, plan);
     expect(existsSync(join(dir, "src/auth/core/email.ts"))).toBe(true);
-    expect(existsSync(join(dir, "src/routes.ts"))).toBe(false);
-    expect(await readFile(join(dir, "src/dev-config.ts"), "utf8")).toBe("// someone else's file\n");
+    expect(existsSync(join(dir, "src/routes/index.ts"))).toBe(false);
+    expect(await readFile(join(dir, "src/config/dev-config.ts"), "utf8")).toBe(
+      "// someone else's file\n",
+    );
   });
 
   it("never overwrites a file edited after the plan was made", async () => {

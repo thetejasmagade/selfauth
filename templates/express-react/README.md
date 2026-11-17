@@ -10,24 +10,51 @@ npm install
 cp .env.example .env            # then set DATABASE_URL
 npx selfauth db plan          # optional: review the migration for destructive changes
 npm run db:migrate
-npm run db:seed               # roles from src/selfauth.config.ts
+npm run db:seed               # roles from src/config/selfauth.config.ts
 npm run dev                   # API on :3000
 npm --prefix web install && npm run dev:web   # react app, proxies /auth and /api
 ```
 
-Open http://localhost:5173. The frontend lives in `web/` (react); its `src/auth/` holds the API client, session state, route guards and `<Can>`. The `notes` example (backend `src/example/notes.ts`, frontend notes page) shows permissions and ownership: replace it with your own features.
+Open http://localhost:5173. The frontend lives in `web/` (react); its `src/auth/` holds the API client, session state, route guards and `<Can>`. The `notes` example (backend `src/routes/notes.ts`, frontend notes page) shows permissions and ownership: replace it with your own features.
 
 The backend only trusts the frontend origin in `SELFAUTH_APP_BASE_URL`. If you serve the frontend elsewhere (for example `vite preview` on another port, or a deployed domain), set that variable or add the origin to `http.trustedOrigins`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.
 
 Email (verification, password reset) is printed to the console in
 development. Before production, implement `createMailer()` in
-`src/mailer.ts`; the server refuses to start in production until you do.
+`src/email/mailer.ts`; the server refuses to start in production until you do.
+
+## Project layout
+
+```text
+src/
+  server.ts             starts the server
+  app.ts                builds the Express app: middleware, routes, error handling
+  config/
+    selfauth.config.ts  your authentication settings: roles, permissions, limits
+    env.ts              environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)
+    dev-config.ts       cookie settings for local http development
+  routes/
+    index.ts            your routes: guard them with auth.requireAuth / requirePermission
+    notes.ts            example: permissions and ownership (replace it)
+  email/mailer.ts       plug in your email provider here
+  db/store.ts           picks the data store (PostgreSQL, or in-memory without DATABASE_URL)
+  http/                 error responses and request ids
+  auth/                 SelfAuth's generated authentication code (core/, express/, stores/)
+  scripts/              seed (roles) and create-admin
+test/                   smoke tests for the authentication wiring (npm test)
+prisma/                 database schema and migrations
+web/                    the react frontend (its src/auth/ is the API client and guards)
+selfauth.manifest.json  which files SelfAuth generated (used by doctor, diff, upgrade)
+```
+
+Authentication behaviour is configuration (`src/config/selfauth.config.ts`), not code you
+edit: `src/auth/` is the tested security core.
 
 ## Routes
 
 Authentication lives under `/auth` (register, login, logout, me, email
 verification, password reset/change, sessions, admin). Add your own routes in
-`src/routes.ts`; guard them with `auth.requireAuth`,
+`src/routes/index.ts`; guard them with `auth.requireAuth`,
 `auth.requirePermission("x.y")` or `auth.protectedRoutes()`.
 
 Browsers must send `X-SelfAuth-CSRF: 1` on state-changing requests (or use

@@ -149,7 +149,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   if (frontend !== "none")
     say(`  npm --prefix web install && npm run dev:web   # then open ${answers.appBaseUrl}`);
   say(
-    "\nBefore production: implement createMailer() in src/mailer.ts, then run `npx selfauth doctor`.",
+    "\nBefore production: implement createMailer() in src/email/mailer.ts, then run `npx selfauth doctor`.",
   );
   return 0;
 }

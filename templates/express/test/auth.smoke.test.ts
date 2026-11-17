@@ -3,11 +3,11 @@ import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
 import { createApp } from "../src/app.ts";
 import { createAuth, MemoryAuthStore, MemoryMailer, syncRoles } from "../src/auth/index.ts";
-import { localDevelopmentConfig } from "../src/dev-config.ts";
-import { loadEnv } from "../src/env.ts";
-import { getRequestId } from "../src/request-id.ts";
-import { mountRoutes } from "../src/routes.ts";
-import { config as baseConfig } from "../src/selfauth.config.ts";
+import { localDevelopmentConfig } from "../src/config/dev-config.ts";
+import { loadEnv } from "../src/config/env.ts";
+import { getRequestId } from "../src/http/request-id.ts";
+import { mountRoutes } from "../src/routes/index.ts";
+import { config as baseConfig } from "../src/config/selfauth.config.ts";
 
 /**
  * Smoke tests for the authentication wiring of THIS project, run with `npm test`. They use

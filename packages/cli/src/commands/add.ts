@@ -148,7 +148,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   say(`     // your routes, e.g. app.get("/api/me", selfauth.auth.requireAuth, handler)`);
   say(`     app.use(selfauth.errorHandler);`);
   say(
-    `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see ${root}/env.ts.`,
+    `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see ${root}/config/env.ts.`,
   );
   if (database === "postgresql") {
     say(`${step++}. Ignore the generated client: add "${root}/generated/" to .gitignore, then:`);

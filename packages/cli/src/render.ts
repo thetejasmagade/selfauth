@@ -13,7 +13,7 @@ export interface InitAnswers {
   appBaseUrl: string;
 }
 
-/** Resolved configuration written to src/selfauth.config.ts (validated by the spec schema). */
+/** Resolved configuration written to src/config/selfauth.config.ts (validated by the spec schema). */
 export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   for (const p of answers.permissions) {
     if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth."))
@@ -41,7 +41,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
 }
 
 export function renderConfig(config: SelfAuthConfig): string {
-  return `import type { SelfAuthConfig } from "./auth/types.ts";
+  return `import type { SelfAuthConfig } from "../auth/types.ts";
 
 /**
  * SelfAuth configuration: behavior only, never secrets (CONF-FILE-002).
@@ -226,6 +226,47 @@ export function renderGitignore(): string {
   ].join("\n");
 }
 
+/** The folder tree shown in the generated README, for the options the project was made with. */
+export function renderLayout(answers: InitAnswers): string {
+  const pg = answers.database === "postgresql";
+  const web = answers.frontend !== "none";
+  const rows: [string, string][] = [
+    ["src/", ""],
+    ["  server.ts", "starts the server"],
+    ["  app.ts", "builds the Express app: middleware, routes, error handling"],
+    ["  config/", ""],
+    ["    selfauth.config.ts", "your authentication settings: roles, permissions, limits"],
+    ["    env.ts", "environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)"],
+    ["    dev-config.ts", "cookie settings for local http development"],
+    ["  routes/", ""],
+    ["    index.ts", "your routes: guard them with auth.requireAuth / requirePermission"],
+    ...(web
+      ? ([["    notes.ts", "example: permissions and ownership (replace it)"]] as [
+          string,
+          string,
+        ][])
+      : []),
+    ["  email/mailer.ts", "plug in your email provider here"],
+    [
+      "  db/store.ts",
+      `picks the data store (${pg ? "PostgreSQL, or in-memory without DATABASE_URL" : "in-memory"})`,
+    ],
+    ["  http/", "error responses and request ids"],
+    ["  auth/", "SelfAuth's generated authentication code (core/, express/, stores/)"],
+    ...(pg ? ([["  scripts/", "seed (roles) and create-admin"]] as [string, string][]) : []),
+    ["test/", "smoke tests for the authentication wiring (npm test)"],
+    ...(pg ? ([["prisma/", "database schema and migrations"]] as [string, string][]) : []),
+    ...(web
+      ? ([
+          ["web/", `the ${answers.frontend} frontend (its src/auth/ is the API client and guards)`],
+        ] as [string, string][])
+      : []),
+    ["selfauth.manifest.json", "which files SelfAuth generated (used by doctor, diff, upgrade)"],
+  ];
+  const width = Math.max(...rows.map(([name]) => name.length)) + 2;
+  return rows.map(([name, note]) => (note ? `${name.padEnd(width)}${note}` : name)).join("\n");
+}
+
 export function renderReadme(answers: InitAnswers): string {
   const pg = answers.database === "postgresql";
   const web = answers.frontend !== "none";
@@ -239,18 +280,27 @@ deploy it. Nothing here calls a SelfAuth service.
 \`\`\`bash
 npm install
 cp .env.example .env${pg ? "            # then set DATABASE_URL" : ""}
-${pg ? "npx selfauth db plan          # optional: review the migration for destructive changes\nnpm run db:migrate\nnpm run db:seed               # roles from src/selfauth.config.ts\n" : ""}npm run dev${web ? "                   # API on :3000\nnpm --prefix web install && npm run dev:web   # " + answers.frontend + " app, proxies /auth and /api" : ""}
+${pg ? "npx selfauth db plan          # optional: review the migration for destructive changes\nnpm run db:migrate\nnpm run db:seed               # roles from src/config/selfauth.config.ts\n" : ""}npm run dev${web ? "                   # API on :3000\nnpm --prefix web install && npm run dev:web   # " + answers.frontend + " app, proxies /auth and /api" : ""}
 \`\`\`
-${web ? `\nOpen ${answers.appBaseUrl}. The frontend lives in \`web/\` (${answers.frontend}); its \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`src/example/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\`. If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
+${web ? `\nOpen ${answers.appBaseUrl}. The frontend lives in \`web/\` (${answers.frontend}); its \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`src/routes/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\`. If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
 development. Before production, implement \`createMailer()\` in
-\`src/mailer.ts\`; the server refuses to start in production until you do.
+\`src/email/mailer.ts\`; the server refuses to start in production until you do.
 ${pg ? "" : "\nThis project uses the **in-memory store** (data is lost on restart). Regenerate with `--database postgresql` for persistence.\n"}
+## Project layout
+
+\`\`\`text
+${renderLayout(answers)}
+\`\`\`
+
+Authentication behaviour is configuration (\`src/config/selfauth.config.ts\`), not code you
+edit: \`src/auth/\` is the tested security core.
+
 ## Routes
 
 Authentication lives under \`/auth\` (register, login, logout, me, email
 verification, password reset/change, sessions, admin). Add your own routes in
-\`src/routes.ts\`; guard them with \`auth.requireAuth\`,
+\`src/routes/index.ts\`; guard them with \`auth.requireAuth\`,
 \`auth.requirePermission("x.y")\` or \`auth.protectedRoutes()\`.
 
 Browsers must send \`X-SelfAuth-CSRF: 1\` on state-changing requests (or use

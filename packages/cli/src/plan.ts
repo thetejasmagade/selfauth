@@ -33,6 +33,9 @@ export interface PlannedFile {
   content: string;
 }
 
+/** Folder structure `init` and `add` generate (manifest `options.structure`). */
+export const LAYOUT_STRUCTURE = 2;
+
 export const sha256 = (content: string) =>
   createHash("sha256").update(content, "utf8").digest("hex");
 
@@ -136,6 +139,7 @@ export function buildManifest(
     options: {
       layout,
       srcDir,
+      structure: LAYOUT_STRUCTURE,
       frontend: answers.frontend,
       permissions: answers.permissions,
       appBaseUrl: answers.appBaseUrl,
@@ -180,7 +184,7 @@ export async function planInit(
     { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
     { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
     {
-      path: "src/selfauth.config.ts",
+      path: "src/config/selfauth.config.ts",
       template: "rendered:config",
       content: renderConfig(buildConfig(answers)),
     },
@@ -236,7 +240,7 @@ export async function planAdd(
     srcDir,
   );
   files.push({
-    path: addLayoutPath("src/selfauth.config.ts", srcDir),
+    path: addLayoutPath("src/config/selfauth.config.ts", srcDir),
     template: "rendered:config",
     content: renderConfig(buildConfig({ ...answers, frontend: "none" })),
   });
