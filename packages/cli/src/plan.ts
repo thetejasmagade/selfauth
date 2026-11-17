@@ -24,6 +24,7 @@ import {
   templateSource,
   type TemplateSource,
 } from "./templates.js";
+import { trimTrailingSlashes } from "./layout.js";
 import { CLI_VERSION } from "./version.js";
 
 export interface PlannedFile {
@@ -76,7 +77,7 @@ export async function templateFiles(
  * no trailing slash. `.` means the project root. Throws on anything that could escape the project.
  */
 export function normalizeSrcDir(input: string): string {
-  const cleaned = input.trim().replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/+$/, "");
+  const cleaned = trimTrailingSlashes(input.trim().replaceAll("\\", "/").replace(/^\.\//, ""));
   if (cleaned === "" || cleaned === ".") return ".";
   if (cleaned.startsWith("/") || /^[A-Za-z]:/.test(cleaned) || cleaned.split("/").includes("..")) {
     throw new Error(`source folder '${input}' must be a relative path inside the project`);

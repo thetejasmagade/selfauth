@@ -41,6 +41,13 @@ async function files(dir: string, depth = 0, out: string[] = []): Promise<string
 
 const posix = (p: string) => p.split("\\").join("/");
 
+/** Removes trailing slashes in linear time (a `/\/+$/` regex is quadratic on long runs of `/`). */
+export function trimTrailingSlashes(text: string): string {
+  let end = text.length;
+  while (end > 0 && text[end - 1] === "/") end--;
+  return text.slice(0, end);
+}
+
 /** Files that create an Express application, as paths relative to `dir`, best candidate first. */
 export async function findExpressEntryFiles(dir: string): Promise<string[]> {
   const found: string[] = [];
@@ -157,10 +164,10 @@ async function workspacePatterns(dir: string): Promise<string[]> {
 
 /** Expands `apps/*`, `packages/**` and plain paths to directories that hold a package.json. */
 async function expand(dir: string, pattern: string): Promise<string[]> {
-  const clean = pattern.replace(/^\.\//, "").replace(/\/+$/, "");
+  const clean = trimTrailingSlashes(pattern.replace(/^\.\//, ""));
   const star = clean.search(/[*?{[]/);
   if (star < 0) return existsSync(join(dir, clean, "package.json")) ? [clean] : [];
-  const base = clean.slice(0, star).replace(/\/+$/, "");
+  const base = trimTrailingSlashes(clean.slice(0, star));
   const deep = clean.includes("**");
   const out: string[] = [];
   const walk = async (rel: string, depth: number) => {
@@ -221,7 +228,7 @@ function globBase(pattern: string): string {
   // `src` (a folder) and `src/main.ts` (a file) both start in `src`.
   const folder =
     star < 0 && /\.[cm]?[jt]sx?$/.test(clean) ? clean.split("/").slice(0, -1).join("/") : base;
-  return folder.replace(/\/+$/, "");
+  return trimTrailingSlashes(folder);
 }
 
 const within = (path: string, base: string) =>
@@ -244,7 +251,7 @@ export function checkTsconfigCoverage(
   const target = srcDir === "." ? "selfauth" : `${posix(srcDir)}/selfauth`;
   const rootDir = config.compilerOptions?.rootDir;
   if (rootDir !== undefined) {
-    const root = posix(rootDir).replace(/^\.\//, "").replace(/\/+$/, "");
+    const root = trimTrailingSlashes(posix(rootDir).replace(/^\.\//, ""));
     if (!within(target, root === "." ? "" : root)) {
       return {
         covered: false,

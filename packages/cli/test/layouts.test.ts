@@ -73,6 +73,15 @@ describe("source folder", () => {
     },
   );
 
+  it("handles a pathological run of slashes quickly", () => {
+    const started = performance.now();
+    expect(normalizeSrcDir(`server${"/".repeat(200_000)}`)).toBe("server");
+    expect(
+      checkTsconfigCoverage({ include: [`server${"/".repeat(200_000)}`] }, "server").covered,
+    ).toBe(true);
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
   it("puts SelfAuth's files in <src>/selfauth", () => {
     expect(selfauthRoot("src")).toBe("src/selfauth");
     expect(selfauthRoot("server")).toBe("server/selfauth");
