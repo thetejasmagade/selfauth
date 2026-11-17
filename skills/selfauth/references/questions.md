@@ -211,6 +211,14 @@ cover both. An API-only project stays a single package with `src/`.
 → [guides/manual-integration.md](guides/manual-integration.md),
 [guides/upgrading.md](guides/upgrading.md#moving-to-the-two-package-layout)
 
+**How do I change the minimum password length?** Edit
+`authentication.password.minLength` in the server's `selfauth.config.ts` (8 is
+the floor; `selfauth validate` rejects less) and restart. In a project with a
+frontend, also change the `minlength` attribute in `pages/auth/RegisterPage`,
+`pages/auth/ResetPasswordPage` and `pages/AccountPage` (and the "At least 8
+characters" text on the register page), or the browser keeps asking for the old
+length. → [guides/customization.md](guides/customization.md#changing-the-password-length)
+
 **Does upgrading change my database?** It updates files, including new
 migration files. Applying migrations is a separate, reviewed step
 (`selfauth db plan`). → [guides/upgrading.md](guides/upgrading.md), [guides/database.md](guides/database.md)

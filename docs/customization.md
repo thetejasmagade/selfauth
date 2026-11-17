@@ -16,12 +16,33 @@ Common changes:
 | `authorization.permissions`, `roles`, `defaultRoles` | (yours) | Declare every permission. `requirePermission` rejects unknown ones at startup. Re-run the seed after changes (PostgreSQL). |
 | `authentication.emailVerification.mode` | `required` | `optional` lets users in before they verify (`selfauth doctor` warns) |
 | `authentication.registration.revealExistingEmail` / `signInAfterRegistration` | `false` | Opt-in UX trade-offs that weaken enumeration safety (SEC-ENUM-004) |
-| `authentication.password.minLength`, `rejectCommon`, `hashing` | 8, `true`, Argon2id 19 MiB × 2 | Hashing below the OWASP floor is rejected |
+| `authentication.password.minLength`, `rejectCommon`, `hashing` | 8, `true`, Argon2id 19 MiB × 2 | Hashing below the OWASP floor is rejected. With a frontend, also update its pages (see [Changing the password length](#changing-the-password-length)) |
 | `authentication.sessions.idleTimeoutMinutes` / `absoluteTimeoutMinutes` | 7 days / 30 days | |
 | `authentication.sessions.cookie` | `__Host-session`, `lax`, `secure` | `sameSite: "none"` only for cross-site deployments, with token-mode CSRF |
 | `authentication.rateLimit.*` | per account and per address | Limits and windows for each endpoint |
 | `http.basePath`, `trustedOrigins`, `trustProxy`, `bodyLimitBytes` | `/auth`, —, `false`, 16 KiB | |
 | `http.csrf.mode` | `header` | `token` for cross-site frontends; needs `SELFAUTH_CSRF_SECRET` |
+
+### Changing the password length
+
+The server decides: `authentication.password.minLength` (and `maxLength`) in
+`server/src/config/selfauth.config.ts`, or `src/config/selfauth.config.ts` in an
+API-only project. It cannot go below 8 (`npx selfauth validate` says so), and you
+restart the server after changing it.
+
+The frontend does not read that file. Its forms only carry a browser hint of the
+length, so after changing the server, update the three pages that show it, or the
+browser will keep asking for the old length before the form is even sent:
+
+| Page | Vue (`client/src/`) | React (`client/src/`) | What to change |
+| --- | --- | --- | --- |
+| Register | `pages/auth/RegisterPage.vue` | `pages/auth/RegisterPage.tsx` | the `minlength` / `minLength` attribute, and the text "At least 8 characters" |
+| Reset password | `pages/auth/ResetPasswordPage.vue` | `pages/auth/ResetPasswordPage.tsx` | the `minlength` / `minLength` attribute |
+| Account (change password) | `pages/AccountPage.vue` | `pages/AccountPage.tsx` | the `minlength` / `minLength` attribute |
+
+Restart the dev server (or rebuild the client) afterwards. The server stays the
+authority: a password shorter than its limit is refused even if the form lets it
+through, and the error message shows the server's number.
 
 ## 2. Email: `email/mailer.ts`
 
