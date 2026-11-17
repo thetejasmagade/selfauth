@@ -6,12 +6,13 @@ import { CLI_VERSION, INTEGRATIONS, PLANNED, skillFiles, skillRoot } from "@self
 import { loadRequirements, SPEC_VERSION } from "@selfauth/spec";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error -- plain .mjs build script without type declarations
-import { expected as expectedReferences, REFERENCES } from "../scripts/sync-references.mjs";
+import * as sync from "../scripts/sync-references.mjs";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const SKILL = join(REPO, "skills", "selfauth");
 const BIN = join(REPO, "packages", "cli", "dist", "bin.js");
-const GENERATED = new Set(Object.values(REFERENCES as Record<string, string>));
+const expectedReferences = sync.expected as () => { path: string; content: string }[];
+const GENERATED = new Set(sync.GENERATED as string[]);
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
