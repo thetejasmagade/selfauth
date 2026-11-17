@@ -66,7 +66,7 @@ onMounted(() => loadSessions().catch((e) => (error.value = describeError(e))));
           v-model="newPassword"
           type="password"
           autocomplete="new-password"
-          minlength="12"
+          minlength="8"
           required
       /></label>
       <button type="submit">Change password</button>

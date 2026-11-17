@@ -296,7 +296,7 @@ describe("diagnose (selfauth doctor)", () => {
     const path = join(dir, "src/config/selfauth.config.ts");
     await writeFile(
       path,
-      (await readFile(path, "utf8")).replace('"minLength": 12', '"minLength": 4'),
+      (await readFile(path, "utf8")).replace('"minLength": 8', '"minLength": 4'),
     );
     expect((await diagnose(dir)).errors.join("\n")).toMatch(/minLength/);
   });

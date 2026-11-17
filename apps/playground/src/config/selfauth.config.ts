@@ -14,7 +14,7 @@ export const config: SelfAuthConfig = {
     registration: { revealExistingEmail: false, signInAfterRegistration: false },
     passwordReset: { tokenTtlMinutes: 30 },
     password: {
-      minLength: 12,
+      minLength: 8,
       maxLength: 128,
       rejectCommon: true,
       hashing: { memoryKiB: 19456, iterations: 2, parallelism: 1 },

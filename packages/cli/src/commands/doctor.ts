@@ -73,10 +73,6 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
       report.warnings.push(
         "sessions.cookie.sameSite is 'none': cross-site deployment, token-mode CSRF required (docs/frontend-deployment.md)",
       );
-    if (a.password.minLength < 12)
-      report.warnings.push(
-        `password.minLength is ${a.password.minLength}; 12 or more is recommended`,
-      );
     if (config.adapter.database === "memory")
       report.warnings.push(
         "in-memory store: data is lost on restart; use PostgreSQL in production",

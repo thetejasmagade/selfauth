@@ -53,7 +53,7 @@ export function ResetPasswordPage() {
               name="password"
               type="password"
               autoComplete="new-password"
-              minLength={12}
+              minLength={8}
               required
             />
           </label>

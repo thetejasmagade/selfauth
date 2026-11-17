@@ -48,10 +48,10 @@ async function submit() {
         name="password"
         type="password"
         autocomplete="new-password"
-        minlength="12"
+        minlength="8"
         required
       />
-      <small>At least 12 characters. A few unrelated words work well.</small>
+      <small>At least 8 characters. A few unrelated words work well.</small>
     </label>
     <p v-if="error" class="error" role="alert">{{ error }}</p>
     <button :disabled="busy" type="submit">Create account</button>

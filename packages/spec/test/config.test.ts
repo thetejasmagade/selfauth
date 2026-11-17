@@ -36,7 +36,7 @@ describe("selfAuthConfigSchema defaults", () => {
       signInAfterRegistration: false,
     });
     expect(config.authentication.password).toEqual({
-      minLength: 12,
+      minLength: 8,
       maxLength: 128,
       rejectCommon: true,
       hashing: { memoryKiB: 19_456, iterations: 2, parallelism: 1 },
