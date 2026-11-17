@@ -80,13 +80,13 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
     }
   }
 
-  const mailer = join(dir, projectPath(manifest, "src/mailer.ts"));
+  const mailer = join(dir, projectPath(manifest, "src/email/mailer.ts"));
   if (
     existsSync(mailer) &&
     (await readFile(mailer, "utf8")).includes("No email provider configured")
   ) {
     report.warnings.push(
-      `no email provider yet: implement createMailer() in ${projectPath(manifest, "src/mailer.ts")} before production`,
+      `no email provider yet: implement createMailer() in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
     );
   }
   const gitignore = existsSync(join(dir, ".gitignore"))

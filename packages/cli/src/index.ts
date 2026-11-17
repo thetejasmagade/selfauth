@@ -28,6 +28,7 @@ export {
   type SourceLayout,
   type WorkspacePackage,
 } from "./layout.js";
+export { applyReorganize, planMoves, planReorganize } from "./reorganize.js";
 export { inspect, type DetectReport } from "./commands/detect.js";
 export { findAuthSignals, type AuthSignal } from "./auth-signals.js";
 export { runValidation, type ValidationReport } from "./commands/validate.js";

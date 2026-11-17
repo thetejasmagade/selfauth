@@ -2,11 +2,11 @@ import type { SelfAuthConfig } from "./auth/types.ts";
 import express, { type ErrorRequestHandler } from "express";
 import type { Auth } from "./auth/index.ts";
 import type { Logger } from "./auth/core/logger.ts";
-import type { Env } from "./env.ts";
-import { envelope, HttpError } from "./errors.ts";
-import { assignRequestId, getRequestId } from "./request-id.ts";
+import type { Env } from "./config/env.ts";
+import { envelope, HttpError } from "./http/errors.ts";
+import { assignRequestId, getRequestId } from "./http/request-id.ts";
 
-export { getRequestId } from "./request-id.ts";
+export { getRequestId } from "./http/request-id.ts";
 
 export interface AppOptions {
   env: Env;

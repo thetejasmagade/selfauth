@@ -90,7 +90,7 @@
       "requirement": "AUTHZ-CORE-002",
       "method": "code-review",
       "evidence": [
-        "apps/playground/src/example/notes.ts",
+        "apps/playground/src/routes/notes.ts",
         "packages/cli/template-variants/routes.ts",
         "apps/playground/test/app.test.ts"
       ],
@@ -129,7 +129,7 @@
     {
       "requirement": "AUTHZ-RBAC-005",
       "method": "code-review",
-      "evidence": ["apps/playground/src/scripts/seed.ts", "apps/playground/src/store.ts"],
+      "evidence": ["apps/playground/src/scripts/seed.ts", "apps/playground/src/db/store.ts"],
       "finding": "syncRoles runs from the seed script only; the PostgreSQL store does no sync at startup (the in-memory store is seeded on start because it holds no data)."
     },
     {
@@ -279,7 +279,7 @@
     {
       "requirement": "DATA-MODEL-003",
       "method": "code-review",
-      "evidence": ["apps/playground/src/store.ts", "docs/database.md"],
+      "evidence": ["apps/playground/src/db/store.ts", "docs/database.md"],
       "finding": "The application never runs a schema sync (no db push, no auto-migrate) at startup; migrations are applied only by explicit commands."
     },
     {

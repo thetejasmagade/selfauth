@@ -24,11 +24,16 @@ src/
     core/               hashing, sessions, tokens, rate limits, RBAC, policies
     express/index.ts    Express adapter: middleware, /auth routes, guards
     stores/             memory.ts, prisma.ts (PostgreSQL)
-  selfauth.config.ts    behaviour, permissions, roles (edit this)
-  mailer.ts             email delivery (replace the dev mailer)
-  routes.ts             the application's routes (edit; mounts the notes example)
-  example/notes.ts      example of guards, ownership and list filtering
-  app.ts, server.ts, store.ts, env.ts, errors.ts, request-id.ts, dev-config.ts
+  config/
+    selfauth.config.ts  behaviour, permissions, roles (edit this)
+    env.ts, dev-config.ts
+  routes/
+    index.ts            the application's routes (edit; mounts the notes example)
+    notes.ts            example of guards, ownership and list filtering
+  email/mailer.ts       email delivery (replace the dev mailer)
+  db/store.ts           chooses the data store (PostgreSQL or in-memory)
+  http/                 errors.ts, request-id.ts
+  app.ts, server.ts     the Express app and the entry point
   scripts/seed.ts, scripts/create-admin.ts    (PostgreSQL)
 prisma/schema.prisma, prisma/migrations/      (PostgreSQL)
 web/                    (--frontend vue|react) API client, session state,
@@ -45,18 +50,18 @@ approval:
 ```text
 src/selfauth/auth/**          generated auth core: do not edit
 src/selfauth/setup.ts         setupSelfAuth(app): the single entry point
-src/selfauth/selfauth.config.ts
-src/selfauth/mailer.ts, store.ts, env.ts, request-id.ts, dev-config.ts
+src/selfauth/config/   selfauth.config.ts, env.ts, dev-config.ts
+src/selfauth/email/mailer.ts, db/store.ts, http/ (errors.ts, request-id.ts)
 ```
 
 ## Which files to edit
 
 | File | Edit? |
 | --- | --- |
-| `selfauth.config.ts` | Yes. Permissions, roles, timeouts and CSRF mode. Validated against the spec's bounds at startup, so invalid or insecure values fail fast. |
-| `mailer.ts` | Yes, to connect a real email provider. It must not log tokens (SEC-LOG-001). |
-| `routes.ts`, `example/` | Yes. This is application code. |
-| `store.ts`, `env.ts`, `server.ts`, `app.ts`, `setup.ts` | Only when needed, for example extra environment variables. Keep the order of middleware. |
+| `config/selfauth.config.ts` | Yes. Permissions, roles, timeouts and CSRF mode. Validated against the spec's bounds at startup, so invalid or insecure values fail fast. |
+| `email/mailer.ts` | Yes, to connect a real email provider. It must not log tokens (SEC-LOG-001). |
+| `routes/` | Yes. This is application code. |
+| `db/store.ts`, `config/env.ts`, `server.ts`, `app.ts`, `setup.ts` | Only when needed, for example extra environment variables. Keep the order of middleware. |
 | `auth/**` | No, unless the developer explicitly asks. This is the security core. Edits show up in `selfauth validate` and make `upgrade` write proposals instead of updates. |
 | `prisma/migrations/*` already applied | Never. Add new migrations instead. |
 

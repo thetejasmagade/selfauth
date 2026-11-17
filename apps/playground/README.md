@@ -69,7 +69,7 @@ src/auth/
 ├── stores/prisma.ts PostgreSQL store + shared rate-limit store
 ├── express/index.ts cookies, CSRF, CORS, session middleware, guards, routes
 └── index.ts         createAuth(), syncRoles()
-src/example/notes.ts example app module using guards and ownership
+src/routes/notes.ts   example app module using guards and ownership
 ```
 
 ## Using it in routes

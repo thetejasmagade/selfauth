@@ -103,6 +103,10 @@ program
   .description("update generated files you have not edited; write proposals for the ones you have")
   .option("-y, --yes", "apply without asking")
   .option("--dry-run", "show the plan without writing")
+  .option(
+    "--reorganize",
+    "move a project made with SelfAuth 0.3 or earlier (flat src/) into the grouped layout",
+  )
   .action(async (dir: string | undefined, opts) => exit(await upgrade(dir, opts)));
 
 program

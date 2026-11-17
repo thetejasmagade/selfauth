@@ -25,7 +25,7 @@ Common changes:
 | `http.basePath`, `trustedOrigins`, `trustProxy`, `bodyLimitBytes` | `/auth`, —, `false`, 16 KiB | |
 | `http.csrf.mode` | `header` | `token` for cross-site frontends; needs `SELFAUTH_CSRF_SECRET` |
 
-## 2. Email: `mailer.ts`
+## 2. Email: `email/mailer.ts`
 
 Implement `Mailer` (`send(message)`). A message has `kind`, `to`, `subject`,
 `text` and `link?`. Swap in your provider:

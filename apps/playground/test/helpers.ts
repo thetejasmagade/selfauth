@@ -18,8 +18,8 @@ import {
   PrismaRateLimitStore,
 } from "../src/auth/stores/prisma.ts";
 import { createTestSchema, TEST_DATABASE_URL, type TestSchema } from "./postgres.ts";
-import { loadEnv, type Env } from "../src/env.ts";
-import { getRequestId } from "../src/request-id.ts";
+import { loadEnv, type Env } from "../src/config/env.ts";
+import { getRequestId } from "../src/http/request-id.ts";
 
 export const TEST_BASE_URL = "https://app.example.test";
 export const TEST_CSRF_SECRET = Buffer.alloc(32, 7);

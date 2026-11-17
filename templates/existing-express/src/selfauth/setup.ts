@@ -1,11 +1,11 @@
 import express from "express";
 import { createAuth, type Auth } from "./auth/index.ts";
-import { localDevelopmentConfig } from "./dev-config.ts";
-import { loadEnv } from "./env.ts";
-import { createMailer } from "./mailer.ts";
-import { assignRequestId, getRequestId } from "./request-id.ts";
-import { config as baseConfig } from "./selfauth.config.ts";
-import { createStores } from "./store.ts";
+import { localDevelopmentConfig } from "./config/dev-config.ts";
+import { loadEnv } from "./config/env.ts";
+import { createMailer } from "./email/mailer.ts";
+import { assignRequestId, getRequestId } from "./http/request-id.ts";
+import { config as baseConfig } from "./config/selfauth.config.ts";
+import { createStores } from "./db/store.ts";
 
 export interface SelfAuth {
   auth: Auth;

@@ -99,13 +99,13 @@ Requirements proven by something other than a conformance case, and how.
 | AUTHN-LOGIN-003 | code-review | login() calls verifyDummy() on the no-user path and has no early return before password verification. | `apps/playground/src/auth/core/service.ts` |
 | AUTHN-REG-010 | adapter-test | A test asserts the hasher runs when registering an address that already exists. | `apps/playground/test/auth.test.ts` |
 | AUTHN-REG-010 | code-review | register() hashes the password before looking the email up, so every path costs the same. | `apps/playground/src/auth/core/service.ts` |
-| AUTHZ-CORE-002 | code-review | Every route in the generated examples is guarded or sits on protectedRoutes(), which denies unguarded routes; a lint-style test fails on a route with no guard. | `apps/playground/src/example/notes.ts`, `packages/cli/template-variants/routes.ts`, `apps/playground/test/app.test.ts` |
+| AUTHZ-CORE-002 | code-review | Every route in the generated examples is guarded or sits on protectedRoutes(), which denies unguarded routes; a lint-style test fails on a route with no guard. | `apps/playground/src/routes/notes.ts`, `packages/cli/template-variants/routes.ts`, `apps/playground/test/app.test.ts` |
 | AUTHZ-PERM-001 | schema-test | The config schema rejects malformed permission names. | `packages/spec/test/config.test.ts` |
 | AUTHZ-PERM-002 | schema-test | The config schema rejects project permissions using the reserved 'auth.' prefix. | `packages/spec/test/config.test.ts` |
 | AUTHZ-PERM-004 | schema-test | The config schema rejects roles that reference undefined permissions. | `packages/spec/test/config.test.ts` |
 | AUTHZ-PERM-004 | adapter-test | requirePermission() with an undefined permission throws at route registration. | `apps/playground/test/auth.test.ts` |
 | AUTHZ-RBAC-005 | migration-test | Role and permission sync is exercised against PostgreSQL and never prunes assignments implicitly. | `apps/playground/test/postgres.test.ts` |
-| AUTHZ-RBAC-005 | code-review | syncRoles runs from the seed script only; the PostgreSQL store does no sync at startup (the in-memory store is seeded on start because it holds no data). | `apps/playground/src/scripts/seed.ts`, `apps/playground/src/store.ts` |
+| AUTHZ-RBAC-005 | code-review | syncRoles runs from the seed script only; the PostgreSQL store does no sync at startup (the in-memory store is seeded on start because it holds no data). | `apps/playground/src/scripts/seed.ts`, `apps/playground/src/db/store.ts` |
 | SEC-HASH-001 | adapter-test | CT-IDENT-007 asserts the stored verifier is an Argon2id PHC string. | `conformance/cases/identity.json` |
 | SEC-HASH-001 | code-review | Hashing is @node-rs/argon2 (a maintained Argon2 binding, ADR 0014) with algorithm Argon2id; there is no hand-written implementation. | `apps/playground/src/auth/core/password.ts`, `docs/adr/0014-argon2-library-for-node.md` |
 | SEC-HASH-006 | adapter-test | A test asserts a concurrent lightweight request completes while a hash is computed (the library's async API is used). | `apps/playground/test/auth.test.ts` |
@@ -128,7 +128,7 @@ Requirements proven by something other than a conformance case, and how.
 | SEC-HTTP-002 | documentation | The deployment guide requires HTTPS and shows the HSTS header; createAuth() refuses an http base URL in production. | `docs/frontend-deployment.md` |
 | DATA-MODEL-001 | migration-test | Migration tests assert the unique indexes exist on a fresh database. | `apps/playground/test/postgres.test.ts` |
 | DATA-MODEL-003 | migration-test | Migrations are planned, applied and verified on a fresh PostgreSQL schema through native Prisma Migrate. | `apps/playground/test/postgres.test.ts` |
-| DATA-MODEL-003 | code-review | The application never runs a schema sync (no db push, no auto-migrate) at startup; migrations are applied only by explicit commands. | `apps/playground/src/store.ts`, `docs/database.md` |
+| DATA-MODEL-003 | code-review | The application never runs a schema sync (no db push, no auto-migrate) at startup; migrations are applied only by explicit commands. | `apps/playground/src/db/store.ts`, `docs/database.md` |
 | DATA-MODEL-004 | migration-test | A test runs generation against a database holding application tables and data and asserts they are untouched. | `apps/playground/test/postgres.test.ts` |
 | ERR-FORMAT-003 | code-review | The clients and the conformance runner branch on error.code; message text is displayed but never matched. | `apps/playground-vue/src/auth/client.ts`, `apps/playground-react/src/auth/client.ts`, `conformance/src/runner/run.ts` |
 | CONF-FILE-001 | schema-test | The schema uses strict objects; tests reject unknown top-level and nested keys. | `packages/spec/test/config.test.ts` |

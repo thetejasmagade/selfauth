@@ -56,13 +56,13 @@ describe("planInit", () => {
     expect(pg.some((p) => p.startsWith("prisma/migrations/") && p.endsWith("migration.sql"))).toBe(
       true,
     );
-    const memStore = (await planInit(answers("memory"))).find((f) => f.path === "src/store.ts")!;
+    const memStore = (await planInit(answers("memory"))).find((f) => f.path === "src/db/store.ts")!;
     expect(memStore.content).not.toContain("prisma");
   });
 
   it("renders a valid configuration and records every file's hash in the manifest", async () => {
     const files = await planInit(answers("postgresql"));
-    const config = files.find((f) => f.path === "src/selfauth.config.ts")!.content;
+    const config = files.find((f) => f.path === "src/config/selfauth.config.ts")!.content;
     const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
     expect(parseConfig(literal)).toEqual(literal);
     expect(literal.authorization.permissions).toEqual(["orders.view", "orders.create"]);
@@ -116,14 +116,14 @@ describe("planInit with a frontend", () => {
         );
       }
       // The backend ships the notes example the frontend uses.
-      expect(files.map((f) => f.path)).toContain("src/example/notes.ts");
-      expect(files.find((f) => f.path === "src/routes.ts")!.content).toContain("mountNotes");
+      expect(files.map((f) => f.path)).toContain("src/routes/notes.ts");
+      expect(files.find((f) => f.path === "src/routes/index.ts")!.content).toContain("mountNotes");
     },
   );
 
   it("configures the example permissions, frontend origin and web package", async () => {
     const files = await planInit(answers("memory", "react"));
-    const config = files.find((f) => f.path === "src/selfauth.config.ts")!.content;
+    const config = files.find((f) => f.path === "src/config/selfauth.config.ts")!.content;
     const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
     expect(literal.adapter.frontend).toBe("react");
     expect(literal.authorization.permissions).toEqual([
@@ -153,7 +153,7 @@ describe("planInit with a frontend", () => {
 
   it("keeps the hello example without a frontend", async () => {
     const files = await planInit(answers("memory"));
-    expect(files.map((f) => f.path)).not.toContain("src/example/notes.ts");
+    expect(files.map((f) => f.path)).not.toContain("src/routes/notes.ts");
     expect(files.some((f) => f.path.startsWith("web/"))).toBe(false);
   });
 });
@@ -231,7 +231,7 @@ describe("diagnose (selfauth doctor)", () => {
 
   it("flags risky configuration, missing env and secrets hygiene", async () => {
     const dir = await project();
-    const path = join(dir, "src/selfauth.config.ts");
+    const path = join(dir, "src/config/selfauth.config.ts");
     const text = await readFile(path, "utf8");
     await writeFile(
       path,
@@ -248,13 +248,13 @@ describe("diagnose (selfauth doctor)", () => {
     expect(report.errors.join("\n")).toMatch(/\.env is not git-ignored/);
     expect(report.errors.join("\n")).toMatch(/SELFAUTH_APP_BASE_URL is missing/);
     expect(report.notes.join("\n")).toMatch(
-      /you changed 2 generated file\(s\): .*\.gitignore.*src\/selfauth\.config\.ts/,
+      /you changed 2 generated file\(s\): .*\.gitignore.*src\/config\/selfauth\.config\.ts/,
     );
   });
 
   it("reports invalid configuration as errors", async () => {
     const dir = await project();
-    const path = join(dir, "src/selfauth.config.ts");
+    const path = join(dir, "src/config/selfauth.config.ts");
     await writeFile(
       path,
       (await readFile(path, "utf8")).replace('"minLength": 12', '"minLength": 4'),

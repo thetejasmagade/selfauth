@@ -1,5 +1,5 @@
 import express from "express";
-import type { Auth } from "./auth/index.ts";
+import type { Auth } from "../auth/index.ts";
 
 /**
  * Your application's routes. Examples of the three guard styles:

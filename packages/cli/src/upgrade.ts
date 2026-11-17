@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { MANIFEST_FILE, manifestSchema, type Manifest } from "@selfauth/migration";
 import { createTwoFilesPatch } from "diff";
 import { frontendAddFiles, sha256, templateFiles, type PlannedFile } from "./plan.js";
+import { hasFlatLayout } from "./project.js";
 import type { InitAnswers } from "./render.js";
 import { templateSource, type TemplateSource } from "./templates.js";
 import { CLI_VERSION } from "./version.js";
@@ -55,6 +56,14 @@ export async function planUpgrade(
   if (!existsSync(path))
     throw new Error("not a SelfAuth project (selfauth.manifest.json not found)");
   const manifest = manifestSchema.parse(JSON.parse(await readFile(path, "utf8")));
+  if (hasFlatLayout(manifest)) {
+    throw new Error(
+      "this project uses the flat src/ layout of SelfAuth 0.3 and earlier (src/env.ts, src/mailer.ts, …). " +
+        "Newer templates group those files (src/config/, src/email/, src/db/, src/http/, src/routes/), " +
+        "so `upgrade` cannot update it safely. `doctor` and `validate` still work. " +
+        "Run `selfauth upgrade --reorganize` to move it to the new layout (it moves the files and fixes the imports).",
+    );
+  }
   const layout = manifest.options?.layout ?? "project";
   const srcDir = manifest.options?.srcDir ?? "src";
   const frontend = manifest.options?.frontend ?? "none";

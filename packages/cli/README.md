@@ -65,7 +65,7 @@ repository (`selfauth add-frontend` for Vue and React):
 | `doctor [dir]` | Configuration and production-readiness checks |
 | `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |
 | `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--update`, `--dry-run` |
-| `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates |
+| `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates. `upgrade --reorganize` moves a project made with 0.3 or earlier into the grouped `src/` layout |
 | `db status\|plan\|migrate\|validate\|rollback\|generate` | Migration orchestration over Prisma Migrate |
 
 `detect`, `list`, `doctor` and `validate` take `--json` for agents and scripts.

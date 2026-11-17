@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { MemoryAuthStore, syncRoles } from "./auth/index.ts";
-import type { RateLimitStore } from "./auth/core/rate-limit.ts";
-import type { AuthStore } from "./auth/core/store.ts";
-import type { SelfAuthConfig } from "./auth/types.ts";
+import { MemoryAuthStore, syncRoles } from "../auth/index.ts";
+import type { RateLimitStore } from "../auth/core/rate-limit.ts";
+import type { AuthStore } from "../auth/core/store.ts";
+import type { SelfAuthConfig } from "../auth/types.ts";
 
 export interface Stores {
   store: AuthStore;

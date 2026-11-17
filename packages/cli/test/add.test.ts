@@ -128,11 +128,11 @@ describe("planAdd", () => {
     const dir = await existingProject();
     await applyPlan(dir, await planAdd(answers()));
     expect(await readFile(join(dir, "src/server.ts"), "utf8")).toBe("// the app's own server\n");
-    expect(existsSync(join(dir, "src/selfauth/selfauth.config.ts"))).toBe(true);
+    expect(existsSync(join(dir, "src/selfauth/config/selfauth.config.ts"))).toBe(true);
 
     const report = await diagnose(dir);
     expect(report.errors.join()).not.toMatch(/selfauth.config.ts not found/);
-    expect(report.warnings.join()).toMatch(/src\/selfauth\/mailer.ts/);
+    expect(report.warnings.join()).toMatch(/src\/selfauth\/email\/mailer.ts/);
     expect((await planUpgrade(dir)).items.every((i) => i.status === "unchanged")).toBe(true);
   });
 });

@@ -1,12 +1,12 @@
 import { Link, Route, Routes, useNavigate } from "react-router";
 import { Can, GuestOnly, RequireAuth, useAuth } from "./auth/index.ts";
 import { AccountPage } from "./pages/AccountPage.tsx";
-import { ForgotPasswordPage } from "./pages/ForgotPasswordPage.tsx";
-import { LoginPage } from "./pages/LoginPage.tsx";
+import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage.tsx";
+import { LoginPage } from "./pages/auth/LoginPage.tsx";
 import { NotesPage } from "./pages/NotesPage.tsx";
-import { RegisterPage } from "./pages/RegisterPage.tsx";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage.tsx";
-import { VerifyEmailPage } from "./pages/VerifyEmailPage.tsx";
+import { RegisterPage } from "./pages/auth/RegisterPage.tsx";
+import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage.tsx";
+import { VerifyEmailPage } from "./pages/auth/VerifyEmailPage.tsx";
 
 function Header() {
   const auth = useAuth();

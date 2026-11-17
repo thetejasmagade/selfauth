@@ -104,7 +104,7 @@ routes. Hiding a button in the frontend is not protection (AUTHZ-CORE-004).
 you@example.com` after registering that account (PostgreSQL projects).
 → [guides/manual-integration.md](guides/manual-integration.md)
 
-**How do I send real emails?** Implement `createMailer()` in `mailer.ts` with
+**How do I send real emails?** Implement `createMailer()` in `email/mailer.ts` with
 the provider's SDK. The server refuses to start in production until you do.
 Never hard-code the provider's key. → [guides/customization.md](guides/customization.md)
 
@@ -195,6 +195,12 @@ installation"
 **How do I upgrade?** `selfauth diff`, then `selfauth upgrade`. Files you never
 edited are updated; files you edited get a `<file>.selfauth-new` proposal and
 are never overwritten; deleted files stay deleted. → [guides/upgrading.md](guides/upgrading.md)
+
+**`upgrade` says my project uses the flat layout.** It was made with SelfAuth
+0.3 or earlier. Commit, then `selfauth upgrade --reorganize` (try `--dry-run`
+first): it moves the app files into `src/config`, `src/email`, `src/db`,
+`src/http` and `src/routes` and fixes the imports. `doctor` and `validate`
+work either way. → [guides/upgrading.md](guides/upgrading.md#moving-to-the-grouped-layout)
 
 **Does upgrading change my database?** It updates files, including new
 migration files. Applying migrations is a separate, reviewed step

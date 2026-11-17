@@ -18,7 +18,7 @@ import { createAuth } from "./auth/index.ts";
 const auth = createAuth({
   config,               // selfauth.config.ts, validated at startup
   store,                // AuthStore: PrismaAuthStore or MemoryAuthStore (store.ts)
-  mailer,               // Mailer (mailer.ts)
+  mailer,               // Mailer (email/mailer.ts)
   appBaseUrl,           // URL of the frontend, for email links (SELFAUTH_APP_BASE_URL)
   nodeEnv,              // "development" | "test" | "production"
   requestId,            // (res) => string, correlates logs and errors
@@ -94,5 +94,5 @@ routes.get(
 app.use("/api/orders", routes.router);
 ```
 
-The generated `src/example/notes.ts` (full-stack projects) is a complete,
+The generated `src/routes/notes.ts` (full-stack projects) is a complete,
 tested version of this pattern.

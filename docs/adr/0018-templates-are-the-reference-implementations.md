@@ -42,3 +42,18 @@ drift: the generator would emit code that was never tested.
   in the manifest records which version a project came from.
 - CI generates projects outside the monorepo, installs them from npm, runs
   migrations, boots them and exercises the API (`scripts/smoke-generated.sh`).
+
+## Update: grouped layout (structure 2)
+
+The application shell paths named above (`src/store.ts`, `src/mailer.ts`,
+`src/routes.ts`, `src/dev-config.ts`, `src/selfauth.config.ts`) moved into
+folders by responsibility: `src/db/`, `src/email/`, `src/routes/`,
+`src/config/` and `src/http/`. Ten loose files side by side made it hard to see
+what to edit and what to leave alone. The decision above is unchanged: the
+files are still the tested reference implementation, copied byte for byte.
+
+The manifest records `options.structure` (1 = flat, 2 = grouped). Projects with
+structure 1 keep working with `doctor` and `validate`, and
+`selfauth upgrade --reorganize` migrates them (moves files, rewrites relative
+imports, updates the manifest). Round-trip tests prove it restores exactly the
+files a new project has.

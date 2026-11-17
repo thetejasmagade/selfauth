@@ -7,6 +7,7 @@ import {
   type UpgradeItem,
   type UpgradePlan,
 } from "../upgrade.js";
+import { applyReorganize, planReorganize } from "../reorganize.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 const LABEL: Record<UpgradeItem["status"], string> = {
@@ -54,12 +55,60 @@ export async function diffCommand(dirArg: string | undefined): Promise<number> {
   }
 }
 
+/** `selfauth upgrade --reorganize`: move a flat-layout project (SelfAuth ≤ 0.3) into the grouped layout. */
+async function reorganize(
+  dir: string,
+  options: { yes?: boolean; dryRun?: boolean },
+): Promise<number> {
+  let plan;
+  try {
+    plan = await planReorganize(dir);
+  } catch (error) {
+    fail((error as Error).message);
+    return 1;
+  }
+  if (plan.problems.length) {
+    plan.problems.forEach(fail);
+    say("\nNothing was changed.");
+    return 1;
+  }
+  say("Reorganize: move the app files into folders by responsibility.\n");
+  for (const m of plan.moves) info(`move  ${m.from} → ${m.to}`);
+  say(
+    `\n${plan.rewrites.length} file(s) get updated import paths (only the paths change): ${plan.rewrites.join(", ")}`,
+  );
+  if (options.dryRun) {
+    say("\nDry run: nothing written.");
+    return 0;
+  }
+  if (!options.yes) {
+    if (!process.stdin.isTTY) {
+      fail("Refusing to write without confirmation; pass --yes.");
+      return 1;
+    }
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await rl.question(
+      "\nMove these files? Commit first so you can review the diff. (y/N) ",
+    );
+    rl.close();
+    if (!/^y(es)?$/i.test(answer.trim())) {
+      say("Cancelled. Nothing written.");
+      return 1;
+    }
+  }
+  await applyReorganize(dir, plan);
+  ok(`Moved ${plan.moves.length} file(s) and updated imports in ${plan.rewrites.length}.`);
+  say("\nThen run your typecheck and tests, and `selfauth upgrade` to pick up newer templates.");
+  return 0;
+}
+
 /** `selfauth upgrade`: apply safe updates; never overwrite your edits. */
 export async function upgrade(
   dirArg: string | undefined,
-  options: { yes?: boolean; dryRun?: boolean },
+  options: { yes?: boolean; dryRun?: boolean; reorganize?: boolean },
 ): Promise<number> {
   const dir = resolve(dirArg ?? ".");
+  if (options.reorganize) return reorganize(dir, options);
   let plan: UpgradePlan;
   try {
     plan = await planUpgrade(dir);
