@@ -43,11 +43,7 @@ web/                    (--frontend vue|react) API client, session state,
 With `--frontend vue|react`, `init` makes two packages in one npm workspace
 instead: everything above (except `web/`) moves into `server/`, the frontend
 becomes `client/`, and the root holds `package.json` (workspaces, `npm run dev`
-starts both), `README.md`, `.gitignore`, and `selfauth.config.json`: the
-browser-safe settings (the password length limits) that the server and the
-frontend share. Each package imports a copy of it inside its own folder, which
-`npm run sync` writes (`dev`, `build`, `test` and `typecheck` run it first), so
-the build, tsconfig and Vite need no special setup. Each package has its own
+starts both), `README.md` and `.gitignore`. Each package has its own
 `selfauth.manifest.json`, so run `selfauth doctor`, `validate`, `diff` and
 `upgrade` at the root (they cover both) or inside a package.
 

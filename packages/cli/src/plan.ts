@@ -13,8 +13,6 @@ import {
   renderPackageJson,
   renderReadme,
   renderRootPackageJson,
-  renderSharedConfig,
-  renderSyncScript,
   renderTsconfig,
   renderWebPackageJson,
   renderWebTsconfig,
@@ -226,7 +224,6 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
   const versions = await source.versions();
   const ts = renderTsconfig();
 
-  const config = buildConfig(answers);
   const server = await templateFiles(answers, source, "project", "src", "server");
   server.push(
     {
@@ -240,12 +237,7 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
     {
       path: "src/config/selfauth.config.ts",
       template: "rendered:config",
-      content: renderConfig(config, { shared: true }),
-    },
-    {
-      path: "src/config/selfauth.config.json",
-      template: "rendered:shared-config",
-      content: renderSharedConfig(config),
+      content: renderConfig(buildConfig(answers)),
     },
   );
   const serverManifest = buildManifest(
@@ -296,16 +288,6 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
       content: renderGitignore({ workspace: true }),
     },
     { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
-    {
-      path: "selfauth.config.json",
-      template: "rendered:shared-config",
-      content: renderSharedConfig(config),
-    },
-    {
-      path: "scripts/sync-config.mjs",
-      template: "rendered:sync-script",
-      content: renderSyncScript(),
-    },
   ];
 }
 

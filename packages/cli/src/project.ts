@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { basename, dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { MANIFEST_FILE, readManifest, type Manifest } from "@selfauth/migration";
 import { parseConfig, type SelfAuthConfig } from "@selfauth/spec";
@@ -110,32 +110,10 @@ export async function fileDrift(dir: string, manifest: Manifest): Promise<FileDr
     if (f.path === MANIFEST_FILE) continue;
     const path = join(dir, f.path);
     if (!existsSync(path)) drift.missing.push(f.path);
-    else if (sha256(await readFile(path, "utf8")) !== f.sha256) {
-      // The copy of the root selfauth.config.json changes whenever that file does (`npm run sync`),
-      // so it is not "a generated file you changed"; `sharedConfigDrift` checks it instead.
-      if (basename(f.path) === SHARED_CONFIG) drift.unchanged += 1;
-      else drift.modified.push(f.path);
-    } else drift.unchanged += 1;
+    else if (sha256(await readFile(path, "utf8")) !== f.sha256) drift.modified.push(f.path);
+    else drift.unchanged += 1;
   }
   return drift;
-}
-
-export const SHARED_CONFIG = "selfauth.config.json";
-
-/**
- * In a full-stack workspace, the root selfauth.config.json is the one to edit and each package
- * holds a copy. Returns a message when this package's copy is out of date, else null.
- */
-export async function sharedConfigDrift(dir: string): Promise<string | null> {
-  const root = join(dir, "..", SHARED_CONFIG);
-  if (!existsSync(root)) return null;
-  const rootText = await readFile(root, "utf8");
-  for (const copy of [join(dir, "src", "config", SHARED_CONFIG), join(dir, "src", SHARED_CONFIG)]) {
-    if (existsSync(copy) && (await readFile(copy, "utf8")) !== rootText) {
-      return `${SHARED_CONFIG} in the project root differs from this package's copy: run \`npm run sync\` (it also runs before dev, build and test)`;
-    }
-  }
-  return null;
 }
 
 export function readEnvFile(dir: string, name: string): Promise<Record<string, string>> {

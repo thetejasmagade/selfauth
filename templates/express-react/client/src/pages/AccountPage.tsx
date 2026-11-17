@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { describeError, useAuth, type SessionSummary } from "../auth/index.ts";
-import shared from "../selfauth.config.json";
-
-const minLength = shared.password.minLength;
 
 export function AccountPage() {
   const auth = useAuth();
@@ -78,7 +75,7 @@ export function AccountPage() {
               onChange={(e) => setNewPassword(e.target.value)}
               type="password"
               autoComplete="new-password"
-              minLength={minLength}
+              minLength={8}
               required
             />
           </label>

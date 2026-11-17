@@ -7,11 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "sync": "node ../scripts/sync-config.mjs",
-    "predev": "npm run sync",
-    "prebuild": "npm run sync",
-    "pretypecheck": "npm run sync"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "react": "^19.3.1",

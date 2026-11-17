@@ -18,38 +18,33 @@ Common changes:
 | `authorization.permissions`, `roles`, `defaultRoles` | (yours) | Declare every permission. `requirePermission` rejects unknown ones at startup. Re-run the seed after changes (PostgreSQL). |
 | `authentication.emailVerification.mode` | `required` | `optional` lets users in before they verify (`selfauth doctor` warns) |
 | `authentication.registration.revealExistingEmail` / `signInAfterRegistration` | `false` | Opt-in UX trade-offs that weaken enumeration safety (SEC-ENUM-004) |
-| `authentication.password.minLength`, `rejectCommon`, `hashing` | 8, `true`, Argon2id 19 MiB × 2 | Hashing below the OWASP floor is rejected. In a full-stack project the password length limits live in the root `selfauth.config.json` instead (see below) |
+| `authentication.password.minLength`, `rejectCommon`, `hashing` | 8, `true`, Argon2id 19 MiB × 2 | Hashing below the OWASP floor is rejected. With a frontend, also update its pages (see [Changing the password length](#changing-the-password-length)) |
 | `authentication.sessions.idleTimeoutMinutes` / `absoluteTimeoutMinutes` | 7 days / 30 days | |
 | `authentication.sessions.cookie` | `__Host-session`, `lax`, `secure` | `sameSite: "none"` only for cross-site deployments, with token-mode CSRF |
 | `authentication.rateLimit.*` | per account and per address | Limits and windows for each endpoint |
 | `http.basePath`, `trustedOrigins`, `trustProxy`, `bodyLimitBytes` | `/auth`, —, `false`, 16 KiB | |
 | `http.csrf.mode` | `header` | `token` for cross-site frontends; needs `SELFAUTH_CSRF_SECRET` |
 
-### Password length in a full-stack project: `selfauth.config.json`
+### Changing the password length
 
-A project made with `--frontend vue|react` has a second, much smaller file in
-the project root: `selfauth.config.json`. It holds only settings the browser
-needs too (today: `password.minLength` and `password.maxLength`), and **it is
-the one place to change them**:
+The server decides: `authentication.password.minLength` (and `maxLength`) in
+`server/src/config/selfauth.config.ts`, or `src/config/selfauth.config.ts` in an
+API-only project. It cannot go below 8 (`npx selfauth validate` says so), and you
+restart the server after changing it.
 
-```json
-{ "password": { "minLength": 10, "maxLength": 128 } }
-```
+The frontend does not read that file. Its forms only carry a browser hint of the
+length, so after changing the server, update the three pages that show it, or the
+browser will keep asking for the old length before the form is even sent:
 
-`server/src/config/selfauth.config.ts` imports the limits from it, and the
-frontend's register, reset and account screens use the same numbers for the
-input hint and the "at least N characters" text. Nothing else about the
-server's behaviour is in that file, and it must never hold secrets.
+| Page | Vue (`client/src/`) | React (`client/src/`) | What to change |
+| --- | --- | --- | --- |
+| Register | `pages/auth/RegisterPage.vue` | `pages/auth/RegisterPage.tsx` | the `minlength` / `minLength` attribute, and the text "At least 8 characters" |
+| Reset password | `pages/auth/ResetPasswordPage.vue` | `pages/auth/ResetPasswordPage.tsx` | the `minlength` / `minLength` attribute |
+| Account (change password) | `pages/AccountPage.vue` | `pages/AccountPage.tsx` | the `minlength` / `minLength` attribute |
 
-Each package imports a copy inside its own folder
-(`server/src/config/selfauth.config.json`, `client/src/selfauth.config.json`).
-`npm run sync` writes the copies, and `dev`, `build`, `test` and `typecheck` run
-it first, so editing the root file and restarting is enough; a built client
-needs a rebuild. To move a package out of the workspace into its own repository,
-delete its `sync` and `pre*` scripts; its copy of the file then simply stays as
-it is. `selfauth doctor` warns when a copy is stale. The specification's
-floor still applies: a `minLength` below 8 fails `selfauth validate` and the
-server's start-up check.
+Restart the dev server (or rebuild the client) afterwards. The server stays the
+authority: a password shorter than its limit is refused even if the form lets it
+through, and the error message shows the server's number.
 
 ## 2. Email: `email/mailer.ts`
 
