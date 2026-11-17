@@ -17,12 +17,14 @@ import {
   type InitAnswers,
 } from "./render.js";
 import {
+  frontendAuthFiles,
   frontendInfo,
   stackDependencies,
   stackFiles,
   templateSource,
   type TemplateSource,
 } from "./templates.js";
+import { trimTrailingSlashes } from "./layout.js";
 import { CLI_VERSION } from "./version.js";
 
 export interface PlannedFile {
@@ -39,11 +41,12 @@ export async function templateFiles(
   answers: Pick<InitAnswers, "database" | "frontend">,
   source: TemplateSource,
   layout: "project" | "add" = "project",
+  srcDir = "src",
 ): Promise<PlannedFile[]> {
   const files: PlannedFile[] = [];
-  const rebase = layout === "add" ? addLayoutPath : (t: string) => t;
+  const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
   const adapt = (target: string, content: string) =>
-    layout === "add" ? adaptForAdd(target, content) : content;
+    layout === "add" ? adaptForAdd(target, content, srcDir) : content;
   for (const entry of stackFiles({
     database: answers.database,
     frontend: answers.frontend,
@@ -70,19 +73,44 @@ export async function templateFiles(
 }
 
 /**
- * `selfauth add` puts SelfAuth's src/ files under src/selfauth/ so nothing collides with
- * the application's own files; other paths (prisma/) stay where tools expect them.
+ * A source folder as the manifest and the CLI store it: relative, forward slashes, no `..`,
+ * no trailing slash. `.` means the project root. Throws on anything that could escape the project.
  */
-export function addLayoutPath(target: string): string {
-  return target.startsWith("src/") ? `src/selfauth/${target.slice("src/".length)}` : target;
+export function normalizeSrcDir(input: string): string {
+  const cleaned = trimTrailingSlashes(input.trim().replaceAll("\\", "/").replace(/^\.\//, ""));
+  if (cleaned === "" || cleaned === ".") return ".";
+  if (cleaned.startsWith("/") || /^[A-Za-z]:/.test(cleaned) || cleaned.split("/").includes("..")) {
+    throw new Error(`source folder '${input}' must be a relative path inside the project`);
+  }
+  if (cleaned.split("/").includes("node_modules") || cleaned.split("/").includes(".git")) {
+    throw new Error(`source folder '${input}' must not be inside node_modules or .git`);
+  }
+  return cleaned;
+}
+
+/** Folder SelfAuth's files live in: `<srcDir>/selfauth`. */
+export function selfauthRoot(srcDir = "src"): string {
+  const dir = normalizeSrcDir(srcDir);
+  return dir === "." ? "selfauth" : `${dir}/selfauth`;
+}
+
+/**
+ * `selfauth add` puts SelfAuth's src/ files under `<srcDir>/selfauth/` (default `src/selfauth/`)
+ * so nothing collides with the application's own files; other paths (prisma/) stay where tools
+ * expect them.
+ */
+export function addLayoutPath(target: string, srcDir = "src"): string {
+  return target.startsWith("src/")
+    ? `${selfauthRoot(srcDir)}/${target.slice("src/".length)}`
+    : target;
 }
 
 /** The one content change `add` needs: Prisma's client is generated next to the moved store. */
-export function adaptForAdd(target: string, content: string): string {
+export function adaptForAdd(target: string, content: string, srcDir = "src"): string {
   if (target !== "prisma/schema.prisma") return content;
   const adapted = content.replace(
     'output              = "../src/generated/prisma"',
-    'output              = "../src/selfauth/generated/prisma"',
+    `output              = "../${selfauthRoot(srcDir)}/generated/prisma"`,
   );
   if (adapted === content) throw new Error("schema.prisma template changed: update adaptForAdd()");
   return adapted;
@@ -92,7 +120,8 @@ export function buildManifest(
   answers: InitAnswers,
   files: PlannedFile[],
   owned: Manifest["ownedResources"],
-  layout: "project" | "add" = "project",
+  layout: "project" | "add" | "frontend" = "project",
+  srcDir = "src",
 ): PlannedFile {
   const manifest: Manifest = manifestSchema.parse({
     toolkit: "selfauth",
@@ -106,6 +135,7 @@ export function buildManifest(
     ownedResources: owned,
     options: {
       layout,
+      srcDir,
       frontend: answers.frontend,
       permissions: answers.permissions,
       appBaseUrl: answers.appBaseUrl,
@@ -192,18 +222,21 @@ export async function applyPlan(dir: string, files: PlannedFile[]): Promise<void
   }
 }
 
-/** Every file `add` would create in an existing project (under src/selfauth/ and prisma/). */
+/** Every file `add` would create in an existing project (under `<srcDir>/selfauth/` and prisma/). */
 export async function planAdd(
   answers: InitAnswers,
   source: TemplateSource = templateSource(),
+  options: { srcDir?: string } = {},
 ): Promise<PlannedFile[]> {
+  const srcDir = normalizeSrcDir(options.srcDir ?? "src");
   const files = await templateFiles(
     { database: answers.database, frontend: "none" },
     source,
     "add",
+    srcDir,
   );
   files.push({
-    path: addLayoutPath("src/selfauth.config.ts"),
+    path: addLayoutPath("src/selfauth.config.ts", srcDir),
     template: "rendered:config",
     content: renderConfig(buildConfig({ ...answers, frontend: "none" })),
   });
@@ -213,6 +246,55 @@ export async function planAdd(
       files,
       await ownedResources(answers.database, source),
       "add",
+      srcDir,
+    ),
+  );
+  return files;
+}
+
+/**
+ * The authentication module of a reference frontend (API client, session state, route guards,
+ * `<Can>`, redirect and URL-token helpers), copied into an existing Vue or React app under
+ * `<srcDir>/selfauth/`. The module imports nothing outside its own folder.
+ */
+export async function frontendAddFiles(
+  frontend: "vue" | "react",
+  source: TemplateSource,
+  srcDir = "src",
+): Promise<PlannedFile[]> {
+  const root = selfauthRoot(srcDir);
+  const files: PlannedFile[] = [];
+  for (const entry of frontendAuthFiles(frontend)) {
+    files.push({
+      path: `${root}/${entry.target.slice("web/src/auth/".length)}`,
+      template: `${frontend}:${entry.source}`,
+      content: await source.read(entry.source),
+    });
+  }
+  return files;
+}
+
+/** Every file `add-frontend` would create: the module plus its own manifest. Nothing is written. */
+export async function planAddFrontend(
+  options: { frontend: "vue" | "react"; srcDir?: string; appBaseUrl?: string },
+  source: TemplateSource = templateSource(),
+): Promise<PlannedFile[]> {
+  const srcDir = normalizeSrcDir(options.srcDir ?? "src");
+  const files = await frontendAddFiles(options.frontend, source, srcDir);
+  files.push(
+    buildManifest(
+      {
+        name: "frontend",
+        // Not used by this layout: the manifest schema requires a database.
+        database: "memory",
+        frontend: options.frontend,
+        permissions: [],
+        appBaseUrl: options.appBaseUrl ?? "http://localhost:5173",
+      },
+      files,
+      { tables: [], types: [], migrations: [] },
+      "frontend",
+      srcDir,
     ),
   );
   return files;

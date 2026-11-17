@@ -33,6 +33,7 @@
   },
   "options": {
     "layout": "project",
+    "srcDir": "src",
     "frontend": "vue",
     "permissions": [],
     "appBaseUrl": "http://localhost:5173"

@@ -2,7 +2,13 @@ import { resolve } from "node:path";
 import { SPEC_VERSION } from "@selfauth/spec";
 import { findAuthSignals, type AuthSignal } from "../auth-signals.js";
 import { detectProject, type ProjectInfo } from "../detect.js";
-import { preflightAdd } from "../preflight.js";
+import {
+  detectSourceLayout,
+  findWorkspacePackages,
+  type SourceLayout,
+  type WorkspacePackage,
+} from "../layout.js";
+import { preflightAdd, preflightAddFrontend } from "../preflight.js";
 import { CLI_VERSION } from "../version.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
@@ -23,11 +29,18 @@ export interface DetectReport {
   project: ProjectInfo;
   /** file:line evidence of hand-written authentication in the application's source. */
   authSignals: AuthSignal[];
+  /** Where the Express app lives and which folder `add` would write under. Null if not Express. */
+  layout: SourceLayout | null;
+  /** Packages of a monorepo (empty for a single package): run the command in the right one. */
+  workspaces: WorkspacePackage[];
+  /** Which Vue or React frontend this folder is, and whether `add-frontend` applies. */
+  frontend: { framework: "vue" | "react"; options: CommandOption[] } | null;
   /**
-   * What to do: `init` (new project), `add` (existing Express project), `upgrade`
-   * (SelfAuth is already installed) or `unsupported` (stop and tell the developer).
+   * What to do: `init` (new project), `add` (existing Express project), `add-frontend`
+   * (an existing Vue or React app), `workspace` (a monorepo root: run detect in a package),
+   * `upgrade` (SelfAuth is already installed) or `unsupported` (stop and tell the developer).
    */
-  recommendation: "init" | "add" | "upgrade" | "unsupported";
+  recommendation: "init" | "add" | "add-frontend" | "workspace" | "upgrade" | "unsupported";
   /** Why, in one sentence. */
   reason: string;
   options: CommandOption[];
@@ -38,7 +51,18 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
   const dir = resolve(dirArg);
   const project = await detectProject(dir);
   const authSignals = project.exists && !project.empty ? await findAuthSignals(dir) : [];
-  const base = { cli: CLI_VERSION, spec: SPEC_VERSION, dir, project, authSignals };
+  const workspaces = project.hasPackageJson ? await findWorkspacePackages(dir) : [];
+  const layout = project.framework === "express" ? await detectSourceLayout(dir) : null;
+  const base = {
+    cli: CLI_VERSION,
+    spec: SPEC_VERSION,
+    dir,
+    project,
+    authSignals,
+    layout,
+    workspaces,
+    frontend: null as DetectReport["frontend"],
+  };
 
   if (project.selfauth) {
     return {
@@ -72,7 +96,61 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     };
   }
 
+  if (project.framework !== "express" && workspaces.length > 0) {
+    const backends = workspaces.filter((w) => w.role === "backend");
+    const frontends = workspaces.filter((w) => w.role === "frontend");
+    const list = (ws: WorkspacePackage[]) => ws.map((w) => w.dir).join(", ") || "none";
+    return {
+      ...base,
+      recommendation: "workspace",
+      reason: `Monorepo root. Backend packages: ${list(backends)}. Frontend packages: ${list(frontends)}. Run \`selfauth detect <package>\` on each, then \`selfauth add <backend>\` and \`selfauth add-frontend <frontend>\`.`,
+      options: [
+        ...backends.map((w) => ({
+          command: `selfauth add ${w.dir}`,
+          available: true,
+          blockers: [],
+          warnings: [],
+        })),
+        ...frontends.map((w) => ({
+          command: `selfauth add-frontend ${w.dir}`,
+          available: true,
+          blockers: [],
+          warnings: [],
+        })),
+      ],
+    };
+  }
+
   if (project.framework !== "express") {
+    const web = await preflightAddFrontend(dir);
+    if (web.frontend) {
+      const blockers = [...web.errors];
+      return {
+        ...base,
+        frontend: {
+          framework: web.frontend,
+          options: [
+            {
+              command: `selfauth add-frontend --frontend ${web.frontend}`,
+              available: !blockers.length,
+              blockers,
+              warnings: [
+                ...web.warnings,
+                ...(web.missingPackages.length
+                  ? [`install first: ${web.missingPackages.join(", ")}`]
+                  : []),
+              ],
+              tsconfigChanges: web.tsconfigChanges,
+            },
+          ],
+        },
+        recommendation: blockers.length ? "unsupported" : "add-frontend",
+        reason: blockers.length
+          ? `A ${web.frontend} app, but \`selfauth add-frontend\` is blocked (see blockers).`
+          : `A ${web.frontend} app: \`selfauth add-frontend\` writes the auth module under ${web.srcDir}/selfauth/ only. The API is a separate Express project: run \`selfauth detect\` there.`,
+        options: [],
+      };
+    }
     const found = project.otherFrameworks.length
       ? `found ${project.otherFrameworks.join(", ")}`
       : "no supported backend framework found";
@@ -86,13 +164,17 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
 
   const options: CommandOption[] = [];
   for (const database of ["memory", "postgresql"] as const) {
-    const check = await preflightAdd(dir, { database, allowExistingAuth: true });
+    const check = await preflightAdd(dir, {
+      database,
+      allowExistingAuth: true,
+      srcDir: layout?.sourceDir ?? "src",
+    });
     const blockers = [...check.errors];
     const warnings = [...check.warnings];
     if (project.existingAuth.length)
       warnings.push("needs --allow-existing-auth, and only with the developer's approval");
     options.push({
-      command: `selfauth add --database ${database}${project.existingAuth.length ? " --allow-existing-auth" : ""}`,
+      command: `selfauth add --database ${database}${layout && layout.sourceDir !== "src" ? ` --src ${layout.sourceDir}` : ""}${project.existingAuth.length ? " --allow-existing-auth" : ""}`,
       available: !blockers.length,
       blockers,
       warnings,
@@ -104,7 +186,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     ...base,
     recommendation: any ? "add" : "unsupported",
     reason: any
-      ? "Existing Express project: `selfauth add` writes new files under src/selfauth/ only."
+      ? `Existing Express project: \`selfauth add\` writes new files under ${layout?.sourceDir === "." ? "" : `${layout?.sourceDir ?? "src"}/`}selfauth/ only.`
       : "Existing Express project, but `selfauth add` is blocked (see blockers).",
     options,
   };
@@ -129,10 +211,17 @@ export async function detect(
   info(
     `database: ${[...p.databaseClients, ...(p.prisma ? [`prisma (${p.prismaProvider ?? "?"})`] : [])].join(", ") || "none found"}`,
   );
+  if (report.layout)
+    info(
+      `source folder: ${report.layout.sourceDir} (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other Express files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
+    );
+  for (const w of report.workspaces)
+    info(`package ${w.dir}: ${w.role}${w.framework ? ` (${w.framework})` : ""}`);
+  if (report.frontend) info(`frontend: ${report.frontend.framework}`);
   if (p.existingAuth.length) warn(`existing auth packages: ${p.existingAuth.join(", ")}`);
   for (const s of report.authSignals) warn(`${s.kind}: ${s.file}:${s.line}  ${s.text}`);
   say(`\nRecommendation: ${report.recommendation} — ${report.reason}`);
-  for (const o of report.options) {
+  for (const o of [...report.options, ...(report.frontend?.options ?? [])]) {
     (o.available ? ok : fail)(o.command);
     o.blockers.forEach((b) => say(`      ✗ ${b}`));
     o.warnings.forEach((w) => say(`      ⚠ ${w}`));

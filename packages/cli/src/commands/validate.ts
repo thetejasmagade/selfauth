@@ -26,6 +26,17 @@ export async function runValidation(dir: string): Promise<ValidationReport> {
     return r;
   }
 
+  if (manifest.options?.layout === "frontend") {
+    // The frontend module has no configuration or database: check its files only.
+    const drift = await fileDrift(dir, manifest);
+    r.problems.push(...drift.missing.map((m) => `generated file missing: ${m}`));
+    r.passed.push(`${drift.unchanged} generated file(s) unchanged`);
+    if (drift.modified.length)
+      r.notes.push(`changed by you (kept, never overwritten): ${drift.modified.join(", ")}`);
+    r.ok = r.problems.length === 0;
+    return r;
+  }
+
   const { errors: configErrors } = await loadConfig(dir, manifest);
   if (configErrors.length) r.problems.push(...configErrors);
   else r.passed.push("selfauth configuration is valid");

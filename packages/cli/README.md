@@ -25,8 +25,10 @@ both sides that shows permissions and ownership.
 npx selfauth add --database memory --install
 ```
 
-Writes new files under `src/selfauth/` only and prints the remaining steps:
-`tsconfig` options to add, and two lines to wire into your server:
+Writes new files under `src/selfauth/` only (or `<folder>/selfauth/` when your
+code lives elsewhere: `add` finds the folder from your `express()` entry file,
+or you pass `--src server`) and prints the remaining steps: `tsconfig` options
+to add, and two lines to wire into your server:
 
 ```ts
 const selfauth = await setupSelfAuth(app);   // before your routes
@@ -47,13 +49,18 @@ Files you never edited are updated. Files you edited stay yours: when the
 template also changed, a `file.selfauth-new` proposal is written next to it
 for you to merge. Files you deleted stay deleted (ADR 0004).
 
+Monorepo, a folder other than `src/`, or a frontend in another folder or
+repository (`selfauth add-frontend` for Vue and React):
+[Adding SelfAuth to an existing project](https://github.com/thetejasmagade/selfauth/blob/main/docs/existing-projects.md).
+
 ## All commands
 
 | Command | What it does |
 | --- | --- |
 | `init [dir]` | New project: `--database postgresql\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
-| `add [dir]` | Existing Express project: same options plus `--allow-existing-auth` |
-| `detect [dir]` | Read-only inspection: stack, database, existing auth (packages and source), which command applies and what blocks it |
+| `add [dir]` | Existing Express project: same options plus `--src <folder>` and `--allow-existing-auth` |
+| `add-frontend [dir]` | Existing Vue or React app: adds the authentication module under `src/selfauth/` (`--frontend`, `--src`, `--dry-run`, `--yes`, `--install`); generates no pages |
+| `detect [dir]` | Read-only inspection: stack, source folder, monorepo packages, database, existing auth (packages and source), which command applies and what blocks it |
 | `list` | Supported integrations |
 | `doctor [dir]` | Configuration and production-readiness checks |
 | `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |

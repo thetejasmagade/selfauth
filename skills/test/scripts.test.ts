@@ -126,6 +126,36 @@ describe("detect-project.ts", () => {
     expect(report.recommendation).toBe("upgrade");
   });
 
+  it("finds the source folder when the code is not in src/", async () => {
+    const dir = await project({
+      "package.json": EXPRESS["package.json"],
+      "tsconfig.json": '{ "compilerOptions": { "module": "NodeNext" }, "include": ["server"] }',
+      "server/index.ts": 'import express from "express";\nexpress();\n',
+    });
+    const r = await script("detect-project.ts", [dir]);
+    expect(r.stdout).toContain("**Recommendation: add**");
+    expect(r.stdout).toContain("Source folder for `add`: `server`");
+    expect(r.stdout).toContain("available: `selfauth add --database memory --src server`");
+  });
+
+  it("sends a monorepo root to its packages and a Vue app to add-frontend", async () => {
+    const root = await project({
+      "package.json": '{ "private": true, "workspaces": ["apps/*"] }',
+      "apps/api/package.json": EXPRESS["package.json"],
+      "apps/web/package.json": '{ "dependencies": { "vue": "^3.5.0", "vue-router": "^4.5.0" } }',
+    });
+    const monorepo = await script("detect-project.ts", [root]);
+    expect(monorepo.stdout).toContain("**Recommendation: workspace**");
+    expect(monorepo.stdout).toContain("`apps/api`: backend (express)");
+    expect(monorepo.stdout).toContain("`apps/web`: frontend (vue)");
+    expect(monorepo.stdout).toContain("available: `selfauth add-frontend apps/web`");
+
+    const web = await script("detect-project.ts", [join(root, "apps/web")]);
+    expect(web.stdout).toContain("**Recommendation: add-frontend**");
+    expect(web.stdout).toContain("selfauth add-frontend --frontend vue");
+    expect(web.stdout).toMatch(/SelfAuth generates no pages/);
+  });
+
   it("fails clearly when the CLI cannot be found", async () => {
     const r = await new Promise<{ code: number; stderr: string }>((done) =>
       execFile(

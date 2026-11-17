@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { add } from "./commands/add.js";
+import { addFrontend } from "./commands/add-frontend.js";
 import { db } from "./commands/db.js";
 import { detect } from "./commands/detect.js";
 import { doctor } from "./commands/doctor.js";
@@ -44,6 +45,10 @@ program
   .command("add [dir]")
   .description("add SelfAuth to an existing Express + TypeScript project (new files only)")
   .option("--database <db>", "memory | postgresql", "memory")
+  .option(
+    "--src <dir>",
+    "source folder to write under (<dir>/selfauth/); default: found from your Express entry file",
+  )
   .option("--permissions <list>", "comma-separated application permissions")
   .option("--app-base-url <url>", "frontend origin used in email links", "http://localhost:5173")
   .option("--allow-existing-auth", "continue even though other auth packages are installed")
@@ -51,6 +56,16 @@ program
   .option("--dry-run", "show the plan without writing anything")
   .option("--install", "install the dependencies with your package manager")
   .action(async (dir: string | undefined, opts) => exit(await add(dir, opts)));
+
+program
+  .command("add-frontend [dir]")
+  .description("add the authentication module to an existing Vue or React app (new files only)")
+  .option("--frontend <name>", "vue | react (default: found from package.json)")
+  .option("--src <dir>", "source folder to write under (<dir>/selfauth/)", "src")
+  .option("-y, --yes", "non-interactive: accept the plan")
+  .option("--dry-run", "show the plan without writing anything")
+  .option("--install", "install missing packages with your package manager")
+  .action(async (dir: string | undefined, opts) => exit(await addFrontend(dir, opts)));
 
 program
   .command("detect [dir]")

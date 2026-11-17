@@ -105,6 +105,7 @@ jobs:
         run: |
           scripts/smoke-generated.sh memory none
           scripts/smoke-generated.sh memory add
+          scripts/smoke-generated.sh memory add-layout
 
   generated-project:
     name: Generated project (${{ matrix.database }}, ${{ matrix.mode }})
@@ -118,6 +119,7 @@ jobs:
           - { database: memory, mode: vue }
           - { database: postgresql, mode: react }
           - { database: memory, mode: add }
+          - { database: memory, mode: add-layout }
           # No SelfAuth tooling at all: templates/express copied by hand, plain npm + Prisma.
           - { database: postgresql, mode: manual }
     services:

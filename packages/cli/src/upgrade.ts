@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { MANIFEST_FILE, manifestSchema, type Manifest } from "@selfauth/migration";
 import { createTwoFilesPatch } from "diff";
-import { sha256, templateFiles, type PlannedFile } from "./plan.js";
+import { frontendAddFiles, sha256, templateFiles, type PlannedFile } from "./plan.js";
 import type { InitAnswers } from "./render.js";
 import { templateSource, type TemplateSource } from "./templates.js";
 import { CLI_VERSION } from "./version.js";
@@ -55,11 +55,13 @@ export async function planUpgrade(
   if (!existsSync(path))
     throw new Error("not a SelfAuth project (selfauth.manifest.json not found)");
   const manifest = manifestSchema.parse(JSON.parse(await readFile(path, "utf8")));
-  const next = await templateFiles(
-    answersFrom(manifest),
-    source,
-    manifest.options?.layout ?? "project",
-  );
+  const layout = manifest.options?.layout ?? "project";
+  const srcDir = manifest.options?.srcDir ?? "src";
+  const frontend = manifest.options?.frontend ?? "none";
+  const next =
+    layout === "frontend"
+      ? await frontendAddFiles(frontend === "react" ? "react" : "vue", source, srcDir)
+      : await templateFiles(answersFrom(manifest), source, layout, srcDir);
   const recorded = new Map((manifest.files ?? []).map((f) => [f.path, f]));
   const items: UpgradeItem[] = [];
 
