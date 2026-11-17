@@ -104,7 +104,8 @@ else
     WEB2="$WORK/web2"
     mkdir -p "$WEB2"
     (cd web && tar --exclude=node_modules --exclude=dist --exclude=src/auth -cf - .) | tar -xf - -C "$WEB2"
-    grep -rl '/auth/' "$WEB2/src" | xargs sed -i 's#/auth/#/selfauth/#g'
+    # Re-point only imports of the module (…/auth/index.ts), not the pages/auth/ folder.
+    grep -rl '/auth/index.ts' "$WEB2/src" | xargs sed -i 's#/auth/index\.ts#/selfauth/index.ts#g'
     (cd "$WEB2" && node "$CLI" add-frontend --yes > "$WORK/add-frontend.log" \
       && sed -n '/Finish the integration/,$p' "$WORK/add-frontend.log" | head -12 \
       && npm install --no-audit --no-fund --loglevel=error \
