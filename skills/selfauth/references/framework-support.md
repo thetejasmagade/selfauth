@@ -13,11 +13,15 @@ developer instead.
 | database | `postgresql` | PostgreSQL via Prisma 7. Committed, reviewable migrations | ✓ | ✓ (only if the project has no Prisma schema yet) |
 | database | `memory` | In-memory store. For trying SelfAuth out, not for production: refuses to start with `NODE_ENV=production` | ✓ | ✓ |
 | frontend | `none` | API only | ✓ | ✓ |
-| frontend | `vue` | Vue 3 + Vite in `web/` | ✓ | — |
-| frontend | `react` | React + Vite in `web/` | ✓ | — |
+| frontend | `vue` | Vue 3 + Vite in `web/`. For an existing app, `selfauth add-frontend` adds only the auth module (`src/selfauth/`) | ✓ | ✓ (`add-frontend`) |
+| frontend | `react` | React + Vite in `web/`. For an existing app, `selfauth add-frontend` adds only the auth module (`src/selfauth/`) | ✓ | ✓ (`add-frontend`) |
 
-For `add`, frontends are wired by hand. Any frontend works if it sends
-cookies and the CSRF header (see [architecture](architecture.md#frontend)).
+`selfauth add-frontend` works on Vue and React apps only, and generates no
+pages: the developer builds their own with the client. Any other frontend works
+if it sends cookies and the CSRF header (see
+[architecture](architecture.md#frontend)); wire it by hand. Where the code lives
+(a folder other than `src/`, a monorepo, a frontend in another repository) is
+covered in [project layouts](project-layouts.md).
 
 ## Planned, not available yet
 

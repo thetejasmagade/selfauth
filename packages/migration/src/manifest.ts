@@ -32,7 +32,13 @@ export const manifestSchema = z.strictObject({
   /** Choices the project was generated with, so `upgrade` can re-plan it. */
   options: z
     .strictObject({
-      layout: z.enum(["project", "add"]).default("project"),
+      /**
+       * `project`: a project made by `init`. `add`: backend files added to an existing project.
+       * `frontend`: the auth module added to an existing frontend (its own manifest; `database` is unused).
+       */
+      layout: z.enum(["project", "add", "frontend"]).default("project"),
+      /** Source folder the `add` and `frontend` layouts write under, relative to the manifest. */
+      srcDir: z.string().default("src"),
       frontend: z.enum(["none", "vue", "react"]).default("none"),
       permissions: z.array(z.string()).default([]),
       appBaseUrl: z.string().optional(),

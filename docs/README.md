@@ -9,6 +9,7 @@
 **Reference**
 - [API reference](api/README.md): HTTP, server and client
 - [Database schema and migrations](database.md)
+- [Adding SelfAuth to an existing project](existing-projects.md): other folder layouts, monorepos, a frontend elsewhere
 - [Data retention after account deletion](data-retention.md)
 - [Conformance and support matrix](conformance.md)
 - [Security review](security-review.md)

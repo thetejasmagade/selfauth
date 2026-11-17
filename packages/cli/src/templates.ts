@@ -108,6 +108,13 @@ export function stackFiles(sel: Selection): RegistryFile[] {
   return [...backend, ...(registry.frontends[sel.frontend].files as RegistryFile[])];
 }
 
+/** The frontend's authentication module (web/src/auth/*): what `add-frontend` copies. */
+export function frontendAuthFiles(frontend: "vue" | "react"): RegistryFile[] {
+  return (registry.frontends[frontend].files as RegistryFile[]).filter(
+    (f) => !f.directory && f.target.startsWith("web/src/auth/"),
+  );
+}
+
 export function stackDependencies(database: Database): {
   dependencies: string[];
   devDependencies: string[];

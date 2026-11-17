@@ -12,8 +12,22 @@ export {
   type UpgradePlan,
 } from "./upgrade.js";
 export { buildManifest, templateFiles } from "./plan.js";
-export { planAdd, addLayoutPath } from "./plan.js";
-export { preflightAdd, REQUIRED_COMPILER_OPTIONS } from "./preflight.js";
+export { addLayoutPath, normalizeSrcDir, planAdd, planAddFrontend, selfauthRoot } from "./plan.js";
+export {
+  preflightAdd,
+  preflightAddFrontend,
+  REQUIRED_COMPILER_OPTIONS,
+  type FrontendPreflight,
+} from "./preflight.js";
+export {
+  checkTsconfigCoverage,
+  detectSourceLayout,
+  findExpressEntryFiles,
+  findWorkspacePackages,
+  suggestSourceDir,
+  type SourceLayout,
+  type WorkspacePackage,
+} from "./layout.js";
 export { inspect, type DetectReport } from "./commands/detect.js";
 export { findAuthSignals, type AuthSignal } from "./auth-signals.js";
 export { runValidation, type ValidationReport } from "./commands/validate.js";

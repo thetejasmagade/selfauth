@@ -33,6 +33,7 @@
   },
   "options": {
     "layout": "add",
+    "srcDir": "src",
     "frontend": "none",
     "permissions": [],
     "appBaseUrl": "http://localhost:5173"

@@ -19,7 +19,9 @@ export async function loadManifest(dir: string): Promise<Manifest | null> {
 
 /** Where a generated file lives: `selfauth add` places src/ files under src/selfauth/. */
 export function projectPath(manifest: Manifest | null, target: string): string {
-  return manifest?.options?.layout === "add" ? addLayoutPath(target) : target;
+  return manifest?.options?.layout === "add"
+    ? addLayoutPath(target, manifest.options.srcDir)
+    : target;
 }
 
 /** Imports the project's selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */

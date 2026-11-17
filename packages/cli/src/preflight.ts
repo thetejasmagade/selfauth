@@ -4,6 +4,8 @@ import { createRequire } from "node:module";
 import type TypeScript from "typescript";
 import { join } from "node:path";
 import { detectProject, type ProjectInfo } from "./detect.js";
+import { checkTsconfigCoverage } from "./layout.js";
+import { normalizeSrcDir } from "./plan.js";
 import type { Database } from "./templates.js";
 
 /** Compiler options the generated code relies on (explicit `.ts` imports, rewritten on build). */
@@ -14,6 +16,8 @@ export const REQUIRED_COMPILER_OPTIONS = {
 
 export interface Preflight {
   project: ProjectInfo;
+  /** Folder SelfAuth will write under (`<srcDir>/selfauth/`). */
+  srcDir: string;
   errors: string[];
   warnings: string[];
   /** Missing tsconfig compilerOptions, to be added by the developer. */
@@ -57,6 +61,21 @@ async function compilerOptions(
   return { options: json.compilerOptions ?? {}, resolved: false };
 }
 
+/** The tsconfig's own JSON (comments and trailing commas tolerated), `extends` not followed. */
+async function rawTsconfig(dir: string): Promise<Record<string, unknown> | null> {
+  const file = join(dir, "tsconfig.json");
+  if (!existsSync(file)) return null;
+  const text = (await readFile(file, "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "")
+    .replace(/,(\s*[}\]])/g, "$1");
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 function majorMinor(range: string | undefined): [number, number] | null {
   const m = /(\d+)\.(\d+)/.exec(range ?? "");
   return m ? [Number(m[1]), Number(m[2])] : null;
@@ -65,10 +84,17 @@ function majorMinor(range: string | undefined): [number, number] | null {
 /** Can SelfAuth be added to this project? Reports blockers; changes nothing. */
 export async function preflightAdd(
   dir: string,
-  options: { database: Database; allowExistingAuth?: boolean },
+  options: { database: Database; allowExistingAuth?: boolean; srcDir?: string },
 ): Promise<Preflight> {
   const project = await detectProject(dir);
-  const report: Preflight = { project, errors: [], warnings: [], tsconfigChanges: {} };
+  let srcDir = "src";
+  const report: Preflight = { project, srcDir, errors: [], warnings: [], tsconfigChanges: {} };
+  try {
+    srcDir = normalizeSrcDir(options.srcDir ?? "src");
+    report.srcDir = srcDir;
+  } catch (error) {
+    report.errors.push((error as Error).message);
+  }
   if (project.selfauth)
     report.errors.push(
       "SelfAuth is already installed here (selfauth.manifest.json); use `selfauth upgrade`.",
@@ -125,6 +151,98 @@ export async function preflightAdd(
       report.warnings.push(
         "TypeScript is not installed yet, so `extends` in tsconfig.json was not followed.",
       );
+    const raw = await rawTsconfig(dir);
+    if (raw && !report.errors.some((e) => e.includes("source folder"))) {
+      const coverage = checkTsconfigCoverage(
+        raw as Parameters<typeof checkTsconfigCoverage>[0],
+        srcDir,
+      );
+      if (coverage.covered === false) report.errors.push(coverage.detail);
+      else if (coverage.covered === null) report.warnings.push(coverage.detail);
+    }
+  }
+  return report;
+}
+
+export interface FrontendPreflight {
+  /** `vue` or `react`, as detected or requested. */
+  frontend: "vue" | "react" | null;
+  srcDir: string;
+  errors: string[];
+  warnings: string[];
+  /** Packages the module needs that the project does not list yet. */
+  missingPackages: string[];
+  /** Missing tsconfig compilerOptions (type checking only; the bundler does not need them). */
+  tsconfigChanges: Record<string, unknown>;
+}
+
+const FRONTEND_PACKAGES = {
+  vue: ["vue", "vue-router"],
+  react: ["react", "react-router"],
+} as const;
+
+/** Can the SelfAuth frontend module be added to this Vue or React app? Reports; changes nothing. */
+export async function preflightAddFrontend(
+  dir: string,
+  options: { frontend?: string | undefined; srcDir?: string | undefined } = {},
+): Promise<FrontendPreflight> {
+  const report: FrontendPreflight = {
+    frontend: null,
+    srcDir: "src",
+    errors: [],
+    warnings: [],
+    missingPackages: [],
+    tsconfigChanges: {},
+  };
+  try {
+    report.srcDir = normalizeSrcDir(options.srcDir ?? "src");
+  } catch (error) {
+    report.errors.push((error as Error).message);
+  }
+  if (existsSync(join(dir, "selfauth.manifest.json")))
+    report.errors.push(
+      "SelfAuth is already installed here (selfauth.manifest.json); use `selfauth upgrade`.",
+    );
+  if (!existsSync(join(dir, "package.json"))) {
+    report.errors.push("no package.json: run this in your frontend project's folder.");
+    return report;
+  }
+  const pkg = JSON.parse(await readFile(join(dir, "package.json"), "utf8")) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+
+  const present = (["vue", "react"] as const).filter((f) => f in deps);
+  if (options.frontend && options.frontend !== "vue" && options.frontend !== "react") {
+    report.errors.push(`unsupported frontend '${options.frontend}': only vue and react.`);
+  } else if (options.frontend) {
+    report.frontend = options.frontend as "vue" | "react";
+    if (!(report.frontend in deps))
+      report.errors.push(
+        `--frontend ${report.frontend}, but "${report.frontend}" is not a dependency.`,
+      );
+  } else if (present.length === 1) {
+    report.frontend = present[0]!;
+  } else if (present.length > 1) {
+    report.errors.push(
+      "both vue and react are dependencies: pass --frontend vue or --frontend react.",
+    );
+  } else {
+    report.errors.push(
+      "no Vue or React dependency found: only Vue and React frontends are supported (Angular, Svelte, Next.js and others are not).",
+    );
+  }
+  if (report.frontend) {
+    report.missingPackages = FRONTEND_PACKAGES[report.frontend].filter((n) => !(n in deps));
+  }
+  if (!("typescript" in deps) && !existsSync(join(dir, "tsconfig.json")))
+    report.warnings.push(
+      "no TypeScript: the module is TypeScript. Vite and similar bundlers compile it, but nothing will type-check it.",
+    );
+  const tsconfig = await compilerOptions(dir);
+  if (tsconfig && tsconfig.options["allowImportingTsExtensions"] !== true) {
+    report.tsconfigChanges["allowImportingTsExtensions"] = true;
   }
   return report;
 }

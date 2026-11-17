@@ -1,13 +1,16 @@
 import { spawnSync } from "node:child_process";
-import { basename, resolve } from "node:path";
+import { basename, posix, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { applyPlan, ConflictError, planAdd } from "../plan.js";
+import { detectSourceLayout } from "../layout.js";
+import { applyPlan, ConflictError, planAdd, selfauthRoot } from "../plan.js";
 import { preflightAdd } from "../preflight.js";
 import { stackDependencies, templateSource, type Database } from "../templates.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface AddOptions {
   database?: string;
+  /** Source folder to write under (`<src>/selfauth/`). Default: found from the Express entry file. */
+  src?: string;
   permissions?: string;
   appBaseUrl?: string;
   allowExistingAuth?: boolean;
@@ -39,8 +42,12 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     return 1;
   }
 
+  const layout = await detectSourceLayout(dir);
+  const srcDir = options.src ?? layout.sourceDir;
+  say(`Source folder: ${srcDir} (${options.src ? "from --src" : layout.basis})`);
   const check = await preflightAdd(dir, {
     database,
+    srcDir,
     ...(options.allowExistingAuth ? { allowExistingAuth: true } : {}),
   });
   check.warnings.forEach(warn);
@@ -62,7 +69,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   };
   let files;
   try {
-    files = await planAdd(answers);
+    files = await planAdd(answers, undefined, { srcDir: check.srcDir });
   } catch (error) {
     fail((error as Error).message);
     return 1;
@@ -97,8 +104,9 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     }
     throw error;
   }
+  const root = selfauthRoot(check.srcDir);
   ok(
-    `Created ${files.length} files under src/selfauth/${database === "postgresql" ? " and prisma/" : ""}.`,
+    `Created ${files.length} files under ${root}/${database === "postgresql" ? " and prisma/" : ""}.`,
   );
 
   const deps = stackDependencies(database);
@@ -132,19 +140,20 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   say(
     `${step++}. Wire SelfAuth into your Express app (before your routes, error handler after them):`,
   );
-  say(`     import { setupSelfAuth } from "./selfauth/setup.ts";`);
+  const fromDir = layout.entryFile ? posix.dirname(layout.entryFile) : check.srcDir;
+  let importPath = posix.relative(fromDir, `${root}/setup.ts`);
+  if (!importPath.startsWith(".")) importPath = `./${importPath}`;
+  say(`     import { setupSelfAuth } from "${importPath}";`);
   say(`     const selfauth = await setupSelfAuth(app);`);
   say(`     // your routes, e.g. app.get("/api/me", selfauth.auth.requireAuth, handler)`);
   say(`     app.use(selfauth.errorHandler);`);
   say(
-    `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see src/selfauth/env.ts.`,
+    `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see ${root}/env.ts.`,
   );
   if (database === "postgresql") {
-    say(
-      `${step++}. Ignore the generated client: add "src/selfauth/generated/" to .gitignore, then:`,
-    );
+    say(`${step++}. Ignore the generated client: add "${root}/generated/" to .gitignore, then:`);
     say("     npx prisma generate && npx selfauth db plan && npx selfauth db migrate");
-    say("     node --env-file=.env src/selfauth/scripts/seed.ts");
+    say(`     node --env-file=.env ${root}/scripts/seed.ts`);
   }
   say(
     `${step}. Browsers must send "X-SelfAuth-CSRF: 1" on POST/PUT/PATCH/DELETE requests (CSRF protection covers the whole app).`,

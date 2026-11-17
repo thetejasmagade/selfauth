@@ -33,7 +33,15 @@ interface Report {
     selfauth: boolean;
   };
   authSignals: { file: string; line: number; kind: string; text: string }[];
-  recommendation: "init" | "add" | "upgrade" | "unsupported";
+  layout: {
+    entryFile: string | null;
+    sourceDir: string;
+    otherEntryFiles: string[];
+    basis: string;
+  } | null;
+  workspaces: { dir: string; name: string | null; role: string; framework: string | null }[];
+  frontend: { framework: string; options: Option[] } | null;
+  recommendation: "init" | "add" | "add-frontend" | "workspace" | "upgrade" | "unsupported";
   reason: string;
   options: Option[];
 }
@@ -41,6 +49,10 @@ interface Report {
 const NEXT: Record<Report["recommendation"], string> = {
   init: "Present the plan with `selfauth init <dir> … --dry-run`, get approval, then run it with --yes (SKILL.md step 6).",
   add: "Show the existing-auth evidence (if any), present `selfauth add … --dry-run`, get approval, then run it with --yes (SKILL.md steps 3–6).",
+  "add-frontend":
+    "Present `selfauth add-frontend … --dry-run`, get approval, run it with --yes, then do the printed steps yourself: SelfAuth generates no pages (SKILL.md step 6 and references/project-layouts.md).",
+  workspace:
+    "This is a monorepo root. Run detect-project on each package listed below, then handle the backend with `add` and the frontend with `add-frontend`, one package at a time (references/project-layouts.md).",
   upgrade:
     "SelfAuth is installed: run `selfauth doctor` and `selfauth diff`; upgrade only with approval.",
   unsupported:
@@ -77,6 +89,18 @@ const lines = [
 if (p.otherFrameworks.length)
   lines.push(`- Unsupported frameworks: ${p.otherFrameworks.join(", ")}`);
 if (p.otherLanguages.length) lines.push(`- Non-JavaScript backend: ${p.otherLanguages.join(", ")}`);
+if (report.layout)
+  lines.push(
+    `- Source folder for \`add\`: \`${report.layout.sourceDir}\` (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other Express files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
+  );
+if (report.workspaces.length)
+  lines.push(
+    "- Monorepo packages:",
+    ...report.workspaces.map(
+      (w) => `  - \`${w.dir}\`: ${w.role}${w.framework ? ` (${w.framework})` : ""}`,
+    ),
+  );
+if (report.frontend) lines.push(`- Frontend: ${report.frontend.framework}`);
 lines.push(`- Existing auth packages: ${p.existingAuth.join(", ") || "none"}`);
 if (report.authSignals.length) {
   lines.push(
@@ -88,9 +112,10 @@ if (report.authSignals.length) {
 } else if (p.hasPackageJson) {
   lines.push("- No authentication code found in the application's source.");
 }
-if (report.options.length) {
+const options = [...report.options, ...(report.frontend?.options ?? [])];
+if (options.length) {
   lines.push("", "## Options");
-  for (const o of report.options) {
+  for (const o of options) {
     lines.push(`- ${o.available ? "available" : "BLOCKED"}: \`${o.command}\``);
     o.blockers.forEach((b) => lines.push(`  - blocker: ${b}`));
     o.warnings.forEach((w) => lines.push(`  - warning: ${w}`));

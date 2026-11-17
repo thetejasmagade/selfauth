@@ -37,16 +37,18 @@ export const INTEGRATIONS: Integration[] = [
   {
     kind: "frontend",
     id: "vue",
-    label: "Vue 3 + Vite in web/ (reference frontend, browser-tested)",
+    label:
+      "Vue 3 + Vite in web/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
     production: true,
-    add: false,
+    add: true,
   },
   {
     kind: "frontend",
     id: "react",
-    label: "React + Vite in web/ (reference frontend, browser-tested)",
+    label:
+      "React + Vite in web/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
     production: true,
-    add: false,
+    add: true,
   },
 ];
 

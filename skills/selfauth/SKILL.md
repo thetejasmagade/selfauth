@@ -69,7 +69,9 @@ blockers for each command.
 | `recommendation` | Meaning | Do |
 | --- | --- | --- |
 | `init` | No `package.json`: a new project | `selfauth init <dir>` (step 6) |
-| `add` | An existing Express + TypeScript project | `selfauth add` (step 6) |
+| `add` | An existing Express + TypeScript project | `selfauth add`, with the `--src` detect reports (step 6) |
+| `add-frontend` | An existing Vue or React app | `selfauth add-frontend` ([layouts](references/project-layouts.md)) |
+| `workspace` | A monorepo root | Run detect on each package, then `add` / `add-frontend` in each ([layouts](references/project-layouts.md)) |
 | `upgrade` | SelfAuth is already installed | `selfauth doctor`, then `selfauth diff` / `upgrade` ([maintenance](#maintaining-an-existing-installation)) |
 | `unsupported` | No generator applies | Stop. Report `reason` and the blockers. Suggest only what [framework-support](references/framework-support.md) lists. |
 
@@ -95,6 +97,8 @@ Read only what the task needs:
   [security-rules](references/security-rules.md).
 - Changing `selfauth.config.ts`: [configuration](references/configuration.md).
 - Anything with PostgreSQL or Prisma: [migration-rules](references/migration-rules.md).
+- A folder other than `src/`, a monorepo, or a frontend elsewhere:
+  [project layouts](references/project-layouts.md).
 
 Requirement IDs such as `SEC-CSRF-004` are stable. Cite them when you explain
 a behaviour or a refusal.
@@ -107,6 +111,9 @@ Typical ones: no `"type": "module"`, TypeScript older than 5.7, a non-ES-module
 `--database postgresql` (merging isn't automated, so offer `--database memory`
 or a manual merge). `tsconfigChanges` lists compiler options the developer
 must add.
+
+A tsconfig that would not compile the new folder is also a blocker. `add`
+stops before writing and names the `include` entry to add.
 
 Fixing a blocker means editing the developer's files, for example
 `package.json` `type`. That is part of the plan they approve in step 6, and is
@@ -128,8 +135,10 @@ Wait for approval. Then run it for real with `--yes`:
 ```bash
 # new project
 selfauth init my-app --database postgresql --frontend react --permissions orders.view,orders.create --yes
-# existing Express project (writes under src/selfauth/ only)
+# existing Express project (writes under <src>/selfauth/ only; --src if detect says so)
 selfauth add --database memory --permissions orders.view --yes --install
+# existing Vue or React app, in its own folder
+selfauth add-frontend --yes
 ```
 
 `add` prints the remaining steps under *Finish the integration*. Do each one

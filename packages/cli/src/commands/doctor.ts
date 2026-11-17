@@ -27,6 +27,20 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
     return report;
   }
 
+  if (manifest.options?.layout === "frontend") {
+    // The frontend module has no configuration, mailer or database: only its files can drift.
+    const drift = await fileDrift(dir, manifest);
+    for (const m of drift.missing) report.warnings.push(`generated file deleted: ${m}`);
+    if (drift.modified.length)
+      report.notes.push(
+        `you changed ${drift.modified.length} generated file(s): ${drift.modified.join(", ")}`,
+      );
+    report.notes.push(
+      `frontend module (${manifest.options.frontend}) in ${manifest.options.srcDir}/selfauth, templates ${manifest.templateVersion ?? "unknown"}; the backend's checks run with \`selfauth doctor\` in the backend folder`,
+    );
+    return report;
+  }
+
   const { config, errors } = await loadConfig(dir, manifest);
   report.errors.push(...errors);
   if (config) {
