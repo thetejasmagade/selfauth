@@ -1,0 +1,8 @@
+# Secret scanning uses gitleaks' default rules, plus one exception.
+# (`[allowlist]`, not `[[allowlists]]`: the pinned gitleaks 8.24 predates the newer syntax.)
+[extend]
+useDefault = true
+
+[allowlist]
+description = "The list of common passwords SelfAuth rejects (auth/core/common-passwords.ts, copied into the reference apps and templates). It is a public wordlist, not a secret."
+paths = ['''(^|/)common-passwords\.ts$''']

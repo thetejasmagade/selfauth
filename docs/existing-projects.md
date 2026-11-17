@@ -126,7 +126,8 @@ state-changing requests (the client does).
 - Frontends other than Vue and React (Angular, Svelte, Next.js, …). They can
   call the API by hand; see [the HTTP API](api/http.md).
 - A backend that is not Express 5 + TypeScript (see the
-  [support matrix](conformance.md#support-matrix)).
+  [support matrix](conformance.md#support-matrix)). Fastify 5 is supported for
+  **new** projects only (`selfauth init --backend fastify`).
 - Several Express apps in one package: `add` uses the first entry file and
   lists the others; pass `--src` for another.
 - Merging into an existing Prisma schema (use `--database memory` to try it, or

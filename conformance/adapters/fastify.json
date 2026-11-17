@@ -1,0 +1,345 @@
+{
+  "$comment": "What the Fastify reference implementation claims, and the evidence for every requirement not proven by a conformance case. Checked by apps/playground-fastify/test/conformance/report.test.ts; rendered to docs/conformance-fastify.md.",
+  "adapter": "fastify",
+  "title": "Fastify 5 + TypeScript reference implementation",
+  "specVersion": "0.1",
+  "claims": {
+    "postgresql": "authorization",
+    "memory": "authorization"
+  },
+  "supports": [
+    {
+      "kind": "backend",
+      "id": "fastify",
+      "title": "Fastify 5 + TypeScript"
+    },
+    {
+      "kind": "database",
+      "id": "postgresql",
+      "title": "PostgreSQL via Prisma",
+      "store": "postgresql"
+    },
+    {
+      "kind": "database",
+      "id": "memory",
+      "title": "In-memory (development and tests only)",
+      "store": "memory"
+    },
+    {
+      "kind": "frontend",
+      "id": "vue",
+      "title": "Vue 3 (generated and built with a Fastify API; browser tests run against Express)"
+    },
+    {
+      "kind": "frontend",
+      "id": "react",
+      "title": "React (generated and built with a Fastify API; browser tests run against Express)"
+    }
+  ],
+  "independentAudit": false,
+  "limitations": [
+    "Express 5 and Fastify 5 are the only supported backends (Phase 10 continues).",
+    "MongoDB and Mongoose are in the configuration schema but not implemented; createAuth() refuses them.",
+    "The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.",
+    "Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).",
+    "The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.",
+    "`selfauth add` (an existing project) supports Express only; a Fastify project is made with `selfauth init --backend fastify`.",
+    "The Vue and React browser end-to-end suite runs against the Express backend. Fastify full-stack projects are generated, type-checked, built and exercised through the API by CI.",
+    "Production-profile status is not claimed for Fastify yet: the Fastify adapter has had one review pass, by its author. The sign-offs below are self-assessed, and no independent security audit has been done."
+  ],
+  "signoffs": [
+    {
+      "requirement": "IDENT-DELETE-005",
+      "method": "documentation",
+      "evidence": ["docs/data-retention.md"],
+      "finding": "docs/data-retention.md lists what deletion clears, deletes, revokes and keeps, how long, and how to purge it; checked against deleteUser in service.ts and the Prisma schema."
+    },
+    {
+      "requirement": "AUTHN-REG-003",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-fastify/test/postgres.test.ts",
+        "apps/playground-fastify/src/auth/stores/prisma.ts"
+      ],
+      "finding": "A PostgreSQL test makes the role link fail and asserts no user, credential or role row remains: creation is one transaction."
+    },
+    {
+      "requirement": "AUTHN-LOGIN-003",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "A test asserts the password verifier runs against a dummy hash when the account does not exist."
+    },
+    {
+      "requirement": "AUTHN-LOGIN-003",
+      "method": "code-review",
+      "evidence": ["apps/playground-fastify/src/auth/core/service.ts"],
+      "finding": "login() calls verifyDummy() on the no-user path and has no early return before password verification."
+    },
+    {
+      "requirement": "AUTHN-REG-010",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "A test asserts the hasher runs when registering an address that already exists."
+    },
+    {
+      "requirement": "AUTHN-REG-010",
+      "method": "code-review",
+      "evidence": ["apps/playground-fastify/src/auth/core/service.ts"],
+      "finding": "register() hashes the password before looking the email up, so every path costs the same."
+    },
+    {
+      "requirement": "AUTHZ-CORE-002",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-fastify/src/routes/notes.ts",
+        "packages/cli/template-variants/routes.ts",
+        "apps/playground-fastify/test/app.test.ts"
+      ],
+      "finding": "Every route in the generated examples is guarded or sits on protectedRoutes(), which denies unguarded routes; a lint-style test fails on a route with no guard."
+    },
+    {
+      "requirement": "AUTHZ-PERM-001",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The config schema rejects malformed permission names."
+    },
+    {
+      "requirement": "AUTHZ-PERM-002",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The config schema rejects project permissions using the reserved 'auth.' prefix."
+    },
+    {
+      "requirement": "AUTHZ-PERM-004",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The config schema rejects roles that reference undefined permissions."
+    },
+    {
+      "requirement": "AUTHZ-PERM-004",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "requirePermission() with an undefined permission throws at route registration."
+    },
+    {
+      "requirement": "AUTHZ-RBAC-005",
+      "method": "migration-test",
+      "evidence": ["apps/playground-fastify/test/postgres.test.ts"],
+      "finding": "Role and permission sync is exercised against PostgreSQL and never prunes assignments implicitly."
+    },
+    {
+      "requirement": "AUTHZ-RBAC-005",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-fastify/src/scripts/seed.ts",
+        "apps/playground-fastify/src/db/store.ts"
+      ],
+      "finding": "syncRoles runs from the seed script only; the PostgreSQL store does no sync at startup (the in-memory store is seeded on start because it holds no data)."
+    },
+    {
+      "requirement": "SEC-HASH-001",
+      "method": "adapter-test",
+      "evidence": ["conformance/cases/identity.json"],
+      "finding": "CT-IDENT-007 asserts the stored verifier is an Argon2id PHC string."
+    },
+    {
+      "requirement": "SEC-HASH-001",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-fastify/src/auth/core/password.ts",
+        "docs/adr/0014-argon2-library-for-node.md"
+      ],
+      "finding": "Hashing is @node-rs/argon2 (a maintained Argon2 binding, ADR 0014) with algorithm Argon2id; there is no hand-written implementation."
+    },
+    {
+      "requirement": "SEC-HASH-006",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "A test asserts a concurrent lightweight request completes while a hash is computed (the library's async API is used)."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-001",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The config schema rejects minLength below 8."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-005",
+      "method": "code-review",
+      "evidence": [
+        "packages/spec/test/config.test.ts",
+        "apps/playground-fastify/src/auth/core/password.ts"
+      ],
+      "finding": "No setting or code path expires or rotates passwords; the schema's password block has only length, common-password and hashing keys, and a test rejects an added age key."
+    },
+    {
+      "requirement": "SEC-TOKEN-005",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-vue/test/url-token.test.ts", "apps/e2e/tests/auth.spec.ts"],
+      "finding": "Unit tests assert the fragment token is read and stripped; the shared browser spec asserts email-link pages send a no-referrer policy."
+    },
+    {
+      "requirement": "SEC-COOKIE-003",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "createAuth() throws when NODE_ENV is production and cookie.secure is false."
+    },
+    {
+      "requirement": "SEC-REDIRECT-001",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-vue/src/auth/redirect.ts",
+        "apps/playground-react/src/auth/redirect.ts"
+      ],
+      "finding": "safeRedirect accepts only same-origin paths, rejecting absolute, protocol-relative, backslash and control-character targets, in both frontends."
+    },
+    {
+      "requirement": "SEC-REDIRECT-001",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-vue/test/redirect.test.ts", "apps/e2e/tests/auth.spec.ts"],
+      "finding": "Unit tests cover hostile targets; the browser spec signs in with hostile ?redirect= values on both frontends."
+    },
+    {
+      "requirement": "SEC-SECRET-001",
+      "method": "static-analysis",
+      "evidence": [".github/workflows/security.yml"],
+      "finding": "The security workflow runs gitleaks over the full history on every push and pull request and weekly; the config schema has no secret fields."
+    },
+    {
+      "requirement": "SEC-SECRET-001",
+      "method": "code-review",
+      "evidence": ["packages/spec/src/config.ts"],
+      "finding": "selfAuthConfigSchema is strict and defines no key that holds a secret; secrets come from environment variables."
+    },
+    {
+      "requirement": "SEC-SECRET-002",
+      "method": "adapter-test",
+      "evidence": ["packages/cli/test/standalone.test.ts"],
+      "finding": "For every generated variant a test asserts .env.example holds placeholders only and .gitignore covers .env."
+    },
+    {
+      "requirement": "SEC-SECRET-003",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-fastify/test/auth.test.ts",
+        "apps/playground-fastify/test/app.test.ts"
+      ],
+      "finding": "Tests assert startup fails without a valid SELFAUTH_APP_BASE_URL or a required CSRF secret."
+    },
+    {
+      "requirement": "SEC-SECRET-004",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "Tests assert CSRF secrets under 32 bytes are refused and tokens signed with the previous secret are still accepted."
+    },
+    {
+      "requirement": "SEC-SECRET-004",
+      "method": "code-review",
+      "evidence": ["apps/playground-fastify/src/auth/fastify/index.ts"],
+      "finding": "The previous secret is verified but never used to sign, so rotation cannot keep an old key alive."
+    },
+    {
+      "requirement": "SEC-AUDIT-004",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-fastify/src/auth/core/store.ts",
+        "apps/playground-fastify/src/auth/fastify/index.ts"
+      ],
+      "finding": "The store interface can only append security events (recordEvent), and no route or service updates or deletes one."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The options that reveal registered emails default to false."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "documentation",
+      "evidence": ["docs/customization.md"],
+      "finding": "The customization guide describes the revealExistingEmail trade-off."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "adapter-test",
+      "evidence": ["packages/cli/test/cli.test.ts"],
+      "finding": "selfauth doctor warns when revealExistingEmail is enabled."
+    },
+    {
+      "requirement": "SEC-HTTP-002",
+      "method": "documentation",
+      "evidence": ["docs/frontend-deployment.md"],
+      "finding": "The deployment guide requires HTTPS and shows the HSTS header; createAuth() refuses an http base URL in production."
+    },
+    {
+      "requirement": "DATA-MODEL-001",
+      "method": "migration-test",
+      "evidence": ["apps/playground-fastify/test/postgres.test.ts"],
+      "finding": "Migration tests assert the unique indexes exist on a fresh database."
+    },
+    {
+      "requirement": "DATA-MODEL-003",
+      "method": "migration-test",
+      "evidence": ["apps/playground-fastify/test/postgres.test.ts"],
+      "finding": "Migrations are planned, applied and verified on a fresh PostgreSQL schema through native Prisma Migrate."
+    },
+    {
+      "requirement": "DATA-MODEL-003",
+      "method": "code-review",
+      "evidence": ["apps/playground-fastify/src/db/store.ts", "docs/database.md"],
+      "finding": "The application never runs a schema sync (no db push, no auto-migrate) at startup; migrations are applied only by explicit commands."
+    },
+    {
+      "requirement": "DATA-MODEL-004",
+      "method": "migration-test",
+      "evidence": ["apps/playground-fastify/test/postgres.test.ts"],
+      "finding": "A test runs generation against a database holding application tables and data and asserts they are untouched."
+    },
+    {
+      "requirement": "ERR-FORMAT-003",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-vue/src/auth/client.ts",
+        "apps/playground-react/src/auth/client.ts",
+        "conformance/src/runner/run.ts"
+      ],
+      "finding": "The clients and the conformance runner branch on error.code; message text is displayed but never matched."
+    },
+    {
+      "requirement": "CONF-FILE-001",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The schema uses strict objects; tests reject unknown top-level and nested keys."
+    },
+    {
+      "requirement": "CONF-FILE-002",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "Unknown keys are rejected, so a secret cannot be added to the config file."
+    },
+    {
+      "requirement": "CONF-FILE-002",
+      "method": "code-review",
+      "evidence": ["packages/spec/src/config.ts"],
+      "finding": "No field in the schema carries a secret."
+    },
+    {
+      "requirement": "CONF-FILE-003",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "Out-of-range TTLs, lengths and timeouts are rejected, not clamped."
+    },
+    {
+      "requirement": "CONF-FILE-004",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-fastify/test/auth.test.ts"],
+      "finding": "createAuth() rejects a configuration naming a database this adapter does not implement (MongoDB)."
+    },
+    {
+      "requirement": "CONF-FILE-005",
+      "method": "schema-test",
+      "evidence": ["packages/spec/test/config.test.ts"],
+      "finding": "The schema rejects an unsupported major specVersion."
+    }
+  ]
+}

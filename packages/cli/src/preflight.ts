@@ -109,7 +109,11 @@ export async function preflightAdd(
     devDependencies?: Record<string, string>;
   };
   if (project.framework !== "express")
-    report.errors.push("Express is not a dependency: only Express projects are supported.");
+    report.errors.push(
+      project.otherFrameworks.includes("fastify")
+        ? "Express is not a dependency: `selfauth add` supports Express only. For Fastify, start a new project with `selfauth init --backend fastify`."
+        : "Express is not a dependency: only Express projects are supported.",
+    );
   if (pkg.type !== "module")
     report.errors.push('package.json must have "type": "module" (the generated code is ESM).');
   const tsVersion = majorMinor({ ...pkg.dependencies, ...pkg.devDependencies }["typescript"]);

@@ -1,9 +1,11 @@
-# Server API (generated Express code)
+# Server API (generated Express and Fastify code)
 
 This is the TypeScript API of the code SelfAuth puts in your project: `src/auth/`
 for `init`, `src/selfauth/auth/` for `add`. It is your code, so you call it
 directly; there is no SelfAuth runtime package. A test checks that every
-export and every `Auth` member is documented here.
+export and every `Auth` member, in both adapters, is documented here. The
+examples use Express; [Fastify](#fastify) is the same API with the differences
+listed below.
 
 ## Setup
 
@@ -49,6 +51,41 @@ In production, `createAuth` throws unless the session cookie is `secure` and
 | `policies` | `PolicyRegistry`: `policies.register(type, policy)` registers a resource policy. |
 | `service` | `AuthService`, the framework-neutral core behind the routes (register, login, sessions, tokens, admin operations). Use it for custom flows, such as an admin UI calling `service.setAccountState`. |
 | `hasher` | The configured Argon2id `PasswordHasher` (for example, to hash a seeded admin password). |
+
+## Fastify
+
+`selfauth init --backend fastify` writes `src/auth/fastify/` instead of
+`src/auth/express/`. The core (`auth/core/`), the stores, the configuration, the
+routes' behaviour and every guard's meaning are identical; only the HTTP glue
+differs, and the same conformance suite passes against it. `createAuth` takes
+`requestId: (req) => string` (Fastify's request id), and the `Auth` object has
+these members in place of `middleware`, `router` and `errorHandler`:
+
+| Member | What it does |
+| --- | --- |
+| `install(app)` | Call once, before your routes: adds the CORS, session and CSRF hooks and registers the authentication routes at `config.http.basePath`. |
+| `handleError(error, req, reply)` | Sends a SelfAuth error as the spec's error envelope and returns `true`; returns `false` for any other error. Call it first in your `setErrorHandler`. |
+| `context(req)` | As above, from the request. Also `req.selfauth`. |
+| `requireAuth`, `requirePermission(p)`, `authorizeResource(p, req => ({ type, id }))` | Async `preHandler` guards that throw SelfAuth errors. Use them in a route's `preHandler`, or as the guards of `protectedRoutes`. |
+| `protectedRoutes(app, prefix?)` | As above, for Fastify: `routes.get(path, guard…, handler)` registers `prefix + path` on `app`, with sign-in first, your guards, then the deny-by-default check. There is no router to mount. |
+
+```ts
+const auth = createAuth({ config, store, mailer, appBaseUrl, nodeEnv, requestId: (req) => req.id });
+auth.install(app);                    // hooks and /auth routes, before your routes
+const routes = auth.protectedRoutes(app, "/api/orders");
+routes.get("/", auth.requirePermission("orders.view"), async (req) => {
+  const filter = ownerFilter(auth.context(req)!, "orders.view");
+  return db.order.findMany({ where: filter ? { userId: filter.ownerId } : {} });
+});
+app.setErrorHandler(async (error, req, reply) => {
+  if (auth.handleError(error, req, reply)) return reply; // SelfAuth errors
+  // … your own errors …
+});
+```
+
+The generated `src/app.ts` also sets the JSON body parser (an empty body is
+fine, a malformed one is `400 VALIDATION_FAILED`), the body limit and the
+not-found handler; it is a complete example.
 
 ## Exports of `auth/index.ts`
 

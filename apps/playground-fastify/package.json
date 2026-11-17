@@ -1,0 +1,36 @@
+{
+  "name": "@selfauth/playground-fastify",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fastify reference implementation of SelfAuth (Phase 10): the same application-owned core as the Express playground behind a Fastify adapter.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --env-file-if-exists=.env --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
+    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "cookie": "^2.0.2",
+    "fastify": "^5.12.8",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@selfauth/conformance": "workspace:*",
+    "@selfauth/migration": "workspace:*",
+    "@selfauth/spec": "workspace:*",
+    "@types/pg": "^8.23.1",
+    "prisma": "7.10.1"
+  }
+}

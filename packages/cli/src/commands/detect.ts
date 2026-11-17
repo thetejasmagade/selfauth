@@ -173,7 +173,9 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     return {
       ...base,
       recommendation: "unsupported",
-      reason: `Only Express is supported (${found}). Do not hand-write an adapter.`,
+      reason: project.otherFrameworks.includes("fastify")
+        ? `\`selfauth add\` supports Express only (${found}). Fastify is supported for new projects: \`selfauth init --backend fastify\`. Do not hand-write an adapter.`
+        : `Only Express is supported (${found}). Do not hand-write an adapter.`,
       options: [],
     };
   }

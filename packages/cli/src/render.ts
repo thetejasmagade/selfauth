@@ -1,5 +1,5 @@
 import { parseConfig, PERMISSION_PATTERN, type SelfAuthConfig } from "@selfauth/spec";
-import type { Database, Frontend } from "./templates.js";
+import type { Backend, Database, Frontend } from "./templates.js";
 
 /** Permissions used by the notes example that ships with a frontend. */
 export const EXAMPLE_PERMISSIONS = ["notes.create", "notes.view", "notes.view_any"];
@@ -8,6 +8,8 @@ export interface InitAnswers {
   name: string;
   database: Database;
   frontend: Frontend;
+  /** The HTTP framework; Express when not given. */
+  backend?: Backend;
   permissions: string[];
   /** Origin the frontend is served from; email links point here. */
   appBaseUrl: string;
@@ -25,7 +27,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   ];
   return parseConfig({
     adapter: {
-      backend: "express",
+      backend: answers.backend ?? "express",
       frontend: answers.frontend,
       database: answers.database,
       orm: answers.database === "postgresql" ? "prisma" : "none",
@@ -51,6 +53,9 @@ export function renderConfig(config: SelfAuthConfig): string {
 export const config: SelfAuthConfig = ${JSON.stringify(config, null, 2)};
 `;
 }
+
+export const frameworkName = (answers: Pick<InitAnswers, "backend">) =>
+  answers.backend === "fastify" ? "Fastify" : "Express";
 
 /** Full-stack projects (a frontend was chosen) are two packages in an npm workspace. */
 export const isWorkspace = (answers: Pick<InitAnswers, "frontend">) => answers.frontend !== "none";
@@ -201,6 +206,13 @@ export function renderEnvExample(answers: InitAnswers): string {
     '# Only for http.csrf.mode "token": 32+ random bytes, base64url.',
     "# SELFAUTH_CSRF_SECRET=",
   ];
+  if (answers.backend === "fastify") {
+    lines.push(
+      "# Interface the server listens on: 0.0.0.0 (every IPv4 interface) by default;",
+      "# 127.0.0.1 keeps it local, :: also accepts IPv6.",
+      "# HOST=0.0.0.0",
+    );
+  }
   if (answers.database === "postgresql") {
     lines.push(
       "# PostgreSQL connection for Prisma.",
@@ -268,7 +280,7 @@ function serverRows(answers: InitAnswers): Row[] {
   return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
-    ["  app.ts", "builds the Express app: middleware, routes, error handling"],
+    ["  app.ts", `builds the ${frameworkName(answers)} app: hooks, routes, error handling`],
     ["  config/", ""],
     ["    selfauth.config.ts", "your authentication settings: roles, permissions, limits"],
     ["    env.ts", "environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)"],
@@ -284,7 +296,10 @@ function serverRows(answers: InitAnswers): Row[] {
       `picks the data store (${pg ? "PostgreSQL, or in-memory without DATABASE_URL" : "in-memory"})`,
     ],
     ["  http/", "error responses and request ids"],
-    ["  auth/", "SelfAuth's generated authentication code (core/, express/, stores/)"],
+    [
+      "  auth/",
+      `SelfAuth's generated authentication code (core/, ${answers.backend ?? "express"}/, stores/)`,
+    ],
     ...(pg ? ([["  scripts/", "seed (roles) and create-admin"]] as Row[]) : []),
     ["test/", "smoke tests for the authentication wiring (npm test)"],
     ...(pg ? ([["prisma/", "database schema and migrations"]] as Row[]) : []),
@@ -317,7 +332,7 @@ export function renderLayout(answers: InitAnswers): string {
     ? [
         [
           "server/",
-          `the Express API (${answers.database === "postgresql" ? "PostgreSQL" : "in-memory"})`,
+          `the ${frameworkName(answers)} API (${answers.database === "postgresql" ? "PostgreSQL" : "in-memory"})`,
         ],
         ...indent(serverRows(answers)),
         ["  package.json, tsconfig.json", "its own package"],

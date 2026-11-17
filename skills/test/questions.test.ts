@@ -67,7 +67,7 @@ const SAMPLES: Sample[] = [
   },
   {
     ask: "Does it work with Next.js or NestJS?",
-    entry: "Fastify, NestJS",
+    entry: "NestJS, Next.js",
     facts: [/Not supported/i, /never port/i],
   },
   {
@@ -321,7 +321,7 @@ describe("answers that quote the product stay true", () => {
     for (const i of INTEGRATIONS) expect(supported).toContain(`\`${i.id}\``);
     // What the question map calls supported is exactly what the CLI offers.
     expect(INTEGRATIONS.map((i) => i.id).sort()).toEqual(
-      ["express", "memory", "none", "postgresql", "react", "vue"].sort(),
+      ["express", "fastify", "memory", "none", "postgresql", "react", "vue"].sort(),
     );
   });
 });

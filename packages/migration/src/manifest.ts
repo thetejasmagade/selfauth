@@ -48,6 +48,8 @@ export const manifestSchema = z.strictObject({
        * Manifests written before this field existed are structure 1.
        */
       structure: z.number().int().min(1).default(1),
+      /** The HTTP framework the backend was generated for. Manifests without it are Express. */
+      backend: z.enum(["express", "fastify"]).default("express"),
       frontend: z.enum(["none", "vue", "react"]).default("none"),
       permissions: z.array(z.string()).default([]),
       appBaseUrl: z.string().optional(),

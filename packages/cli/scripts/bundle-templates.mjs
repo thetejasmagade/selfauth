@@ -29,6 +29,7 @@ const versions = {};
 for (const p of [
   "package.json",
   "apps/playground/package.json",
+  "apps/playground-fastify/package.json",
   "apps/playground-vue/package.json",
   "apps/playground-react/package.json",
 ]) {

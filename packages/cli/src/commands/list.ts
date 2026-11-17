@@ -20,6 +20,14 @@ export const INTEGRATIONS: Integration[] = [
     add: true,
   },
   {
+    kind: "backend",
+    id: "fastify",
+    label:
+      "Fastify 5 + TypeScript (87/87 conformance cases, authorization level; `selfauth init --backend fastify`)",
+    production: true,
+    add: false,
+  },
+  {
     kind: "database",
     id: "postgresql",
     label: "PostgreSQL via Prisma 7 (migrations reviewed with `selfauth db plan`)",

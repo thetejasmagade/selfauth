@@ -16,6 +16,7 @@
     "layout": "client",
     "srcDir": "src",
     "structure": 3,
+    "backend": "express",
     "frontend": "vue",
     "permissions": [],
     "appBaseUrl": "http://localhost:5173"

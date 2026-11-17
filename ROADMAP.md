@@ -14,7 +14,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M7 — LLM Skills | Phase 7 | ✅ |
 | M8 — Manual Distribution | Phase 8 | ✅ (publishing awaits npm setup) |
 | M9 — Security and Conformance | Phase 9 | ✅ Levels, sign-offs, support matrix, security review, CodeQL + gitleaks, tests in generated projects |
-| M10 — Additional Frameworks | Phase 10 | ⏳ |
+| M10 — Additional Frameworks | Phase 10 | 🟡 Fastify done (87/87 on both stores, `init --backend fastify`); more to come |
 | M11 — Stable Open-source Release | Phase 12 | ⏳ |
 
 ## Sprint 1 — Foundation
@@ -142,10 +142,22 @@ databases (Phase 6 CLI).
 - CI: CodeQL and gitleaks (`.github/workflows/security.yml`).
 - `selfauth init` projects ship a smoke test suite (`npm test`), so `validate-auth` runs tests.
 
+## Phase 10 — Fastify done
+
+- `apps/playground-fastify`: the same core and stores behind a Fastify adapter. All 87
+  conformance cases pass with the memory store and with PostgreSQL; the PostgreSQL migration,
+  auth, app and docs tests are ported.
+- `selfauth init --backend fastify` (API only, or full-stack with Vue or React); templates
+  `fastify/`, `fastify-vue/`, `fastify-react/`; CI smoke-tests generated Fastify projects.
+- `conformance/adapters/fastify.json` and the generated [`docs/conformance-fastify.md`](docs/conformance-fastify.md):
+  authorization level on both stores; production-profile is not claimed yet.
+- Express only, for now: `selfauth add` (existing projects) and the browser end-to-end suite.
+- ADR 0024.
+
 ## Next
 
 1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").
-2. Phase 10: more frameworks and languages. Each adds its own adapter record and sign-offs.
+2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify: a production-profile review, `selfauth add`, and browser tests against it.
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`, tests for the `add` layout.
 
 ## Decisions made after Sprint 1 review

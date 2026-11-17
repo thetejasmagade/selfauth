@@ -24,6 +24,13 @@ own `selfauth.manifest.json`; run `selfauth doctor`, `validate`, `diff` or `upgr
 at the root and it covers both. Without a frontend the project is a single package
 with `src/` at the root.
 
+## Fastify
+
+`npx selfauth init my-app --backend fastify --database postgresql` makes the same
+project on Fastify 5: the same core, stores, tests and frontends, with a Fastify
+adapter in `src/auth/fastify/`. Fastify is for new projects; `add` (an existing
+project) supports Express only.
+
 ## Existing Express project
 
 ```bash
@@ -62,7 +69,7 @@ repository (`selfauth add-frontend` for Vue and React):
 
 | Command | What it does |
 | --- | --- |
-| `init [dir]` | New project: `--database postgresql\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
+| `init [dir]` | New project: `--backend express\|fastify`, `--database postgresql\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
 | `add [dir]` | Existing Express project: same options plus `--src <folder>` and `--allow-existing-auth` |
 | `add-frontend [dir]` | Existing Vue or React app: adds the authentication module under `src/selfauth/` (`--frontend`, `--src`, `--dry-run`, `--yes`, `--install`); generates no pages |
 | `detect [dir]` | Read-only inspection: stack, source folder, monorepo packages, database, existing auth (packages and source), which command applies and what blocks it |

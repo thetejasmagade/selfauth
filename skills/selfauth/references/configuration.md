@@ -33,7 +33,7 @@ and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
 | Key | Type | Default | Bounds / notes |
 | --- | --- | --- | --- |
 | `specVersion` | string `"MAJOR.MINOR"` | `"0.1"` | |
-| `adapter.backend` | `"express"` | — (required) | MVP |
+| `adapter.backend` | `"express" \| "fastify"` | — (required) | |
 | `adapter.frontend` | `"vue" \| "react" \| "none"` | `"none"` | |
 | `adapter.database` | `"postgresql" \| "mongodb" \| "memory"` | — (required) | `memory` is for development and demos only (single process, not persistent) |
 | `adapter.orm` | `"prisma" \| "mongoose" \| "none"` | — (required) | postgresql↔prisma, mongodb↔mongoose, memory↔none |

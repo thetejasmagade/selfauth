@@ -2,7 +2,7 @@
 # Generates a project with the CLI outside the monorepo, installs it from npm,
 # and proves it works: typecheck, build, migrations (PostgreSQL), and a real
 # sign-up → email verification → login → protected route flow.
-#   scripts/smoke-generated.sh memory [none|vue|react|add|add-layout|manual]
+#   [SMOKE_BACKEND=fastify] scripts/smoke-generated.sh memory [none|vue|react|add|add-layout|manual]
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react|manual]
 # The second argument adds a frontend (installed, typechecked and built), or
 # runs `selfauth add` against an existing Express app instead of `init` (add-layout:
@@ -15,6 +15,8 @@
 set -euo pipefail
 DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add|add-layout|manual]}"
 MODE="${2:-none}"
+# SMOKE_BACKEND=fastify generates a Fastify project (init modes only); the default is Express.
+BACKEND="${SMOKE_BACKEND:-express}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 # SELFAUTH_SMOKE_CLI: run a packaged CLI (scripts/pack-check.sh) instead of the workspace build.
 CLI="${SELFAUTH_SMOKE_CLI:-$REPO/packages/cli/dist/bin.js}"
@@ -82,10 +84,10 @@ elif [[ "$MODE" == "manual" ]]; then
   cp .env.example .env
   START=(node --env-file=.env dist/server.js)
 else
-  step "selfauth init ($DB, frontend: $MODE)"
+  step "selfauth init ($BACKEND, $DB, frontend: $MODE)"
   node "$CLI" skill install "$APP" --agent claude > /dev/null
   expect "skill recommends init" "$(skill detect-project.ts "$APP")" "**Recommendation: init**"
-  node "$CLI" init "$APP" --database "$DB" --frontend "$MODE" --permissions orders.view,orders.create --yes > /dev/null
+  node "$CLI" init "$APP" --backend "$BACKEND" --database "$DB" --frontend "$MODE" --permissions orders.view,orders.create --yes > /dev/null
   cd "$APP"
   echo "generated $(find . -type f | wc -l) files"
 

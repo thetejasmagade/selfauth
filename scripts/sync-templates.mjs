@@ -31,6 +31,30 @@ export const TEMPLATES = {
     planInit({ ...base, name: "selfauth-app", database: "postgresql", frontend: "vue" }),
   "express-react": () =>
     planInit({ ...base, name: "selfauth-app", database: "postgresql", frontend: "react" }),
+  fastify: () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "fastify",
+      database: "postgresql",
+      frontend: "none",
+    }),
+  "fastify-vue": () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "fastify",
+      database: "postgresql",
+      frontend: "vue",
+    }),
+  "fastify-react": () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "fastify",
+      database: "postgresql",
+      frontend: "react",
+    }),
   "existing-express": () =>
     planAdd({ ...base, name: "existing-app", database: "postgresql", frontend: "none" }),
 };

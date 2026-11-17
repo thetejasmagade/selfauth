@@ -79,7 +79,7 @@ Every mandatory requirement is covered by a case or by another check; the build 
 
 ## Known limitations
 
-- Backends other than Express 5 are not supported (Phase 10).
+- Express 5 and Fastify 5 are the only supported backends (Phase 10 continues).
 - MongoDB and Mongoose are in the configuration schema but not implemented; createAuth() refuses them.
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).

@@ -23,7 +23,7 @@ development. Before production, implement `createMailer()` in
 ```text
 src/
   server.ts             starts the server
-  app.ts                builds the Express app: middleware, routes, error handling
+  app.ts                builds the Express app: hooks, routes, error handling
   config/
     selfauth.config.ts  your authentication settings: roles, permissions, limits
     env.ts              environment variables (PORT, SELFAUTH_APP_BASE_URL, ...)
