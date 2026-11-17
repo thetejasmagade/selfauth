@@ -60,3 +60,28 @@ Keep your own data in your own tables where you can. Columns you add to
 `auth_*` tables survive SelfAuth upgrades, because upgrades ship new forward
 migrations and never rewrite yours. But the store code (`stores/prisma.ts`)
 only reads the columns it knows about.
+
+## Troubleshooting `selfauth db`
+
+**"DATABASE_URL is not set".** `selfauth db status|plan|migrate|generate` read
+`DATABASE_URL` from the environment, or from the `.env` in the project (in a
+full-stack project: `server/.env`). It tells you which of the two it found. Add
+`DATABASE_URL=postgresql://user:password@host:5432/dbname` to `.env` and **save the
+file**. A variable that is set but empty in your shell does not hide the value in
+`.env`. The value must start with `postgresql://` or `postgres://`, and the
+placeholder from `.env.example` is refused.
+
+**Special characters in the password.** URL-encode them (`@` is `%40`, `#` is `%23`,
+`/` is `%2F`). Don't put quotes around the value in a shell command. In Windows
+`cmd`, `set DATABASE_URL=postgresql://...` takes the value as it is.
+
+**Supabase (and other pooled databases).** Prisma Migrate needs a direct
+connection or a session-mode pooler: it relies on session features (advisory locks,
+prepared statements) that a transaction-mode pooler, such as Supabase's port 6543
+URL, does not provide. Use Supabase's *direct connection* string, or the pooler's
+*session mode* (port 5432), for `selfauth db plan` and `selfauth db migrate`
+(`npm run db:migrate`). Your running app can use the connection string you prefer.
+
+**`selfauth db` on Windows.** It starts Prisma with Node, so it behaves the same as
+on macOS and Linux. Run `npm install` first: if Prisma is not installed it says so.
+
