@@ -48,14 +48,14 @@ export function AccountPage() {
   return (
     <>
       <h1>Account</h1>
-      <section className="card">
+      <section>
         <p>
           <strong>{auth.user?.email}</strong>
           <br />
           Roles: {auth.user?.roles.join(", ") || "none"}
         </p>
       </section>
-      <section className="card">
+      <section>
         <h2>Change password</h2>
         <form onSubmit={(e) => void changePassword(e)}>
           <label>
@@ -82,33 +82,23 @@ export function AccountPage() {
           <button type="submit">Change password</button>
         </form>
       </section>
-      {message && <p className="notice">{message}</p>}
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      <section className="card">
+      {message && <p>{message}</p>}
+      {error && <p role="alert">{error}</p>}
+      <section>
         <h2>Signed-in devices</h2>
-        <ul className="plain" data-testid="sessions">
+        <ul data-testid="sessions">
           {sessions.map((s) => (
             <li key={s.id}>
               {s.userAgent ?? "Unknown device"} — since {new Date(s.createdAt).toLocaleString()}{" "}
               {s.current ? (
                 <strong>(this device)</strong>
               ) : (
-                <button className="secondary" onClick={() => void revoke(s.id)}>
-                  Sign out
-                </button>
+                <button onClick={() => void revoke(s.id)}>Sign out</button>
               )}
             </li>
           ))}
         </ul>
-        <button
-          className="secondary"
-          data-testid="logout-all"
-          onClick={() => void logoutEverywhere()}
-        >
+        <button data-testid="logout-all" onClick={() => void logoutEverywhere()}>
           Sign out everywhere
         </button>
       </section>

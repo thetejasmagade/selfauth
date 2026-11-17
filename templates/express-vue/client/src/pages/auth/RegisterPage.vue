@@ -33,7 +33,7 @@ async function submit() {
 
 <template>
   <h1>Create account</h1>
-  <p v-if="done" class="notice" data-testid="register-done">
+  <p v-if="done" data-testid="register-done">
     Check your inbox. If this address can be used, we have sent a link to finish setting up your
     account.
   </p>
@@ -53,7 +53,7 @@ async function submit() {
       />
       <small>At least 8 characters. A few unrelated words work well.</small>
     </label>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <p v-if="error" role="alert">{{ error }}</p>
     <button :disabled="busy" type="submit">Create account</button>
   </form>
 </template>

@@ -19,11 +19,10 @@ async function logout() {
       <RouterLink to="/account">Account</RouterLink>
       <Can permission="notes.view_any"><span data-testid="support-badge">Support</span></Can>
     </template>
-    <span class="spacer" />
     <span v-if="auth.state.status === 'loading'">Loading…</span>
     <template v-else-if="auth.isAuthenticated">
       <span data-testid="current-email">{{ auth.state.user?.email }}</span>
-      <button class="secondary" data-testid="logout" @click="logout">Sign out</button>
+      <button data-testid="logout" @click="logout">Sign out</button>
     </template>
     <template v-else>
       <RouterLink to="/login">Sign in</RouterLink>

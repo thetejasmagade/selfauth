@@ -22,7 +22,7 @@ export function ForgotPasswordPage() {
     <>
       <h1>Reset password</h1>
       {sent ? (
-        <p className="notice" data-testid="reset-sent">
+        <p data-testid="reset-sent">
           If an account exists for that address, we have sent a link to reset the password.
         </p>
       ) : (
@@ -38,11 +38,7 @@ export function ForgotPasswordPage() {
               required
             />
           </label>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button type="submit">Send reset link</button>
         </form>
       )}

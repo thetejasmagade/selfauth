@@ -53,11 +53,7 @@ export function LoginPage() {
             required
           />
         </label>
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <p role="alert">{error}</p>}
         <button disabled={busy} type="submit">
           Sign in
         </button>

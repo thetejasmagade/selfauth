@@ -36,7 +36,7 @@ export function NotesPage() {
   return (
     <>
       <h1>Notes</h1>
-      <form className="card" onSubmit={(e) => void add(e)}>
+      <form onSubmit={(e) => void add(e)}>
         <label>
           New note{" "}
           <textarea
@@ -49,16 +49,10 @@ export function NotesPage() {
         </label>
         <button type="submit">Add note</button>
       </form>
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      <ul className="plain" data-testid="notes">
+      {error && <p role="alert">{error}</p>}
+      <ul data-testid="notes">
         {notes.map((note) => (
-          <li key={note.id} className="card">
-            {note.text}
-          </li>
+          <li key={note.id}>{note.text}</li>
         ))}
       </ul>
       {notes.length === 0 && <p>No notes yet.</p>}

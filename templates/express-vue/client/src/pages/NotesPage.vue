@@ -33,13 +33,13 @@ onMounted(() => load().catch((e) => (error.value = describeError(e))));
 
 <template>
   <h1>Notes</h1>
-  <form class="card" @submit.prevent="add">
+  <form @submit.prevent="add">
     <label>New note <textarea v-model="text" name="text" required maxlength="2000" /></label>
     <button type="submit">Add note</button>
   </form>
-  <p v-if="error" class="error" role="alert">{{ error }}</p>
-  <ul class="plain" data-testid="notes">
-    <li v-for="note in notes" :key="note.id" class="card">{{ note.text }}</li>
+  <p v-if="error" role="alert">{{ error }}</p>
+  <ul data-testid="notes">
+    <li v-for="note in notes" :key="note.id">{{ note.text }}</li>
   </ul>
   <p v-if="notes.length === 0">No notes yet.</p>
 </template>

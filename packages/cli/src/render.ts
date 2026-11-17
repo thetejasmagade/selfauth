@@ -316,7 +316,7 @@ function clientRows(answers: InitAnswers): Row[] {
     ["  auth/", "SelfAuth's frontend module: API client, session state, route guards, <Can>"],
     [
       "  pages/auth/",
-      "the five account screens: login, register, verify email, forgot and reset password",
+      "the five account screens (unstyled HTML; add your own styles): login, register, verify email, forgot and reset password",
     ],
     [
       "  pages/",

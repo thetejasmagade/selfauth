@@ -50,7 +50,7 @@ client/                        the react frontend (Vite)
   src/
     main.tsx, App.tsx          entry point, app shell and routes
     auth/                      SelfAuth's frontend module: API client, session state, route guards, <Can>
-    pages/auth/                the five account screens: login, register, verify email, forgot and reset password
+    pages/auth/                the five account screens (unstyled HTML; add your own styles): login, register, verify email, forgot and reset password
     pages/                     your pages (account, notes): replace the notes example
   package.json                 its own package
   selfauth.manifest.json       which files SelfAuth generated

@@ -39,7 +39,7 @@ export function ResetPasswordPage() {
     <>
       <h1>Choose a new password</h1>
       {done ? (
-        <p className="notice" data-testid="reset-done">
+        <p data-testid="reset-done">
           Your password was changed and every device was signed out.{" "}
           <Link to="/login">Sign in</Link>
         </p>
@@ -57,15 +57,11 @@ export function ResetPasswordPage() {
               required
             />
           </label>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button type="submit">Change password</button>
         </form>
       ) : token === null ? (
-        <p className="error" role="alert">
+        <p role="alert">
           This link is invalid or has expired. Request a new one.{" "}
           <Link to="/forgot-password">Request a new link</Link>
         </p>

@@ -29,13 +29,12 @@ function Header() {
           </Can>
         </>
       )}
-      <span className="spacer" />
       {auth.status === "loading" ? (
         <span>Loading…</span>
       ) : auth.isAuthenticated ? (
         <>
           <span data-testid="current-email">{auth.user?.email}</span>
-          <button className="secondary" data-testid="logout" onClick={() => void logout()}>
+          <button data-testid="logout" onClick={() => void logout()}>
             Sign out
           </button>
         </>

@@ -35,7 +35,7 @@ export function RegisterPage() {
     <>
       <h1>Create account</h1>
       {done ? (
-        <p className="notice" data-testid="register-done">
+        <p data-testid="register-done">
           Check your inbox. If this address can be used, we have sent a link to finish setting up
           your account.
         </p>
@@ -65,11 +65,7 @@ export function RegisterPage() {
             />
             <small>At least 8 characters. A few unrelated words work well.</small>
           </label>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert">{error}</p>}
           <button disabled={busy} type="submit">
             Create account
           </button>

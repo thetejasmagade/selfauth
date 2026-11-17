@@ -35,22 +35,17 @@
     {
       "path": "src/main.ts",
       "template": "vue:apps/playground-vue/src/main.ts",
-      "sha256": "23906c582bb036891fdba5215309499986fb5c0e6c83d00a8947333596cd40c9"
+      "sha256": "f418551af8fe34584489f7b90a6bd096d687d9b32e6be2aa213698e5db52ab8c"
     },
     {
       "path": "src/App.vue",
       "template": "vue:apps/playground-vue/src/App.vue",
-      "sha256": "68f8133feb446e5dba937e698587de57af982ddf45455ed9bb31802be630e8a5"
+      "sha256": "1febc5363acb01e5205a86ee92d4be4eac7df0e7851910d37247b40215eb1f53"
     },
     {
       "path": "src/router.ts",
       "template": "vue:apps/playground-vue/src/router.ts",
       "sha256": "36ac1610cffe5b7aac72bb414f79c4fe24315274d84d9655ba009148c4e5f3db"
-    },
-    {
-      "path": "src/style.css",
-      "template": "vue:apps/playground-vue/src/style.css",
-      "sha256": "8b1d0a92d0ca7bd39195ddb33d9f8713938e59b0f722401f4f59686e63302657"
     },
     {
       "path": "src/env.d.ts",
@@ -95,7 +90,7 @@
     {
       "path": "src/pages/AccountPage.vue",
       "template": "vue:apps/playground-vue/src/pages/AccountPage.vue",
-      "sha256": "28c6bb5cb5e92df72643c5f713a028e6037f05e24fe1abdbb04d807b68d6018b"
+      "sha256": "91829293eca8b80ab16fc6653c2a52b8f959402f5aa001075cf63955d1288e18"
     },
     {
       "path": "src/pages/ForbiddenPage.vue",
@@ -115,32 +110,32 @@
     {
       "path": "src/pages/NotesPage.vue",
       "template": "vue:apps/playground-vue/src/pages/NotesPage.vue",
-      "sha256": "ca12c55225e060295240db189742f1dcbbd95a540a245b7b6750e579b6835327"
+      "sha256": "f174110f853bf6b35ab2d21f71ab7c6f5335161d5decf9a5fa096f67a9cb76e9"
     },
     {
       "path": "src/pages/auth/ForgotPasswordPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/ForgotPasswordPage.vue",
-      "sha256": "d25bc9f30d0be0f7a381562feb063ca8306d426bbd04756f83c5fc1d207934e4"
+      "sha256": "d4017e9b8bd6629c2089824476303e18a2376bb5002a471b9071e440b6eb5619"
     },
     {
       "path": "src/pages/auth/LoginPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/LoginPage.vue",
-      "sha256": "2a6afde713272efad5eeb7d6e27bd04fe89ce9bc2001a2c2c2e465dca9f4c317"
+      "sha256": "5288827c3f5d6985c5e8bdd4c9762603402f85c915c7788efba8205fb1e1d120"
     },
     {
       "path": "src/pages/auth/RegisterPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/RegisterPage.vue",
-      "sha256": "c2a4d7bda5e41ba698304ef9c80a5c4314b74921869928de4118e14d03cef42a"
+      "sha256": "6d86673c6c00527ed1d159a6d4067da923847b21c2a6d0654f44b9d139f46405"
     },
     {
       "path": "src/pages/auth/ResetPasswordPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/ResetPasswordPage.vue",
-      "sha256": "e76083fe61f79a881ce14e5210b88aaf523a7cc1f69a1ded133734f459fd99a6"
+      "sha256": "691d1a0655956e6f644e01ad39af5caa1602dc8e54f925580375e45735b301a4"
     },
     {
       "path": "src/pages/auth/VerifyEmailPage.vue",
       "template": "vue:apps/playground-vue/src/pages/auth/VerifyEmailPage.vue",
-      "sha256": "4365576bb9ec43a8ef140c340a150a24b500be9b5356408160c8015873126ff4"
+      "sha256": "8e664aa3b388d9d798a98e02cc48e65ff270dd44374b2c7f36040ba1b96f520e"
     },
     {
       "path": "package.json",
