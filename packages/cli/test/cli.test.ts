@@ -104,26 +104,28 @@ describe("planInit", () => {
 
 describe("planInit with a frontend", () => {
   it.each(["vue", "react"] as const)(
-    "copies the %s reference frontend into web/ byte for byte",
+    "copies the %s reference frontend into client/ byte for byte",
     async (frontend) => {
       const files = await planInit(answers("postgresql", frontend));
       const web = files.filter((f) => f.template.startsWith(`${frontend}:`));
       expect(web.length).toBeGreaterThan(15);
       for (const f of web) {
-        expect(f.path.startsWith("web/"), f.path).toBe(true);
+        expect(f.path.startsWith("client/"), f.path).toBe(true);
         expect(f.content, f.path).toBe(
           await readFile(join(REPO, f.template.slice(frontend.length + 1)), "utf8"),
         );
       }
       // The backend ships the notes example the frontend uses.
-      expect(files.map((f) => f.path)).toContain("src/routes/notes.ts");
-      expect(files.find((f) => f.path === "src/routes/index.ts")!.content).toContain("mountNotes");
+      expect(files.map((f) => f.path)).toContain("server/src/routes/notes.ts");
+      expect(files.find((f) => f.path === "server/src/routes/index.ts")!.content).toContain(
+        "mountNotes",
+      );
     },
   );
 
-  it("configures the example permissions, frontend origin and web package", async () => {
+  it("configures the example permissions, frontend origin and client package", async () => {
     const files = await planInit(answers("memory", "react"));
-    const config = files.find((f) => f.path === "src/config/selfauth.config.ts")!.content;
+    const config = files.find((f) => f.path === "server/src/config/selfauth.config.ts")!.content;
     const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
     expect(literal.adapter.frontend).toBe("react");
     expect(literal.authorization.permissions).toEqual([
@@ -135,7 +137,7 @@ describe("planInit with a frontend", () => {
     ]);
     expect(literal.authorization.roles.support).toEqual(["notes.view_any"]);
 
-    const web = JSON.parse(files.find((f) => f.path === "web/package.json")!.content);
+    const web = JSON.parse(files.find((f) => f.path === "client/package.json")!.content);
     const reference = JSON.parse(
       await readFile(join(REPO, "apps/playground-react/package.json"), "utf8"),
     );
@@ -147,14 +149,51 @@ describe("planInit with a frontend", () => {
       ),
     ).toBe(false);
 
-    const manifest = JSON.parse(files.find((f) => f.path === "selfauth.manifest.json")!.content);
-    expect(manifest.options).toMatchObject({ layout: "project", frontend: "react" });
+    // Two packages, each with its own manifest (paths relative to the package).
+    const manifest = (dir: string) =>
+      JSON.parse(files.find((f) => f.path === `${dir}/selfauth.manifest.json`)!.content);
+    expect(manifest("server").options).toMatchObject({
+      layout: "server",
+      frontend: "react",
+      structure: 3,
+    });
+    expect(manifest("client").options).toMatchObject({
+      layout: "client",
+      frontend: "react",
+      structure: 3,
+    });
+    expect(files.some((f) => f.path === "selfauth.manifest.json")).toBe(false);
   });
 
-  it("keeps the hello example without a frontend", async () => {
+  it("keeps the hello example, and a flat project, without a frontend", async () => {
     const files = await planInit(answers("memory"));
     expect(files.map((f) => f.path)).not.toContain("src/routes/notes.ts");
-    expect(files.some((f) => f.path.startsWith("web/"))).toBe(false);
+    expect(files.some((f) => f.path.startsWith("web/") || f.path.startsWith("client/"))).toBe(
+      false,
+    );
+    expect(files.some((f) => f.path.startsWith("server/"))).toBe(false);
+    const manifest = JSON.parse(files.find((f) => f.path === "selfauth.manifest.json")!.content);
+    expect(manifest.options).toMatchObject({ layout: "project", structure: 2 });
+  });
+
+  it("makes a full-stack project a workspace of two packages", async () => {
+    const files = await planInit(answers("postgresql", "vue"));
+    const paths = files.map((f) => f.path);
+    // Nothing of the backend or frontend sits at the root except the workspace files.
+    const rootFiles = paths.filter((p) => !p.includes("/"));
+    expect(rootFiles.sort()).toEqual([".gitignore", "README.md", "package.json"]);
+    const root = JSON.parse(files.find((f) => f.path === "package.json")!.content);
+    expect(root.workspaces).toEqual(["server", "client"]);
+    expect(root.scripts.dev).toContain("concurrently");
+    expect(root.scripts["db:create-admin"]).toBe("npm run db:create-admin -w server --");
+    expect(
+      JSON.parse(files.find((f) => f.path === "server/package.json")!.content).scripts,
+    ).not.toHaveProperty("dev:web");
+    // A pattern with a slash in the middle is anchored at the .gitignore, so it must be **/.
+    expect(files.find((f) => f.path === ".gitignore")!.content).toContain("**/src/generated/");
+    expect(paths).toContain("server/.env.example");
+    expect(paths).toContain("server/prisma/schema.prisma");
+    expect(paths).toContain("client/vite.config.ts");
   });
 });
 

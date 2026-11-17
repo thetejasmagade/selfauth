@@ -67,10 +67,18 @@ export async function planUpgrade(
   const layout = manifest.options?.layout ?? "project";
   const srcDir = manifest.options?.srcDir ?? "src";
   const frontend = manifest.options?.frontend ?? "none";
+  // A full-stack project's two packages each have a manifest: the server's lists the backend
+  // files, the client's the frontend files (paths relative to its own package).
   const next =
     layout === "frontend"
       ? await frontendAddFiles(frontend === "react" ? "react" : "vue", source, srcDir)
-      : await templateFiles(answersFrom(manifest), source, layout, srcDir);
+      : await templateFiles(
+          answersFrom(manifest),
+          source,
+          layout === "add" ? "add" : "project",
+          srcDir,
+          layout === "server" ? "server" : layout === "client" ? "client" : "all",
+        );
   const recorded = new Map((manifest.files ?? []).map((f) => [f.path, f]));
   const items: UpgradeItem[] = [];
 

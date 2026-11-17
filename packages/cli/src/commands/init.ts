@@ -103,7 +103,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
 
   say(
-    `\nPlan: create ${files.length} files (Express + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in web/`})`,
+    `\nPlan: create ${files.length} files (Express + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -125,7 +125,11 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     }
     throw error;
   }
-  ok(`Created ${files.length} files and selfauth.manifest.json`);
+  ok(
+    frontend === "none"
+      ? `Created ${files.length} files and selfauth.manifest.json`
+      : `Created ${files.length} files: server/ (API), client/ (${frontend}) and a workspace root. Each package has its own selfauth.manifest.json.`,
+  );
 
   if (options.install) {
     say("\nInstalling dependencies (npm install)…");
@@ -139,17 +143,24 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   const cd = relative(process.cwd(), dir) || ".";
   say("\nNext steps:");
   if (cd !== ".") say(`  cd ${cd}`);
-  if (!options.install) say("  npm install");
-  say("  cp .env.example .env" + (database === "postgresql" ? "   # set DATABASE_URL" : ""));
+  const ws = frontend !== "none";
+  if (!options.install)
+    say(ws ? "  npm install               # installs server/ and client/" : "  npm install");
+  say(
+    `  cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}` +
+      (database === "postgresql" ? "   # set DATABASE_URL" : ""),
+  );
   if (database === "postgresql") {
     say("  npx selfauth db plan      # review the migration first");
     say("  npm run db:migrate && npm run db:seed");
   }
-  say("  npm run dev");
-  if (frontend !== "none")
-    say(`  npm --prefix web install && npm run dev:web   # then open ${answers.appBaseUrl}`);
   say(
-    "\nBefore production: implement createMailer() in src/email/mailer.ts, then run `npx selfauth doctor`.",
+    ws
+      ? `  npm run dev               # API and ${frontend} app together; open ${answers.appBaseUrl}`
+      : "  npm run dev",
+  );
+  say(
+    `\nBefore production: implement createMailer() in ${ws ? "server/" : ""}src/email/mailer.ts, then run \`npx selfauth doctor\`.`,
   );
   return 0;
 }

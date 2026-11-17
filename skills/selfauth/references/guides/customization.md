@@ -68,10 +68,11 @@ use another database, implement `AuthStore` and run the conformance suite
 stores are proven. `RateLimitStore` is separate: its `update()` must be
 atomic across instances (see `PrismaRateLimitStore`).
 
-## 5. Frontend: `web/src/auth/`
+## 5. Frontend: `client/src/auth/`
 
 `messages.ts` holds user-facing error text (localize here). The pages under
-`web/src/pages/` are yours to restyle. `client.ts` is framework-neutral if
+`client/src/pages/` are yours to restyle (the five account screens are in
+`pages/auth/`; your own pages go in `pages/`). `client.ts` is framework-neutral if
 you build your own UI. Keep the CSRF header and `credentials` handling.
 
 ## 6. Logging and audit

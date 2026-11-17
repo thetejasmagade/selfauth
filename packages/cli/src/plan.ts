@@ -8,9 +8,11 @@ import {
   buildConfig,
   renderConfig,
   renderEnvExample,
+  isWorkspace,
   renderGitignore,
   renderPackageJson,
   renderReadme,
+  renderRootPackageJson,
   renderTsconfig,
   renderWebPackageJson,
   renderWebTsconfig,
@@ -33,8 +35,10 @@ export interface PlannedFile {
   content: string;
 }
 
-/** Folder structure `init` and `add` generate (manifest `options.structure`). */
+/** Folder structure `init` (API only) and `add` generate (manifest `options.structure`). */
 export const LAYOUT_STRUCTURE = 2;
+/** Full-stack `init`: a workspace of two packages, server/ and client/ (each with a manifest). */
+export const WORKSPACE_STRUCTURE = 3;
 
 export const sha256 = (content: string) =>
   createHash("sha256").update(content, "utf8").digest("hex");
@@ -45,8 +49,19 @@ export async function templateFiles(
   source: TemplateSource,
   layout: "project" | "add" = "project",
   srcDir = "src",
+  /**
+   * `server`: the backend only. `client`: the frontend only, with paths relative to its own
+   * package (web/ stripped). `all`: both, frontend under web/ (structures 1 and 2).
+   */
+  scope: "all" | "server" | "client" = "all",
 ): Promise<PlannedFile[]> {
   const files: PlannedFile[] = [];
+  const place = (path: string): string | null => {
+    const inWeb = path.startsWith("web/");
+    if (scope === "server") return inWeb ? null : path;
+    if (scope === "client") return inWeb ? path.slice("web/".length) : null;
+    return path;
+  };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
   const adapt = (target: string, content: string) =>
     layout === "add" ? adaptForAdd(target, content, srcDir) : content;
@@ -58,15 +73,19 @@ export async function templateFiles(
     const stack = entry.target.startsWith("web/") ? answers.frontend : "express";
     if (entry.directory) {
       for (const rel of await source.listDirectory(entry.source)) {
+        const path = place(rebase(`${entry.target}/${rel}`));
+        if (path === null) continue;
         files.push({
-          path: rebase(`${entry.target}/${rel}`),
+          path,
           template: `${stack}:${entry.source}/${rel}`,
           content: adapt(`${entry.target}/${rel}`, await source.read(`${entry.source}/${rel}`)),
         });
       }
     } else {
+      const path = place(rebase(entry.target));
+      if (path === null) continue;
       files.push({
-        path: rebase(entry.target),
+        path,
         template: `${stack}:${entry.source}`,
         content: adapt(entry.target, await source.read(entry.source)),
       });
@@ -123,8 +142,9 @@ export function buildManifest(
   answers: InitAnswers,
   files: PlannedFile[],
   owned: Manifest["ownedResources"],
-  layout: "project" | "add" | "frontend" = "project",
+  layout: "project" | "add" | "frontend" | "server" | "client" = "project",
   srcDir = "src",
+  structure = LAYOUT_STRUCTURE,
 ): PlannedFile {
   const manifest: Manifest = manifestSchema.parse({
     toolkit: "selfauth",
@@ -139,7 +159,7 @@ export function buildManifest(
     options: {
       layout,
       srcDir,
-      structure: LAYOUT_STRUCTURE,
+      structure,
       frontend: answers.frontend,
       permissions: answers.permissions,
       appBaseUrl: answers.appBaseUrl,
@@ -168,6 +188,7 @@ export async function planInit(
   answers: InitAnswers,
   source: TemplateSource = templateSource(),
 ): Promise<PlannedFile[]> {
+  if (isWorkspace(answers)) return planWorkspace(answers, source);
   const files = await templateFiles(answers, source);
   const deps = stackDependencies(answers.database);
   const versions = await source.versions();
@@ -189,23 +210,85 @@ export async function planInit(
       content: renderConfig(buildConfig(answers)),
     },
   );
-  if (answers.frontend !== "none") {
-    const info = frontendInfo(answers.frontend);
-    files.push(
-      {
-        path: "web/package.json",
-        template: "rendered:web-package.json",
-        content: renderWebPackageJson(answers, info, versions),
-      },
-      {
-        path: "web/tsconfig.json",
-        template: "rendered:web-tsconfig",
-        content: renderWebTsconfig(answers.frontend),
-      },
-    );
-  }
   files.push(buildManifest(answers, files, await ownedResources(answers.database, source)));
   return files;
+}
+
+/**
+ * A full-stack project (structure 3): a thin npm-workspace root, the API in server/ and the
+ * frontend in client/. Each package has its own manifest, so `doctor`, `diff` and `upgrade` work
+ * in it exactly as in any other package (manifest paths are relative to the package).
+ */
+async function planWorkspace(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
+  const frontend = answers.frontend as Exclude<InitAnswers["frontend"], "none">;
+  const versions = await source.versions();
+  const ts = renderTsconfig();
+
+  const server = await templateFiles(answers, source, "project", "src", "server");
+  server.push(
+    {
+      path: "package.json",
+      template: "rendered:package.json",
+      content: renderPackageJson(answers, stackDependencies(answers.database), versions),
+    },
+    { path: "tsconfig.json", template: "rendered:tsconfig", content: ts.base },
+    { path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build },
+    { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
+    {
+      path: "src/config/selfauth.config.ts",
+      template: "rendered:config",
+      content: renderConfig(buildConfig(answers)),
+    },
+  );
+  const serverManifest = buildManifest(
+    answers,
+    server,
+    await ownedResources(answers.database, source),
+    "server",
+    "src",
+    WORKSPACE_STRUCTURE,
+  );
+
+  const client = await templateFiles(answers, source, "project", "src", "client");
+  client.push(
+    {
+      path: "package.json",
+      template: "rendered:web-package.json",
+      content: renderWebPackageJson(answers, frontendInfo(frontend), versions),
+    },
+    {
+      path: "tsconfig.json",
+      template: "rendered:web-tsconfig",
+      content: renderWebTsconfig(frontend),
+    },
+  );
+  const clientManifest = buildManifest(
+    // The manifest requires a database; the client has none.
+    { ...answers, database: "memory" },
+    client,
+    { tables: [], types: [], migrations: [] },
+    "client",
+    "src",
+    WORKSPACE_STRUCTURE,
+  );
+
+  const under = (dir: string, files: PlannedFile[]) =>
+    files.map((f) => ({ ...f, path: `${dir}/${f.path}` }));
+  return [
+    ...under("server", [...server, serverManifest]),
+    ...under("client", [...client, clientManifest]),
+    {
+      path: "package.json",
+      template: "rendered:root-package.json",
+      content: renderRootPackageJson(answers),
+    },
+    {
+      path: ".gitignore",
+      template: "rendered:gitignore",
+      content: renderGitignore({ workspace: true }),
+    },
+    { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
+  ];
 }
 
 export class ConflictError extends Error {

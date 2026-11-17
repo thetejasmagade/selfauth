@@ -250,7 +250,10 @@ Migrate, with safety analysis on top:
 - If `upgrade` says the project uses the flat `src/` layout (SelfAuth 0.3 and
   earlier), the developer commits first, then runs `selfauth upgrade
   --reorganize --dry-run` and `--reorganize`. It moves files and rewrites
-  imports. Run the project's typecheck and tests afterwards.
+  imports. Run the project's typecheck and tests afterwards. A full-stack project
+  made before the two-package layout (`src/` and `web/` side by side) can use the
+  same command to move into `server/` and `client/` (then delete `node_modules`
+  and run `npm install` once at the root).
 - `selfauth diff`, then `selfauth upgrade`: files the developer never edited
   are updated. Edited files get a `<file>.selfauth-new` proposal next to them.
   Merge it with the developer and delete it afterwards. Deleted files stay

@@ -2,7 +2,7 @@
 
 # Client API (generated frontend code)
 
-`web/src/auth/` in projects generated with `--frontend vue|react`. A
+`client/src/auth/` in projects generated with `--frontend vue|react`. A
 framework-neutral client plus a thin Vue or React layer. It is your code, with
 no SelfAuth package at runtime (ADR 0017).
 

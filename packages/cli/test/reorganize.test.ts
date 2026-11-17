@@ -36,10 +36,51 @@ async function tree(dir: string, rel = ""): Promise<Record<string, string>> {
   return out;
 }
 
-/** Writes a project, then reverses the layout: the way a SelfAuth 0.3 project looked. */
+const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+
+/**
+ * A full-stack project made before the two-package layout (SelfAuth 0.5): server/ and client/
+ * folded back into one folder with src/ and web/ side by side, one manifest, one package.json.
+ */
+async function unwindWorkspace(dir: string, name: string): Promise<void> {
+  const fs = await import("node:fs/promises");
+  const { sha256 } = await import("../src/index.js");
+  await fs.rm(join(dir, "package.json"));
+  for (const entry of await readdir(join(dir, "server")))
+    await fs.rename(join(dir, "server", entry), join(dir, entry));
+  await fs.rmdir(join(dir, "server"));
+  await fs.rename(join(dir, "client"), join(dir, "web"));
+
+  const manifest = JSON.parse(await readFile(join(dir, "selfauth.manifest.json"), "utf8"));
+  const client = JSON.parse(await readFile(join(dir, "web", "selfauth.manifest.json"), "utf8"));
+  await fs.rm(join(dir, "web", "selfauth.manifest.json"));
+  manifest.options.layout = "project";
+  manifest.options.structure = 2;
+  manifest.files.push(
+    ...client.files.map((f: object) => ({ ...f, path: `web/${(f as { path: string }).path}` })),
+  );
+
+  const pkg = JSON.parse(await readFile(join(dir, "package.json"), "utf8"));
+  pkg.name = name;
+  pkg.scripts["dev:web"] = "npm --prefix web run dev";
+  pkg.scripts["build:web"] = "npm --prefix web run build";
+  await writeFile(join(dir, "package.json"), json(pkg));
+
+  const ignore = await readFile(join(dir, ".gitignore"), "utf8");
+  await writeFile(join(dir, ".gitignore"), ignore.replace("**/src/generated/", "src/generated/"));
+
+  for (const f of manifest.files) f.sha256 = sha256(await readFile(join(dir, f.path), "utf8")); // this project's own content
+  await writeFile(join(dir, "selfauth.manifest.json"), json(manifest));
+}
+
+/**
+ * Writes a project, then takes it back to an older layout. `structure: 2` is SelfAuth 0.4/0.5
+ * (grouped src/, full-stack projects with src/ and web/ side by side); `1` is SelfAuth 0.3 and
+ * earlier (a flat src/ as well).
+ */
 async function flatProject(
   answers: InitAnswers,
-  options: { add?: boolean; srcDir?: string } = {},
+  options: { add?: boolean; srcDir?: string; structure?: 1 | 2 } = {},
 ): Promise<{ dir: string; grouped: Record<string, string> }> {
   const dir = await temp();
   const srcDir = options.srcDir ?? "src";
@@ -48,6 +89,8 @@ async function flatProject(
     options.add ? await planAdd(answers, undefined, { srcDir }) : await planInit(answers),
   );
   const grouped = await tree(dir);
+  if (!options.add && answers.frontend !== "none") await unwindWorkspace(dir, answers.name);
+  if (options.structure === 2) return { dir, grouped };
   // Reverse of what `--reorganize` does: grouped path → the flat path SelfAuth 0.3 used.
   const mapping = Object.fromEntries(
     Object.entries(
@@ -88,8 +131,6 @@ describe("selfauth upgrade --reorganize", () => {
   it.each([
     ["memory, API only", { ...base, database: "memory", frontend: "none" }],
     ["postgresql, API only", { ...base, database: "postgresql", frontend: "none" }],
-    ["memory, Vue (notes example)", { ...base, database: "memory", frontend: "vue" }],
-    ["postgresql, React", { ...base, database: "postgresql", frontend: "react" }],
   ] as const)("restores exactly the grouped layout (%s)", async (_name, answers) => {
     const { dir, grouped } = await flatProject(answers as InitAnswers);
     expect(existsSync(join(dir, "src/env.ts"))).toBe(true);
@@ -110,13 +151,69 @@ describe("selfauth upgrade --reorganize", () => {
         .sort(),
     );
     expect(existsSync(join(dir, "src/example"))).toBe(false);
-    if (answers.frontend !== "none") {
-      const ext = answers.frontend === "vue" ? "vue" : "tsx";
-      expect(existsSync(join(dir, `web/src/pages/auth/LoginPage.${ext}`))).toBe(true);
-      expect(existsSync(join(dir, `web/src/pages/LoginPage.${ext}`))).toBe(false);
-      // the application's own pages stay where they were
-      expect(existsSync(join(dir, `web/src/pages/NotesPage.${ext}`))).toBe(true);
-    }
+  });
+
+  it.each([
+    ["memory, Vue (notes example)", { ...base, database: "memory", frontend: "vue" }],
+    ["postgresql, React", { ...base, database: "postgresql", frontend: "react" }],
+  ] as const)(
+    "splits a full-stack project into server/ and client/ (%s)",
+    async (_name, answers) => {
+      for (const structure of [2, 1] as const) {
+        // 2: SelfAuth 0.4/0.5 (src/ and web/ side by side). 1: 0.3 and earlier (flat src/ too).
+        const { dir, grouped } = await flatProject(answers as InitAnswers, { structure });
+        expect(existsSync(join(dir, "web/package.json")), `structure ${structure}`).toBe(true);
+        expect(existsSync(join(dir, "server"))).toBe(false);
+
+        const plan = await planReorganize(dir);
+        expect(plan.regroup).toBe(structure === 1);
+        expect(plan.workspace?.moves.map((m) => m.to)).toContain("client");
+        await applyReorganize(dir, plan);
+
+        // Exactly what `init` writes today: every file, byte for byte, both manifests included.
+        expect(await tree(dir), `structure ${structure}`).toEqual(grouped);
+        expect(existsSync(join(dir, "selfauth.manifest.json"))).toBe(false);
+      }
+    },
+  );
+
+  it("keeps a full-stack project's own edits, .env and dependencies through the split", async () => {
+    const { dir } = await flatProject(
+      { ...base, database: "memory", frontend: "vue" },
+      { structure: 2 },
+    );
+    const pkg = JSON.parse(await readFile(join(dir, "package.json"), "utf8"));
+    pkg.dependencies["left-pad"] = "^1.3.0";
+    pkg.scripts["lint"] = "eslint .";
+    await writeFile(join(dir, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
+    await writeFile(join(dir, ".env"), "PORT=3999\nSECRET_THING=keep-me\n");
+    await writeFile(join(dir, "src/routes/orders.ts"), "// my own route\n");
+
+    await applyReorganize(dir, await planReorganize(dir));
+
+    const server = JSON.parse(await readFile(join(dir, "server/package.json"), "utf8"));
+    expect(server.name).toBe("demo-server");
+    expect(server.dependencies["left-pad"]).toBe("^1.3.0");
+    expect(server.scripts["lint"]).toBe("eslint .");
+    expect(server.scripts).not.toHaveProperty("dev:web");
+    expect(await readFile(join(dir, "server/.env"), "utf8")).toContain("SECRET_THING=keep-me");
+    expect(await readFile(join(dir, "server/src/routes/orders.ts"), "utf8")).toBe(
+      "// my own route\n",
+    );
+    // package.json was edited by you, so it is reported as changed, not as untouched.
+    expect((await runValidation(join(dir, "server"))).notes.join(" ")).toContain("package.json");
+  });
+
+  it("refuses to split when server/ or client/ already exists", async () => {
+    const { dir } = await flatProject(
+      { ...base, database: "memory", frontend: "vue" },
+      { structure: 2 },
+    );
+    await writeFile(join(dir, "client"), "in the way");
+    const plan = await planReorganize(dir);
+    expect(plan.problems.join(" ")).toContain("client/ already exists");
+    await expect(applyReorganize(dir, plan)).rejects.toThrow(/already exists/);
+    expect(existsSync(join(dir, "web/package.json"))).toBe(true);
   });
 
   it("leaves a project that validates, with nothing for upgrade to change", async () => {
@@ -183,7 +280,10 @@ describe("selfauth upgrade --reorganize", () => {
   it("refuses a project that is already grouped", async () => {
     const dir = await temp();
     await applyPlan(dir, await planInit({ ...base, database: "memory", frontend: "none" }));
-    await expect(planReorganize(dir)).rejects.toThrow(/already uses the grouped layout/);
+    await expect(planReorganize(dir)).rejects.toThrow(/already uses the current layout/);
+    const workspace = await temp();
+    await applyPlan(workspace, await planInit({ ...base, database: "memory", frontend: "vue" }));
+    await expect(planReorganize(workspace)).rejects.toThrow(/two-package layout/);
   });
 
   it("is what `upgrade` tells you to run on an old project", async () => {

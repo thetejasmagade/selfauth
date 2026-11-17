@@ -52,6 +52,9 @@ export const config: SelfAuthConfig = ${JSON.stringify(config, null, 2)};
 `;
 }
 
+/** Full-stack projects (a frontend was chosen) are two packages in an npm workspace. */
+export const isWorkspace = (answers: Pick<InitAnswers, "frontend">) => answers.frontend !== "none";
+
 export function renderPackageJson(
   answers: InitAnswers,
   deps: { dependencies: string[]; devDependencies: string[] },
@@ -72,12 +75,6 @@ export function renderPackageJson(
     typecheck: "tsc -p tsconfig.json --noEmit",
     test: 'node --test "test/**/*.test.ts"',
   };
-  if (answers.frontend !== "none") {
-    Object.assign(scripts, {
-      "dev:web": "npm --prefix web run dev",
-      "build:web": "npm --prefix web run build",
-    });
-  }
   if (answers.database === "postgresql") {
     Object.assign(scripts, {
       generate: "prisma generate",
@@ -90,7 +87,7 @@ export function renderPackageJson(
   }
   return `${JSON.stringify(
     {
-      name: answers.name,
+      name: isWorkspace(answers) ? `${answers.name}-server` : answers.name,
       version: "0.1.0",
       private: true,
       type: "module",
@@ -147,7 +144,7 @@ export function renderWebPackageJson(
   const pick = (names: string[]) => Object.fromEntries(names.map((n) => [n, versions[n] ?? "*"]));
   return `${JSON.stringify(
     {
-      name: `${answers.name}-web`,
+      name: `${answers.name}-client`,
       version: "0.1.0",
       private: true,
       type: "module",
@@ -213,24 +210,62 @@ export function renderEnvExample(answers: InitAnswers): string {
   return `${lines.join("\n")}\n`;
 }
 
-export function renderGitignore(): string {
+/** Workspace root package.json: runs both packages (`concurrently` so it also works on Windows). */
+export function renderRootPackageJson(answers: InitAnswers): string {
+  const pg = answers.database === "postgresql";
+  const scripts: Record<string, string> = {
+    dev: 'concurrently -k -n server,client -c blue,green "npm run dev -w server" "npm run dev -w client"',
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    build: "npm run build -w server && npm run build -w client",
+    start: "npm run start -w server",
+    typecheck: "npm run typecheck -w server && npm run typecheck -w client",
+    test: "npm run test -w server",
+  };
+  if (pg) {
+    Object.assign(scripts, {
+      "db:migrate": "npm run db:migrate -w server",
+      "db:status": "npm run db:status -w server",
+      "db:seed": "npm run db:seed -w server",
+      // Arguments after `npm run db:create-admin --` reach the script.
+      "db:create-admin": "npm run db:create-admin -w server --",
+    });
+  }
+  return `${JSON.stringify(
+    {
+      name: answers.name,
+      version: "0.1.0",
+      private: true,
+      workspaces: ["server", "client"],
+      engines: { node: ">=22.18" },
+      scripts,
+      devDependencies: { concurrently: "^9.1.0" },
+    },
+    null,
+    2,
+  )}\n`;
+}
+
+export function renderGitignore(options: { workspace?: boolean } = {}): string {
   return [
     "node_modules/",
     "dist/",
     ".env",
     ".env.*",
     "!.env.example",
-    "src/generated/",
+    // A pattern with a slash in the middle is anchored to the .gitignore's folder.
+    options.workspace ? "**/src/generated/" : "src/generated/",
     "*.log",
     "",
   ].join("\n");
 }
 
-/** The folder tree shown in the generated README, for the options the project was made with. */
-export function renderLayout(answers: InitAnswers): string {
+type Row = [string, string];
+
+function serverRows(answers: InitAnswers): Row[] {
   const pg = answers.database === "postgresql";
   const web = answers.frontend !== "none";
-  const rows: [string, string][] = [
+  return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
     ["  app.ts", "builds the Express app: middleware, routes, error handling"],
@@ -241,10 +276,7 @@ export function renderLayout(answers: InitAnswers): string {
     ["  routes/", ""],
     ["    index.ts", "your routes: guard them with auth.requireAuth / requirePermission"],
     ...(web
-      ? ([["    notes.ts", "example: permissions and ownership (replace it)"]] as [
-          string,
-          string,
-        ][])
+      ? ([["    notes.ts", "example: permissions and ownership (replace it)"]] as Row[])
       : []),
     ["  email/mailer.ts", "plug in your email provider here"],
     [
@@ -253,40 +285,80 @@ export function renderLayout(answers: InitAnswers): string {
     ],
     ["  http/", "error responses and request ids"],
     ["  auth/", "SelfAuth's generated authentication code (core/, express/, stores/)"],
-    ...(pg ? ([["  scripts/", "seed (roles) and create-admin"]] as [string, string][]) : []),
+    ...(pg ? ([["  scripts/", "seed (roles) and create-admin"]] as Row[]) : []),
     ["test/", "smoke tests for the authentication wiring (npm test)"],
-    ...(pg ? ([["prisma/", "database schema and migrations"]] as [string, string][]) : []),
-    ...(web
-      ? ([
-          ["web/", `the ${answers.frontend} frontend (Vite)`],
-          ["  src/", ""],
-          [
-            `    ${answers.frontend === "vue" ? "main.ts, App.vue, router.ts" : "main.tsx, App.tsx"}`,
-            "entry point, app shell and routes",
-          ],
-          [
-            "    auth/",
-            "SelfAuth's frontend module: API client, session state, route guards, <Can>",
-          ],
-          [
-            "    pages/auth/",
-            "the five account screens: login, register, verify email, forgot and reset password",
-          ],
-          [
-            "    pages/",
-            `your pages (${answers.frontend === "vue" ? "home, account, notes, forbidden, 404" : "account, notes"}): replace the notes example`,
-          ],
-        ] as [string, string][])
-      : []),
-    ["selfauth.manifest.json", "which files SelfAuth generated (used by doctor, diff, upgrade)"],
+    ...(pg ? ([["prisma/", "database schema and migrations"]] as Row[]) : []),
   ];
+}
+
+function clientRows(answers: InitAnswers): Row[] {
+  return [
+    ["src/", ""],
+    [
+      `  ${answers.frontend === "vue" ? "main.ts, App.vue, router.ts" : "main.tsx, App.tsx"}`,
+      "entry point, app shell and routes",
+    ],
+    ["  auth/", "SelfAuth's frontend module: API client, session state, route guards, <Can>"],
+    [
+      "  pages/auth/",
+      "the five account screens: login, register, verify email, forgot and reset password",
+    ],
+    [
+      "  pages/",
+      `your pages (${answers.frontend === "vue" ? "home, account, notes, forbidden, 404" : "account, notes"}): replace the notes example`,
+    ],
+  ];
+}
+
+/** The folder tree shown in the generated README, for the options the project was made with. */
+export function renderLayout(answers: InitAnswers): string {
+  const indent = (rows: Row[]): Row[] => rows.map(([name, note]) => [`  ${name}`, note]);
+  const rows: Row[] = isWorkspace(answers)
+    ? [
+        [
+          "server/",
+          `the Express API (${answers.database === "postgresql" ? "PostgreSQL" : "in-memory"})`,
+        ],
+        ...indent(serverRows(answers)),
+        ["  package.json, tsconfig.json", "its own package"],
+        ["  .env.example", "copy to server/.env"],
+        ["  selfauth.manifest.json", "which files SelfAuth generated (doctor, diff, upgrade)"],
+        ["client/", `the ${answers.frontend} frontend (Vite)`],
+        ...indent(clientRows(answers)),
+        ["  package.json", "its own package"],
+        ["  selfauth.manifest.json", "which files SelfAuth generated"],
+        ["package.json", "workspace root: `npm run dev` starts both"],
+      ]
+    : [
+        ...serverRows(answers),
+        [
+          "selfauth.manifest.json",
+          "which files SelfAuth generated (used by doctor, diff, upgrade)",
+        ],
+      ];
   const width = Math.max(...rows.map(([name]) => name.length)) + 2;
   return rows.map(([name, note]) => (note ? `${name.padEnd(width)}${note}` : name)).join("\n");
 }
 
 export function renderReadme(answers: InitAnswers): string {
   const pg = answers.database === "postgresql";
-  const web = answers.frontend !== "none";
+  const ws = isWorkspace(answers);
+  const env = ws ? "server/.env" : ".env";
+  const base = ws ? "server/" : "";
+  const run = [
+    "npm install",
+    `cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}${pg ? "   # then set DATABASE_URL" : ""}`,
+    ...(pg
+      ? [
+          "npx selfauth db plan          # optional: review the migration for destructive changes",
+          "npm run db:migrate",
+          `npm run db:seed               # roles from ${base}src/config/selfauth.config.ts`,
+        ]
+      : []),
+    ws
+      ? `npm run dev                   # API on :3000 and the ${answers.frontend} app together`
+      : "npm run dev",
+  ].join("\n");
   return `# ${answers.name}
 
 Generated by SelfAuth. **All of this code is yours**: read it, change it,
@@ -295,14 +367,12 @@ deploy it. Nothing here calls a SelfAuth service.
 ## Run
 
 \`\`\`bash
-npm install
-cp .env.example .env${pg ? "            # then set DATABASE_URL" : ""}
-${pg ? "npx selfauth db plan          # optional: review the migration for destructive changes\nnpm run db:migrate\nnpm run db:seed               # roles from src/config/selfauth.config.ts\n" : ""}npm run dev${web ? "                   # API on :3000\nnpm --prefix web install && npm run dev:web   # " + answers.frontend + " app, proxies /auth and /api" : ""}
+${run}
 \`\`\`
-${web ? `\nOpen ${answers.appBaseUrl}. The frontend lives in \`web/\` (${answers.frontend}); its \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`src/routes/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\`. If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
+${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`server/src/routes/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
 development. Before production, implement \`createMailer()\` in
-\`src/email/mailer.ts\`; the server refuses to start in production until you do.
+\`${base}src/email/mailer.ts\`; the server refuses to start in production until you do.
 ${pg ? "" : "\nThis project uses the **in-memory store** (data is lost on restart). Regenerate with `--database postgresql` for persistence.\n"}
 ## Project layout
 
@@ -310,27 +380,27 @@ ${pg ? "" : "\nThis project uses the **in-memory store** (data is lost on restar
 ${renderLayout(answers)}
 \`\`\`
 
-Authentication behaviour is configuration (\`src/config/selfauth.config.ts\`), not code you
-edit: \`src/auth/\` is the tested security core.
+Authentication behaviour is configuration (\`${base}src/config/selfauth.config.ts\`), not code you
+edit: \`${base}src/auth/\` is the tested security core.
 
 ## Routes
 
 Authentication lives under \`/auth\` (register, login, logout, me, email
 verification, password reset/change, sessions, admin). Add your own routes in
-\`src/routes/index.ts\`; guard them with \`auth.requireAuth\`,
+\`${base}src/routes/index.ts\`; guard them with \`auth.requireAuth\`,
 \`auth.requirePermission("x.y")\` or \`auth.protectedRoutes()\`.
 
 Browsers must send \`X-SelfAuth-CSRF: 1\` on state-changing requests (or use
 the SelfAuth frontend client).
-${pg ? "\nCreate the first administrator after registering: `npm run db:create-admin you@example.com`.\n" : ""}
+${pg ? `\nCreate the first administrator after registering: \`npm run db:create-admin you@example.com\`.\n` : ""}
 ## Checks
 
-\`npm test\` runs smoke tests of the authentication wiring in \`test/\` (no database needed).
+\`npm test\` runs smoke tests of the authentication wiring${ws ? " in `server/test/`" : " in `test/`"} (no database needed).
 They are yours to extend. The SelfAuth CLI is a development tool and optional; the app never
 needs it to run.
 
 \`\`\`bash
-npx selfauth doctor     # configuration and production-readiness warnings
+npx selfauth doctor     # configuration and production-readiness warnings${ws ? " (checks server/ and client/)" : ""}
 npx selfauth validate   # configuration schema + which generated files you changed
 npx selfauth diff       # what a newer SelfAuth release would change
 \`\`\`

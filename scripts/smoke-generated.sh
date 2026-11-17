@@ -23,6 +23,9 @@ APP="$WORK/app"
 PORT="${SMOKE_PORT:-3950}"
 trap 'kill "${SERVER:-0}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
+# Where the API's .env lives: the project root, or server/ in a full-stack project (two packages).
+ENVFILE=.env
+
 step() { printf '\n== %s\n' "$*"; }
 # The installed skill's scripts, run as an agent would (SELFAUTH_CLI: this build, not npm).
 skill() { SELFAUTH_CLI="$CLI" node "$APP/.claude/skills/selfauth/scripts/$1" "${@:2}"; }
@@ -92,18 +95,20 @@ else
   expect "the generated project's own tests pass" "$(npm test 2>&1)" "# pass 6"
   npm run -s build
   if [[ "$MODE" != "none" ]]; then
-    step "frontend ($MODE): install, typecheck, build"
-    npm --prefix web install --no-audit --no-fund --loglevel=error
-    npm --prefix web run -s typecheck
-    npm --prefix web run -s build
-    test -f web/dist/index.html
-    grep -q 'name="referrer" content="no-referrer"' web/dist/index.html && echo "ok   built index.html sets Referrer-Policy"
+    step "full-stack ($MODE): two packages in one workspace, built by the root scripts"
+    # One `npm install` at the root installed server/ and client/; `typecheck` and `build` above
+    # ran both packages.
+    test -f server/package.json && test -f client/package.json
+    test ! -e web && test ! -e src
+    test -f server/selfauth.manifest.json && test -f client/selfauth.manifest.json
+    test -f client/dist/index.html
+    grep -q 'name="referrer" content="no-referrer"' client/dist/index.html && echo "ok   built index.html sets Referrer-Policy"
 
-    step "separate frontend: add-frontend into a copy of web/ whose auth module was removed"
+    step "separate frontend: add-frontend into a copy of client/ whose auth module was removed"
     # An existing app that has no SelfAuth yet: same pages, auth module absent, then added elsewhere.
     WEB2="$WORK/web2"
     mkdir -p "$WEB2"
-    (cd web && tar --exclude=node_modules --exclude=dist --exclude=src/auth -cf - .) | tar -xf - -C "$WEB2"
+    (cd client && tar --exclude=node_modules --exclude=dist --exclude=src/auth --exclude=selfauth.manifest.json -cf - .) | tar -xf - -C "$WEB2"
     # Re-point only imports of the module (…/auth/index.ts), not the pages/auth/ folder.
     grep -rl '/auth/index.ts' "$WEB2/src" | xargs sed -i 's#/auth/index\.ts#/selfauth/index.ts#g'
     (cd "$WEB2" && node "$CLI" add-frontend --yes > "$WORK/add-frontend.log" \
@@ -113,19 +118,25 @@ else
       && test -f dist/index.html)
     echo "ok   frontend module works from src/selfauth in a separate app"
   fi
-  cp .env.example .env
-  START=(node --env-file=.env dist/server.js)
+  if [[ "$MODE" == "none" ]]; then
+    cp .env.example .env
+    START=(node --env-file=.env dist/server.js)
+  else
+    ENVFILE=server/.env
+    cp server/.env.example "$ENVFILE"
+    START=(node "--env-file=$ENVFILE" server/dist/server.js)
+  fi
 fi
 if [[ "$DB" == "postgresql" && "$MODE" == "manual" ]]; then
   : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
-  sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" .env
+  sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" "$ENVFILE"
   step "migrate with Prisma directly, seed roles"
   npm run -s db:migrate
   npm run -s db:seed
 elif [[ "$DB" == "postgresql" ]]; then
   : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
-  sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" .env
-  step "selfauth db plan / migrate / validate"
+  sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" "$ENVFILE"
+  step "selfauth db plan / migrate / validate (from the project root)"
   node "$CLI" db plan
   node "$CLI" db migrate
   node "$CLI" db status
@@ -169,7 +180,10 @@ if [[ "$MODE" != "manual" ]]; then
   VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
   echo "$VALIDATION"
   expect "validate-auth passes" "$VALIDATION" "RESULT: PASS"
-  [[ "$MODE" != "add" && "$MODE" != "add-layout" ]] && expect "validate-auth ran the project's tests" "$VALIDATION" "PASS    backend: test"
+  # The root scripts of a full-stack project run server/ and client/ ("workspace").
+  TESTS_LABEL=backend
+  [[ "$MODE" == "vue" || "$MODE" == "react" ]] && TESTS_LABEL=workspace
+  [[ "$MODE" != "add" && "$MODE" != "add-layout" ]] && expect "validate-auth ran the project's tests" "$VALIDATION" "PASS    $TESTS_LABEL: test"
   expect "skill reports SelfAuth installed" "$(skill detect-project.ts .)" "**Recommendation: upgrade**"
 fi
 

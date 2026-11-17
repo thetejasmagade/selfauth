@@ -35,13 +35,16 @@ export const manifestSchema = z.strictObject({
       /**
        * `project`: a project made by `init`. `add`: backend files added to an existing project.
        * `frontend`: the auth module added to an existing frontend (its own manifest; `database` is unused).
+       * `server` and `client`: the two packages of a full-stack project made by `init` (structure 3);
+       * each has its own manifest, and the client's `database` is unused.
        */
-      layout: z.enum(["project", "add", "frontend"]).default("project"),
+      layout: z.enum(["project", "add", "frontend", "server", "client"]).default("project"),
       /** Source folder the `add` and `frontend` layouts write under, relative to the manifest. */
       srcDir: z.string().default("src"),
       /**
        * Folder structure of the generated app code. 1: the flat src/ of SelfAuth 0.3 and earlier
-       * (src/env.ts, src/mailer.ts, …); 2: grouped by responsibility (src/config/, src/email/, …).
+       * (src/env.ts, src/mailer.ts, …); 2: grouped by responsibility (src/config/, src/email/, …);
+       * 3: a full-stack project as two packages, server/ and client/, in one npm workspace.
        * Manifests written before this field existed are structure 1.
        */
       structure: z.number().int().min(1).default(1),

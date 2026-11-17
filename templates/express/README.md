@@ -7,7 +7,7 @@ deploy it. Nothing here calls a SelfAuth service.
 
 ```bash
 npm install
-cp .env.example .env            # then set DATABASE_URL
+cp .env.example .env   # then set DATABASE_URL
 npx selfauth db plan          # optional: review the migration for destructive changes
 npm run db:migrate
 npm run db:seed               # roles from src/config/selfauth.config.ts

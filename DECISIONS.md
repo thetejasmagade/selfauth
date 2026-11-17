@@ -27,3 +27,4 @@ Index of Architecture Decision Records (ADRs). Full text lives in
 | [0020](docs/adr/0020-agent-skill.md) | `selfauth` agent skill: Agent Skills format, drives the CLI (`detect --json`), spec-synced references, validation must print PASS | Accepted |
 | [0021](docs/adr/0021-distribution.md) | Distribution: dev-tool packages only (no runtime package), `selfauth` alias, generated committed templates, tested manual install | Accepted |
 | [0022](docs/adr/0022-conformance-levels-and-sign-offs.md) | Conformance levels computed from results and evidence-backed sign-offs; generated support matrix | Accepted |
+| [0023](docs/adr/0023-two-package-full-stack-layout.md) | Full-stack projects are two packages in one npm workspace (`server/`, `client/`), each with its own manifest | Accepted |

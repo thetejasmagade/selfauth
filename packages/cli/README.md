@@ -8,16 +8,21 @@ runtime.
 
 ```bash
 npx selfauth init my-app --database postgresql --frontend vue --permissions orders.view
-cd my-app && npm install && cp .env.example .env   # set DATABASE_URL
+cd my-app && npm install                  # one install covers server/ and client/
+cp server/.env.example server/.env        # set DATABASE_URL
 npx selfauth db plan        # review the migration
 npx selfauth db migrate     # Prisma Migrate; destructive plans need --approve-destructive
-npm run db:seed && npm run dev
-npm --prefix web install && npm run dev:web        # the Vue app on :5173
+npm run db:seed
+npm run dev                 # the API (:3000) and the Vue app (:5173) together
 ```
 
-`--frontend vue|react` adds the reference frontend in `web/` (API client,
-session state, route guards, `<Can>`, every auth page) and a notes example on
-both sides that shows permissions and ownership.
+`--frontend vue|react` makes a full-stack project of two packages in one npm
+workspace: the API in `server/` and the reference frontend in `client/` (API
+client, session state, route guards, `<Can>`, every auth page), with a notes
+example on both sides that shows permissions and ownership. Each package has its
+own `selfauth.manifest.json`; run `selfauth doctor`, `validate`, `diff` or `upgrade`
+at the root and it covers both. Without a frontend the project is a single package
+with `src/` at the root.
 
 ## Existing Express project
 

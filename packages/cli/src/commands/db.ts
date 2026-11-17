@@ -1,6 +1,5 @@
-import { resolve } from "node:path";
 import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
-import { loadManifest } from "../project.js";
+import { databaseDir, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 function printPlan(plan: MigrationPlan) {
@@ -23,7 +22,7 @@ export async function db(
   command: string,
   args: { dir?: string; approveDestructive?: boolean; name?: string },
 ): Promise<number> {
-  const dir = resolve(args.dir ?? ".");
+  const dir = await databaseDir(args.dir);
   const manifest = await loadManifest(dir);
   if (!manifest) {
     fail("not a SelfAuth project (selfauth.manifest.json not found)");
