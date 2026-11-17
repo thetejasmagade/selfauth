@@ -14,7 +14,7 @@ import {
   runSuite,
   type CaseResult,
 } from "@selfauth/conformance";
-import { loadRequirements } from "@selfauth/spec";
+import { loadRequirements, SPEC_VERSION } from "@selfauth/spec";
 import { describe, expect, it } from "vitest";
 import { TEST_DATABASE_URL } from "../postgres.ts";
 import { playgroundDriver } from "./driver.ts";
@@ -41,9 +41,8 @@ describe("adapter record", () => {
   });
 
   it("targets the specification version in this repository", () => {
-    expect(record.specVersion).toBe(
-      read("packages/spec/package.json").version.replace(/\.\d+$/, ""),
-    );
+    // The specification has its own version; it does not follow the package's.
+    expect(record.specVersion).toBe(SPEC_VERSION);
   });
 });
 
