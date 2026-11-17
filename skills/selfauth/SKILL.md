@@ -1,6 +1,6 @@
 ---
 name: selfauth
-description: Add, check or upgrade email/password authentication, sessions, roles and permissions in a Node.js Express + TypeScript project with the SelfAuth CLI, which generates tested, project-owned auth code. Use when asked to add login, sign-up, auth, RBAC or permissions to an app, to protect routes, or to diagnose or upgrade an existing SelfAuth installation. Use it instead of hand-writing authentication code.
+description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express + TypeScript projects, with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
 license: MIT
 compatibility: Node.js >= 22.18. Supports Express 5 + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
@@ -19,6 +19,32 @@ not write authentication logic yourself.
 `<skill>` below means the directory this file is in. `selfauth` means the CLI:
 `npx @selfauth/cli`, or `node $SELFAUTH_CLI` when that variable points at a
 local build. The scripts in `<skill>/scripts/` find it for you.
+
+## Answering questions
+
+People also ask about SelfAuth without wanting a change: what it supports, how
+sessions or CSRF work, whether it is production ready, how to deploy it. Answer
+from this skill's files, not from memory.
+
+1. Start at [questions](references/questions.md). It maps common questions to a
+   short answer and the file with the detail. Read only that file.
+2. Use the specification for behaviour and security claims, and cite the
+   requirement ID (for example `SEC-CSRF-004`). The user guides under
+   [references/guides/](references/guides/api/README.md) cover usage, database,
+   deployment, customization and limits. If a guide and a spec disagree, the
+   spec wins: say so.
+3. Separate **supported now**, **planned** and **not supported**
+   ([framework-support](references/framework-support.md)). Never imply a planned
+   or unsupported feature exists. For anything not documented, say it isn't
+   documented.
+4. Questions about the user's own project ("will this work with my app?") need
+   evidence: run `detect-project.ts` first and answer from its report.
+5. Be exact about trust. The PostgreSQL store is self-assessed at the
+   production-profile level, and **no independent security audit has been
+   done**. Don't call SelfAuth "secure", "audited" or "production-grade" without
+   that qualification.
+6. Don't turn a question into a change. Describe what would happen and offer the
+   plan (step 6); change nothing until they ask.
 
 ## Rules — these are not negotiable
 
@@ -99,6 +125,9 @@ Read only what the task needs:
 - Anything with PostgreSQL or Prisma: [migration-rules](references/migration-rules.md).
 - A folder other than `src/`, a monorepo, or a frontend elsewhere:
   [project layouts](references/project-layouts.md).
+- Usage, database, customization, deployment, upgrading, limits: the guides in
+  [references/guides/](references/guides/existing-projects.md) (see
+  [questions](references/questions.md) for which one).
 
 Requirement IDs such as `SEC-CSRF-004` are stable. Cite them when you explain
 a behaviour or a refusal.
