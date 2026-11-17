@@ -1,7 +1,15 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import { fileDrift, loadConfig, loadManifest, projectPath, readEnvFile } from "../project.js";
+import { dirname, join, resolve } from "node:path";
+import {
+  fileDrift,
+  loadConfig,
+  loadManifest,
+  packageLabel,
+  projectDirs,
+  projectPath,
+  readEnvFile,
+} from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface DoctorReport {
@@ -27,7 +35,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
     return report;
   }
 
-  if (manifest.options?.layout === "frontend") {
+  if (manifest.options?.layout === "frontend" || manifest.options?.layout === "client") {
     // The frontend module has no configuration, mailer or database: only its files can drift.
     const drift = await fileDrift(dir, manifest);
     for (const m of drift.missing) report.warnings.push(`generated file deleted: ${m}`);
@@ -36,7 +44,9 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
         `you changed ${drift.modified.length} generated file(s): ${drift.modified.join(", ")}`,
       );
     report.notes.push(
-      `frontend module (${manifest.options.frontend}) in ${manifest.options.srcDir}/selfauth, templates ${manifest.templateVersion ?? "unknown"}; the backend's checks run with \`selfauth doctor\` in the backend folder`,
+      manifest.options.layout === "client"
+        ? `${manifest.options.frontend} frontend, templates ${manifest.templateVersion ?? "unknown"}; only its generated files are checked for changes`
+        : `frontend module (${manifest.options.frontend}) in ${manifest.options.srcDir}/selfauth, templates ${manifest.templateVersion ?? "unknown"}; the backend's checks run with \`selfauth doctor\` in the backend folder`,
     );
     return report;
   }
@@ -89,9 +99,11 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
       `no email provider yet: implement createMailer() in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
     );
   }
-  const gitignore = existsSync(join(dir, ".gitignore"))
-    ? await readFile(join(dir, ".gitignore"), "utf8")
-    : "";
+  // A full-stack project keeps one .gitignore at its root, above the server package.
+  const gitignoreFiles = [dir, ...(manifest.options?.layout === "server" ? [dirname(dir)] : [])]
+    .map((d) => join(d, ".gitignore"))
+    .filter((f) => existsSync(f));
+  const gitignore = (await Promise.all(gitignoreFiles.map((f) => readFile(f, "utf8")))).join("\n");
   if (!/^\.env$/m.test(gitignore)) report.errors.push(".env is not git-ignored (SEC-SECRET-002)");
   const env = await readEnvFile(dir, ".env");
   if (existsSync(join(dir, ".env"))) {
@@ -119,13 +131,23 @@ export async function doctor(
   dirArg: string | undefined,
   opts: { json?: boolean } = {},
 ): Promise<number> {
-  const dir = resolve(dirArg ?? ".");
-  const report = await diagnose(dir);
+  const base = resolve(dirArg ?? ".");
+  const dirs = await projectDirs(dirArg);
+  // One report for one package; for a full-stack project the packages' findings are merged,
+  // each prefixed with its folder.
+  const report: DoctorReport = { errors: [], warnings: [], notes: [] };
+  for (const dir of dirs) {
+    const r = await diagnose(dir);
+    const prefix = packageLabel(base, dirs, dir);
+    report.errors.push(...r.errors.map((m) => prefix + m));
+    report.warnings.push(...r.warnings.map((m) => prefix + m));
+    report.notes.push(...r.notes.map((m) => prefix + m));
+  }
   if (opts.json) {
     say(JSON.stringify({ ok: !report.errors.length, ...report }, null, 2));
     return report.errors.length ? 1 : 0;
   }
-  say(`SelfAuth doctor → ${dir}`);
+  say(`SelfAuth doctor → ${base}`);
   for (const e of report.errors) fail(e);
   for (const w of report.warnings) warn(w);
   for (const n of report.notes) info(n);

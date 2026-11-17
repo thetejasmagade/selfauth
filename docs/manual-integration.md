@@ -9,7 +9,7 @@ anything, and nothing contacts a SelfAuth service. Requirements: Node.js ≥
 ## New project
 
 ```bash
-cp -r templates/express my-app          # or express-vue / express-react
+cp -r templates/express my-app          # API only. Or express-vue / express-react (see below)
 cd my-app
 npm install                              # express, cookie, @node-rs/argon2, Prisma: nothing from SelfAuth
 cp .env.example .env                     # set DATABASE_URL (or remove it to use the in-memory store in development)
@@ -18,9 +18,13 @@ npm run db:seed                          # writes the roles from src/config/self
 npm run dev                              # API on :3000; emails are printed to the console
 ```
 
-For `express-vue`/`express-react`, also run
-`npm --prefix web install && npm run dev:web`. The Vite dev server on :5173
-proxies `/auth` and `/api` to the API.
+`express-vue` and `express-react` are full-stack projects made of two packages in
+one npm workspace: the API in `server/` and the frontend in `client/`. The steps
+are the same, run at the root, with two differences: the API's settings file is
+`server/.env` (`cp server/.env.example server/.env`), and `npm run dev` starts
+the API and the Vite dev server together. The dev server on :5173 proxies
+`/auth` and `/api` to the API. One `npm install` at the root installs both
+packages, and `npm run build`, `typecheck` and `test` run them too.
 
 Try it:
 

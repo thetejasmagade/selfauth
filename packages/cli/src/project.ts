@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { MANIFEST_FILE, readManifest, type Manifest } from "@selfauth/migration";
 import { parseConfig, type SelfAuthConfig } from "@selfauth/spec";
@@ -128,4 +128,46 @@ export function readEnvFile(dir: string, name: string): Promise<Record<string, s
         .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]),
     ),
   );
+}
+
+/**
+ * The folders a command should act on. A folder with a manifest is itself. The root of a
+ * full-stack project (no manifest, but server/ and/or client/ have one) means those packages.
+ * A folder inside a package (server/src, ...) means the nearest ancestor with a manifest.
+ * Otherwise the folder itself, so the command reports "not a SelfAuth project".
+ */
+export async function projectDirs(dirArg: string | undefined): Promise<string[]> {
+  const dir = resolve(dirArg ?? ".");
+  if (existsSync(join(dir, MANIFEST_FILE))) return [dir];
+  const packages = ["server", "client"]
+    .map((p) => join(dir, p))
+    .filter((d) => existsSync(join(d, MANIFEST_FILE)));
+  if (packages.length) return packages;
+  let parent = dirname(dir);
+  for (let i = 0; i < 4 && parent !== dirname(parent); i++, parent = dirname(parent)) {
+    if (existsSync(join(parent, MANIFEST_FILE))) return [parent];
+  }
+  return [dir];
+}
+
+/** `server/: ` when a command covers several packages, empty for one. */
+export function packageLabel(base: string, dirs: string[], dir: string): string {
+  return dirs.length > 1 ? `${relative(resolve(base), dir) || "."}: ` : "";
+}
+
+/** The folder with the database tools: the server package of a full-stack project, else the folder. */
+export async function databaseDir(dirArg: string | undefined): Promise<string> {
+  const dirs = await projectDirs(dirArg);
+  // Inside client/: the database tools live in its sibling server/.
+  const sibling = dirs.length === 1 ? join(dirname(dirs[0]!), "server") : null;
+  const candidates =
+    sibling && dirs[0]!.endsWith("client") && existsSync(join(sibling, MANIFEST_FILE))
+      ? [sibling]
+      : dirs;
+  for (const d of candidates) {
+    const manifest = await loadManifest(d).catch(() => null);
+    if (manifest && manifest.options?.layout !== "client" && manifest.database.orm !== "none")
+      return d;
+  }
+  return candidates[0]!;
 }

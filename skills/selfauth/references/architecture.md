@@ -40,6 +40,18 @@ web/                    (--frontend vue|react) API client, session state,
                         route guards, <Can>, every auth page
 ```
 
+With `--frontend vue|react`, `init` makes two packages in one npm workspace
+instead: everything above (except `web/`) moves into `server/`, the frontend
+becomes `client/`, and the root holds `package.json` (workspaces, `npm run dev`
+starts both), `README.md` and `.gitignore`. Each package has its own
+`selfauth.manifest.json`, so run `selfauth doctor`, `validate`, `diff` and
+`upgrade` at the root (they cover both) or inside a package.
+
+```text
+server/   package.json, tsconfig*.json, .env.example, src/ (as above), test/, prisma/
+client/   package.json, vite.config.ts, src/auth/ (API client, guards), src/pages/
+```
+
 ### `selfauth add` (existing Express project)
 
 Everything goes under `src/selfauth/`, plus `prisma/` for PostgreSQL, so

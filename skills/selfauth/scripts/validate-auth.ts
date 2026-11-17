@@ -9,7 +9,8 @@
 //        [--skip-tests] [--json]
 //
 // Runs: selfauth validate, selfauth doctor, the project's typecheck / test / build scripts
-// (backend and web/), and, with --url, read-only probes against the running server.
+// (the project root, which for a full-stack project runs server/ and client/), and, with --url,
+// read-only probes against the running server.
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import {
@@ -70,7 +71,8 @@ try {
   add("selfauth doctor", "FAIL", (error as Error).message);
 }
 
-// 3. The project's own scripts, for the backend and (if generated) web/.
+// 3. The project's own scripts. A full-stack project (made by SelfAuth 0.6 or later) is an npm workspace whose root
+// scripts run server/ and client/; an older one has web/ next to src/.
 function projectScripts(where: string, label: string): void {
   const pkg = readPackageJson(where);
   if (!pkg) return;
@@ -109,8 +111,10 @@ function projectScripts(where: string, label: string): void {
     );
   }
 }
-projectScripts(dir, "backend");
-if (existsSync(join(dir, "web", "package.json"))) projectScripts(join(dir, "web"), "web");
+const workspace = Boolean(readPackageJson(dir)?.workspaces);
+projectScripts(dir, workspace ? "workspace" : "backend");
+if (!workspace && existsSync(join(dir, "web", "package.json")))
+  projectScripts(join(dir, "web"), "web");
 
 // 4. Live probes: read-only requests that must be refused without a session / CSRF header.
 async function probe(

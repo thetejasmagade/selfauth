@@ -58,7 +58,11 @@ describe.each(variants)("%s runs without SelfAuth", (_name, plan) => {
 
     const declared = (path: string) => {
       if (isAdd) return addDeps(usesPrisma ? "postgresql" : "memory");
-      const owner = path.startsWith("web/") ? "web/package.json" : "package.json";
+      // The nearest package.json above the file: server/, client/ or the project root.
+      const owner =
+        ["server", "client"]
+          .map((d) => `${d}/package.json`)
+          .find((m) => path.startsWith(m.slice(0, -12))) ?? "package.json";
       const pkg = JSON.parse(files.find((f) => f.path === owner)!.content) as Record<
         string,
         Record<string, string> | undefined

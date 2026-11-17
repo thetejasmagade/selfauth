@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { relative, resolve } from "node:path";
 import { SPEC_VERSION } from "@selfauth/spec";
 import { findAuthSignals, type AuthSignal } from "../auth-signals.js";
 import { detectProject, type ProjectInfo } from "../detect.js";
@@ -9,6 +9,7 @@ import {
   type WorkspacePackage,
 } from "../layout.js";
 import { preflightAdd, preflightAddFrontend } from "../preflight.js";
+import { projectDirs } from "../project.js";
 import { CLI_VERSION } from "../version.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
@@ -63,6 +64,21 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     workspaces,
     frontend: null as DetectReport["frontend"],
   };
+
+  // The root of a full-stack project has no manifest itself; its packages do.
+  const installed = project.selfauth ? [] : await projectDirs(dir);
+  if (installed.length > 0 && installed[0] !== dir) {
+    const names = installed.map((d) => relative(dir, d) || ".").join(", ");
+    return {
+      ...base,
+      recommendation: "upgrade",
+      reason: `SelfAuth is already installed (${names}): check it with doctor/validate from this folder, update it with diff/upgrade.`,
+      options: [
+        { command: "selfauth doctor", available: true, blockers: [], warnings: [] },
+        { command: "selfauth diff", available: true, blockers: [], warnings: [] },
+      ],
+    };
+  }
 
   if (project.selfauth) {
     return {

@@ -72,6 +72,39 @@ If you reorganize by hand instead, edit `selfauth.manifest.json` too (the
 `path` of each moved file, and `"structure": 2` under `options`), or
 `validate` reports the old paths as missing.
 
+## Moving to the two-package layout
+
+Full-stack projects (made with `--frontend vue|react`) used to keep the API at
+the root and the frontend in `web/`. They are now two packages in one npm
+workspace:
+
+| Before | After |
+| --- | --- |
+| `src/`, `test/`, `prisma/`, `prisma.config.ts`, `tsconfig*.json`, `.env.example`, `.env` | `server/` (same names inside) |
+| `package.json` | `server/package.json` (renamed `<name>-server`, without the `dev:web` and `build:web` scripts), plus a new workspace `package.json` at the root |
+| `web/` | `client/` |
+| `selfauth.manifest.json` | `server/selfauth.manifest.json` and `client/selfauth.manifest.json` |
+
+`README.md` and `.gitignore` stay at the root (the `src/generated/` line becomes
+`**/src/generated/`). API-only projects don't change. The old layout keeps
+working, and `upgrade` still updates it. Moving is optional, with the same command:
+
+```bash
+git commit -am "before reorganizing"
+npx selfauth upgrade --reorganize --dry-run   # every move and write, nothing changed
+npx selfauth upgrade --reorganize
+rm -rf node_modules client/node_modules package-lock.json   # on Windows: delete them in Explorer
+npm install                                   # once, at the root: installs server/ and client/
+npm run typecheck && npm test
+```
+
+Whole folders move, so no import changes. A project made with 0.3 or earlier is
+brought through both steps in one run. Your own files under `src/` and `web/`,
+your `.env`, extra dependencies and scripts all come along. The generated
+`README.md` still describes the old layout, so update it by hand. From then on
+`selfauth doctor`, `validate`, `diff` and `upgrade` work at the root and cover
+both packages.
+
 ## Without the CLI (manual installations)
 
 1. Compare your files with the new release's

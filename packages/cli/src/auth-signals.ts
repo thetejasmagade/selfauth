@@ -57,16 +57,24 @@ async function sourceFiles(dir: string, out: string[]): Promise<void> {
   }
 }
 
-/** Files SelfAuth generated, from the manifest (they are SelfAuth's auth, not the app's). */
+/**
+ * Files SelfAuth generated, from the manifest (they are SelfAuth's auth, not the app's). A
+ * full-stack project has one manifest per package (server/, client/); their paths are relative
+ * to the package, so they are prefixed with its folder.
+ */
 async function generatedFiles(dir: string): Promise<Set<string>> {
-  const manifest = join(dir, "selfauth.manifest.json");
-  if (!existsSync(manifest)) return new Set();
-  try {
-    const m = JSON.parse(await readFile(manifest, "utf8")) as { files?: { path: string }[] };
-    return new Set((m.files ?? []).map((f) => f.path));
-  } catch {
-    return new Set();
+  const out = new Set<string>();
+  for (const prefix of ["", "server/", "client/"]) {
+    const manifest = join(dir, prefix, "selfauth.manifest.json");
+    if (!existsSync(manifest)) continue;
+    try {
+      const m = JSON.parse(await readFile(manifest, "utf8")) as { files?: { path: string }[] };
+      for (const f of m.files ?? []) out.add(`${prefix}${f.path}`);
+    } catch {
+      // an unreadable manifest excludes nothing
+    }
   }
+  return out;
 }
 
 /** Scans the project's own source (not dependencies, builds or SelfAuth's files). Reads only. */

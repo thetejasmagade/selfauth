@@ -1,5 +1,5 @@
 {
-  "name": "selfauth-app-web",
+  "name": "selfauth-app-client",
   "version": "0.1.0",
   "private": true,
   "type": "module",

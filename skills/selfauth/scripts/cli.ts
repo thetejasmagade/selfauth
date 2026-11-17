@@ -52,10 +52,14 @@ export function parseJson<T>(r: Run, what: string): T {
 
 export function readPackageJson(dir: string): {
   scripts?: Record<string, string>;
+  workspaces?: unknown;
 } | null {
   const file = join(dir, "package.json");
   return existsSync(file)
-    ? (JSON.parse(readFileSync(file, "utf8")) as { scripts?: Record<string, string> })
+    ? (JSON.parse(readFileSync(file, "utf8")) as {
+        scripts?: Record<string, string>;
+        workspaces?: unknown;
+      })
     : null;
 }
 

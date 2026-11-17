@@ -233,7 +233,7 @@
     {
       "path": "README.md",
       "template": "rendered:readme",
-      "sha256": "bf19ce23baffdacdd8f03bfbbd0e351ea2883ffb53a566a040e5287596c70271"
+      "sha256": "db57fae981e649d988bfeb0a25bb2e3646faff321725b533a4065d9f6599779a"
     },
     {
       "path": "src/config/selfauth.config.ts",

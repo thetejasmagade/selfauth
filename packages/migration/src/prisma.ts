@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import type {
   MigrateResult,
   MigrationAdapter,
@@ -27,16 +27,57 @@ export type CommandRunner = (
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ) => Promise<CommandResult>;
 
-/** Default runner: the project's local Prisma CLI (`node_modules/.bin/prisma`). */
+/**
+ * The project's local Prisma CLI entry script (`node_modules/prisma/build/index.js`), in `cwd`
+ * or a parent folder. In an npm workspace (a full-stack project's server/ and client/) the
+ * package manager hoists dependencies to the workspace root, so it is not in the package's own
+ * folder. The entry script is run with Node itself: the `.bin/prisma` shim is a shell script
+ * that Windows cannot execute directly.
+ */
+export function findLocalPrisma(cwd: string): string | null {
+  let dir = cwd;
+  for (let i = 0; i < 5; i++) {
+    const packageDir = join(dir, "node_modules", "prisma");
+    const manifest = join(packageDir, "package.json");
+    if (existsSync(manifest)) {
+      try {
+        const pkg = JSON.parse(readFileSync(manifest, "utf8")) as {
+          bin?: string | Record<string, string>;
+        };
+        const bin = typeof pkg.bin === "string" ? pkg.bin : pkg.bin?.["prisma"];
+        const entry = bin ? join(packageDir, bin) : null;
+        if (entry && existsSync(entry)) return entry;
+      } catch {
+        // an unreadable package.json: keep looking in the parent
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
+/** Default runner: the project's local Prisma CLI, started with the current Node.js. */
 export const localPrisma: CommandRunner = (args, { cwd, env }) =>
   new Promise((resolve) => {
+    const entry = findLocalPrisma(cwd);
+    if (!entry) {
+      resolve({
+        code: 127,
+        stdout: "",
+        stderr: `Prisma is not installed: no node_modules/prisma in ${cwd} or its parent folders. Run \`npm install\` first.`,
+      });
+      return;
+    }
     execFile(
-      join(cwd, "node_modules", ".bin", "prisma"),
-      args,
+      process.execPath,
+      [entry, ...args],
       { cwd, env, maxBuffer: 16 * 1024 * 1024 },
       (error, stdout, stderr) => {
         const code = error ? (typeof error.code === "number" ? error.code : 1) : 0;
-        resolve({ code, stdout, stderr });
+        // A failure to start the process has no output: show why, instead of an empty message.
+        resolve({ code, stdout, stderr: stderr || (error && !stdout ? error.message : "") });
       },
     );
   });

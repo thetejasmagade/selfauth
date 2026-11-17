@@ -41,6 +41,11 @@ Run each command inside the package, never at the repository root. At the root
 Ask the developer which package is the API when there are several backends.
 Don't guess.
 
+A project that `selfauth init --frontend …` made is already a workspace of two
+packages (`server/` and `client/`), each with its own manifest. At its root
+`detect` reports `upgrade`, and `doctor`, `validate`, `diff` and `upgrade` cover
+both packages. Don't run `add` or `add-frontend` in it.
+
 ## A frontend in another folder or repository
 
 The backend and frontend are separate commands, run where each lives.

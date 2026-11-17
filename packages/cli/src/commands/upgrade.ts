@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { relative, resolve } from "node:path";
+import { packageLabel, projectDirs } from "../project.js";
 import { createInterface } from "node:readline/promises";
 import {
   applyUpgrade,
@@ -45,14 +46,19 @@ function summarize(plan: UpgradePlan, showDiffs: boolean) {
 
 /** `selfauth diff`: what an upgrade would change, with diffs. Writes nothing. */
 export async function diffCommand(dirArg: string | undefined): Promise<number> {
-  const dir = resolve(dirArg ?? ".");
-  try {
-    summarize(await planUpgrade(dir), true);
-    return 0;
-  } catch (error) {
-    fail((error as Error).message);
-    return 1;
+  const base = resolve(dirArg ?? ".");
+  const dirs = await projectDirs(dirArg);
+  let code = 0;
+  for (const dir of dirs) {
+    if (dirs.length > 1) say(`\n── ${packageLabel(base, dirs, dir).replace(/: $/, "")} ──`);
+    try {
+      summarize(await planUpgrade(dir), true);
+    } catch (error) {
+      fail((error as Error).message);
+      code = 1;
+    }
   }
+  return code;
 }
 
 /** `selfauth upgrade --reorganize`: move a flat-layout project (SelfAuth ≤ 0.3) into the grouped layout. */
@@ -72,11 +78,22 @@ async function reorganize(
     say("\nNothing was changed.");
     return 1;
   }
-  say("Reorganize: move the app files into folders by responsibility.\n");
-  for (const m of plan.moves) info(`move  ${m.from} → ${m.to}`);
-  say(
-    `\n${plan.rewrites.length} file(s) get updated import paths (only the paths change): ${plan.rewrites.join(", ")}`,
-  );
+  say("Reorganize: move the project into the current layout.\n");
+  if (plan.regroup) {
+    say("Step 1: group the app files in src/ by responsibility");
+    for (const m of plan.moves) info(`move  ${m.from} → ${m.to}`);
+    say(
+      `${plan.rewrites.length} file(s) get updated import paths (only the paths change): ${plan.rewrites.join(", ")}\n`,
+    );
+  }
+  if (plan.workspace) {
+    say(
+      `${plan.regroup ? "Step 2" : "Step"}: split into two packages, server/ (API) and client/ (frontend), in one npm workspace`,
+    );
+    for (const m of plan.workspace.moves) info(`move  ${m.from} → ${m.to}`);
+    for (const o of plan.workspace.other) info(`write ${o}`);
+    say("Whole folders move, so no import paths change. README.md stays as it is.\n");
+  }
   if (options.dryRun) {
     say("\nDry run: nothing written.");
     return 0;
@@ -97,7 +114,19 @@ async function reorganize(
     }
   }
   await applyReorganize(dir, plan);
-  ok(`Moved ${plan.moves.length} file(s) and updated imports in ${plan.rewrites.length}.`);
+  ok(
+    plan.workspace
+      ? "Reorganized into server/ and client/."
+      : `Moved ${plan.moves.length} file(s) and updated imports in ${plan.rewrites.length}.`,
+  );
+  if (plan.workspace) {
+    say(
+      "\nNext: delete node_modules (in the project root and in client/) and package-lock.json, then run `npm install` once at the root.",
+    );
+    say(
+      "Your .env moved to server/.env. `npm run dev` now starts the API and the frontend together.",
+    );
+  }
   say("\nThen run your typecheck and tests, and `selfauth upgrade` to pick up newer templates.");
   return 0;
 }
@@ -107,8 +136,21 @@ export async function upgrade(
   dirArg: string | undefined,
   options: { yes?: boolean; dryRun?: boolean; reorganize?: boolean },
 ): Promise<number> {
-  const dir = resolve(dirArg ?? ".");
-  if (options.reorganize) return reorganize(dir, options);
+  if (options.reorganize) return reorganize(resolve(dirArg ?? "."), options);
+  const base = resolve(dirArg ?? ".");
+  const dirs = await projectDirs(dirArg);
+  let code = 0;
+  for (const dir of dirs) {
+    if (dirs.length > 1) say(`\n── ${relative(base, dir) || "."} ──`);
+    code = (await upgradeOne(dir, options)) || code;
+  }
+  return code;
+}
+
+async function upgradeOne(
+  dir: string,
+  options: { yes?: boolean; dryRun?: boolean },
+): Promise<number> {
   let plan: UpgradePlan;
   try {
     plan = await planUpgrade(dir);

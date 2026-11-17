@@ -68,6 +68,11 @@ Each package gets its own `selfauth.manifest.json`, so `doctor`, `validate`,
 `diff` and `upgrade` run per package, in that package's folder. Nothing is
 written at the repository root.
 
+A project that `selfauth init --frontend vue|react` generated is already set up
+this way: `server/` and `client/` in one npm workspace, each with its own
+manifest. At its root, `doctor`, `validate`, `diff` and `upgrade` cover both
+packages.
+
 ## A frontend in another folder, or another repository
 
 The backend and the frontend are separate commands, because they are separate

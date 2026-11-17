@@ -202,6 +202,15 @@ first): it moves the app files into `src/config`, `src/email`, `src/db`,
 `src/http` and `src/routes` and fixes the imports. `doctor` and `validate`
 work either way. → [guides/upgrading.md](guides/upgrading.md#moving-to-the-grouped-layout)
 
+**Where do the files go in a full-stack project?** `selfauth init --frontend
+vue|react` makes two packages in one npm workspace: `server/` (the API) and
+`client/` (the frontend), plus a thin root with `package.json`. One `npm install`
+at the root installs both and `npm run dev` starts both. Each package has its own
+`selfauth.manifest.json`; `doctor`, `validate`, `diff` and `upgrade` at the root
+cover both. An API-only project stays a single package with `src/`.
+→ [guides/manual-integration.md](guides/manual-integration.md),
+[guides/upgrading.md](guides/upgrading.md#moving-to-the-two-package-layout)
+
 **Does upgrading change my database?** It updates files, including new
 migration files. Applying migrations is a separate, reviewed step
 (`selfauth db plan`). → [guides/upgrading.md](guides/upgrading.md), [guides/database.md](guides/database.md)
