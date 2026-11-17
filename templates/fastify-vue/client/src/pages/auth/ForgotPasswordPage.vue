@@ -20,14 +20,14 @@ async function submit() {
 
 <template>
   <h1>Reset password</h1>
-  <p v-if="sent" class="notice" data-testid="reset-sent">
+  <p v-if="sent" data-testid="reset-sent">
     If an account exists for that address, we have sent a link to reset the password.
   </p>
   <form v-else @submit.prevent="submit">
     <label
       >Email <input v-model="email" name="email" type="email" autocomplete="email" required
     /></label>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <p v-if="error" role="alert">{{ error }}</p>
     <button type="submit">Send reset link</button>
   </form>
 </template>

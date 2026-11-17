@@ -32,7 +32,7 @@ async function submit() {
 
 <template>
   <h1>Choose a new password</h1>
-  <p v-if="done" class="notice" data-testid="reset-done">
+  <p v-if="done" data-testid="reset-done">
     Your password was changed and every device was signed out.
     <RouterLink to="/login">Sign in</RouterLink>
   </p>
@@ -47,10 +47,10 @@ async function submit() {
         minlength="8"
         required
     /></label>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <p v-if="error" role="alert">{{ error }}</p>
     <button type="submit">Change password</button>
   </form>
-  <p v-else class="error" role="alert">
+  <p v-else role="alert">
     {{ error }} <RouterLink to="/forgot-password">Request a new link</RouterLink>
   </p>
 </template>

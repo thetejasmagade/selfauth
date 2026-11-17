@@ -46,14 +46,14 @@ onMounted(() => loadSessions().catch((e) => (error.value = describeError(e))));
 
 <template>
   <h1>Account</h1>
-  <section class="card">
+  <section>
     <p>
       <strong>{{ auth.state.user?.email }}</strong><br />
       Roles: {{ auth.state.user?.roles.join(", ") || "none" }}
     </p>
   </section>
 
-  <section class="card">
+  <section>
     <h2>Change password</h2>
     <form @submit.prevent="changePassword">
       <label
@@ -73,19 +73,19 @@ onMounted(() => loadSessions().catch((e) => (error.value = describeError(e))));
     </form>
   </section>
 
-  <p v-if="message" class="notice">{{ message }}</p>
-  <p v-if="error" class="error" role="alert">{{ error }}</p>
+  <p v-if="message">{{ message }}</p>
+  <p v-if="error" role="alert">{{ error }}</p>
 
-  <section class="card">
+  <section>
     <h2>Signed-in devices</h2>
-    <ul class="plain" data-testid="sessions">
+    <ul data-testid="sessions">
       <li v-for="s in sessions" :key="s.id">
         {{ s.userAgent ?? "Unknown device" }} — since {{ new Date(s.createdAt).toLocaleString() }}
         <strong v-if="s.current">(this device)</strong>
-        <button v-else class="secondary" @click="revoke(s.id)">Sign out</button>
+        <button v-else @click="revoke(s.id)">Sign out</button>
       </li>
     </ul>
-    <button class="secondary" data-testid="logout-all" @click="logoutEverywhere">
+    <button data-testid="logout-all" @click="logoutEverywhere">
       Sign out everywhere
     </button>
   </section>

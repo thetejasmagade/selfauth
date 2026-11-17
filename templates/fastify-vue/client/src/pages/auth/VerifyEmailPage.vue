@@ -27,8 +27,8 @@ onMounted(async () => {
 <template>
   <h1>Verify email</h1>
   <p v-if="status === 'working'">Verifying…</p>
-  <p v-else-if="status === 'verified'" class="notice" data-testid="verified">
+  <p v-else-if="status === 'verified'" data-testid="verified">
     Your email address is verified. <RouterLink to="/login">Sign in</RouterLink>
   </p>
-  <p v-else class="error" role="alert">{{ error }}</p>
+  <p v-else role="alert">{{ error }}</p>
 </template>

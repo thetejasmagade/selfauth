@@ -7,7 +7,6 @@ import {
   installAuthGuard,
 } from "./auth/index.ts";
 import { createAppRouter } from "./router.ts";
-import "./style.css";
 
 const router = createAppRouter();
 const client = createAuthClient({

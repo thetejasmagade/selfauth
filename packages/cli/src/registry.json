@@ -416,10 +416,6 @@
           "target": "web/src/router.ts"
         },
         {
-          "source": "apps/playground-vue/src/style.css",
-          "target": "web/src/style.css"
-        },
-        {
           "source": "apps/playground-vue/src/env.d.ts",
           "target": "web/src/env.d.ts"
         },
@@ -480,10 +476,6 @@
         {
           "source": "apps/playground-react/src/App.tsx",
           "target": "web/src/App.tsx"
-        },
-        {
-          "source": "apps/playground-react/src/style.css",
-          "target": "web/src/style.css"
         },
         {
           "source": "apps/playground-react/src/auth/client.ts",

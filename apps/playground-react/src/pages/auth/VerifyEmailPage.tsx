@@ -32,12 +32,12 @@ export function VerifyEmailPage() {
       <h1>Verify email</h1>
       {status === "working" && <p>Verifying…</p>}
       {status === "verified" && (
-        <p className="notice" data-testid="verified">
+        <p data-testid="verified">
           Your email address is verified. <Link to="/login">Sign in</Link>
         </p>
       )}
       {status === "failed" && (
-        <p className="error" role="alert">
+        <p role="alert">
           {error}
         </p>
       )}

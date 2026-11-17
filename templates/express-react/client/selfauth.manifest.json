@@ -35,17 +35,12 @@
     {
       "path": "src/main.tsx",
       "template": "react:apps/playground-react/src/main.tsx",
-      "sha256": "77d37a2312dd4b6e996fd26ce34e90a367f6b89178f71030f0dd934e9425b4da"
+      "sha256": "454673db9130251c2fe2333dc78fa3975cac2e0d1fec9fbca90799253af60a22"
     },
     {
       "path": "src/App.tsx",
       "template": "react:apps/playground-react/src/App.tsx",
-      "sha256": "ffdb5ef8ff5e94f463ad4288d1c50b3d02787a92bd8e1e831644e6b603dfab4d"
-    },
-    {
-      "path": "src/style.css",
-      "template": "react:apps/playground-react/src/style.css",
-      "sha256": "8b1d0a92d0ca7bd39195ddb33d9f8713938e59b0f722401f4f59686e63302657"
+      "sha256": "c65a6873ce126c50c550e4676d140b41d07978bf2e517ff5936f5adfa9849827"
     },
     {
       "path": "src/auth/client.ts",
@@ -85,37 +80,37 @@
     {
       "path": "src/pages/AccountPage.tsx",
       "template": "react:apps/playground-react/src/pages/AccountPage.tsx",
-      "sha256": "5c6003b9c2344d5676ce701c4d6a771832a98c402fa21d023f4c5592d7909a88"
+      "sha256": "6ac80b93b89564dd28831291a3bf922925957064905546d11ce74d2125d7a219"
     },
     {
       "path": "src/pages/NotesPage.tsx",
       "template": "react:apps/playground-react/src/pages/NotesPage.tsx",
-      "sha256": "9d36e880d0dd0655b40b8457b0a0b649ed919a133046b4362de579c9cbea56f5"
+      "sha256": "2e17abd5e481e219c44155663ae22bdd8d5d51a348b6bcf8074156a3786e21b0"
     },
     {
       "path": "src/pages/auth/ForgotPasswordPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/ForgotPasswordPage.tsx",
-      "sha256": "2da8836c1f91e9c78eb88caf4dab497b71b33d9831039c614632b4fbf9a864bf"
+      "sha256": "a4cd997ad769229d81e0ca4ec56826618f48ea82d03b52efcb9027ab7422b1c9"
     },
     {
       "path": "src/pages/auth/LoginPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/LoginPage.tsx",
-      "sha256": "ec31f7a1b6156692575dcfeaea851c3d73d45eab5286108c7492532ecf6ba18a"
+      "sha256": "aa4043412b928b488b939e7ab3e2156e9168bbaca984971cfac7ea31c8978c47"
     },
     {
       "path": "src/pages/auth/RegisterPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/RegisterPage.tsx",
-      "sha256": "6d237204ef941f81394880dd15b0b65db3ac3bc6273d79b28c59f9b59239e83c"
+      "sha256": "f25dcc2fad25594a767f3d3714097f94882318639b5c14469cb707cebc902b62"
     },
     {
       "path": "src/pages/auth/ResetPasswordPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/ResetPasswordPage.tsx",
-      "sha256": "44b7e700ffc98971462a21736ee1a255e6c0dfd21160cb414e67bd1765948888"
+      "sha256": "d97345080ea137ddf386376d18cfca227be39354542a6fae2d13fd8fbd0f82a1"
     },
     {
       "path": "src/pages/auth/VerifyEmailPage.tsx",
       "template": "react:apps/playground-react/src/pages/auth/VerifyEmailPage.tsx",
-      "sha256": "0994bdd91d2574a9147efa00fef52614852493ed0197188881fb80b192c52e37"
+      "sha256": "dee98682c8e7a7c711d07177e87a2bbb201c13da08dc353bbd6dab85fb168acb"
     },
     {
       "path": "package.json",

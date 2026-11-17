@@ -42,7 +42,7 @@ async function submit() {
         autocomplete="current-password"
         required
     /></label>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <p v-if="error" role="alert">{{ error }}</p>
     <button :disabled="busy" type="submit">Sign in</button>
   </form>
   <p><RouterLink to="/forgot-password">Forgot your password?</RouterLink></p>
