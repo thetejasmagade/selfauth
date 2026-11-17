@@ -14,7 +14,8 @@ export interface ConformanceDocInput {
   compatibility: readonly { name: string; range: string; note?: string }[];
 }
 
-const escape = (text: string) => text.replace(/\|/g, "\\|");
+/** Escapes backslashes first, then pipes, so a cell cannot end early or swallow the next one. */
+const escape = (text: string) => text.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
 const levelCount = (cases: readonly ConformanceCase[], level: Level) =>
   cases.filter((c) => c.level === level).length;
 
