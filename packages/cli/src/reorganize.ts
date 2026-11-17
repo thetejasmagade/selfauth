@@ -13,6 +13,16 @@ import { flatLayoutMoves, hasFlatLayout } from "./project.js";
  * and import specifiers change; no file's logic is touched.
  */
 
+/** The file's text, or null when it does not exist: one read, no check-then-read gap. */
+async function readIfExists(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 const SKIP = new Set(["node_modules", "dist", "build", "coverage", ".git", "generated"]);
 const SOURCE = /\.(?:[cm]?[jt]s|[jt]sx|vue)$/;
 /** `from "./x"`, `import("./x")`, `import "./x"`, `export … from "./x"`. */
@@ -237,7 +247,7 @@ async function applyRegroup(
     (manifest.files ?? []).map(async (entry) => {
       const path = newPathOf.get(entry.path) ?? entry.path;
       if (path === entry.path && !plan.rewrites.includes(path)) return entry;
-      const content = existsSync(join(dir, path)) ? await readFile(join(dir, path), "utf8") : null;
+      const content = await readIfExists(join(dir, path));
       const unedited = wasUnedited.get(entry.path) && content !== null;
       return { ...entry, path, sha256: unedited ? sha256(content) : entry.sha256 };
     }),
@@ -264,7 +274,8 @@ async function applyWorkspace(dir: string, plan: WorkspacePlan): Promise<void> {
   const original = new Map<string, string>();
   for (const entry of manifest.files ?? []) {
     const path = join(dir, entry.path);
-    if (existsSync(path)) original.set(entry.path, await readFile(path, "utf8"));
+    const text = await readIfExists(path);
+    if (text !== null) original.set(entry.path, text);
   }
   const rootPackage = JSON.parse(await readFile(join(dir, "package.json"), "utf8")) as {
     name?: string;
@@ -297,9 +308,11 @@ async function applyWorkspace(dir: string, plan: WorkspacePlan): Promise<void> {
 
   // .gitignore stays at the root: a pattern with a slash in the middle is anchored there.
   const gitignorePath = join(dir, ".gitignore");
-  if (existsSync(gitignorePath)) {
-    const lines = (await readFile(gitignorePath, "utf8")).split("\n");
-    const next = lines.map((l) => (l.trim() === "src/generated/" ? "**/src/generated/" : l));
+  const gitignore = await readIfExists(gitignorePath);
+  if (gitignore !== null) {
+    const next = gitignore
+      .split("\n")
+      .map((l) => (l.trim() === "src/generated/" ? "**/src/generated/" : l));
     await writeFile(gitignorePath, next.join("\n"));
   }
 
@@ -307,7 +320,7 @@ async function applyWorkspace(dir: string, plan: WorkspacePlan): Promise<void> {
   // README.md) leave the manifest: the root is yours.
   const rootOnly = new Set([".gitignore", "README.md"]);
   const hashAfter = async (path: string, entrySha: string, before: string | undefined) => {
-    const now = existsSync(join(dir, path)) ? await readFile(join(dir, path), "utf8") : null;
+    const now = await readIfExists(join(dir, path));
     // A file you had not edited stays "unedited" through the mechanical changes above.
     return before !== undefined && sha256(before) === entrySha && now !== null
       ? sha256(now)
