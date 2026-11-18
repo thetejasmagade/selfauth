@@ -1,9 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { basename, relative, resolve } from "node:path";
-import { createInterface } from "node:readline/promises";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
-import type { InitAnswers } from "../render.js";
+import { createPrompter, PromptCancelled, type Prompter } from "../prompt.js";
+import { parsePermissions, permissionProblem, type InitAnswers } from "../render.js";
 import {
   BACKENDS,
   frontendInfo,
@@ -22,26 +22,95 @@ export interface InitOptions {
   yes?: boolean;
   dryRun?: boolean;
   install?: boolean;
+  /** Tests supply their own questions; the CLI uses the terminal prompts. */
+  prompter?: Prompter;
 }
 
 const DATABASES: Database[] = ["postgresql", "memory"];
 const FRONTENDS: Frontend[] = ["none", "vue", "react"];
 
-async function ask(question: string, fallback: string): Promise<string> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
+/** Folder names `init` accepts when it asks for one: a plain relative path, or `.` for here. */
+const FOLDER = /^(\.|[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*)*)$/;
+
+async function folderProblem(answer: string): Promise<string | null> {
+  if (!FOLDER.test(answer)) {
+    return "Use a simple folder name such as my-app (letters, numbers, . _ -), or . for the current folder.";
+  }
+  const project = await detectProject(resolve(answer));
+  if (project.selfauth) return `${answer} already contains a SelfAuth project.`;
+  if (project.hasPackageJson) {
+    return `${answer} already has a package.json. For an existing project use \`selfauth add\`.`;
+  }
+  return null;
+}
+
+function urlProblem(answer: string): string | null {
   try {
-    const answer = (await rl.question(`${question} (${fallback}) `)).trim();
-    return answer || fallback;
-  } finally {
-    rl.close();
+    const url = new URL(answer);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? null
+      : "Use an http:// or https:// address.";
+  } catch {
+    return "That is not a web address (for example http://localhost:5173).";
   }
 }
 
+const permissionsProblem = (answer: string): string | null =>
+  parsePermissions(answer).map(permissionProblem).find(Boolean) ?? null;
+
 /** `selfauth init [dir]`: generate a new project. Returns the process exit code. */
 export async function init(dirArg: string | undefined, options: InitOptions): Promise<number> {
-  const dir = resolve(dirArg ?? ".");
+  // Flags are checked before anything is asked, so a typo fails at once.
+  for (const [label, value, allowed] of [
+    ["backend", options.backend, BACKENDS],
+    ["database", options.database, DATABASES],
+    ["frontend", options.frontend, FRONTENDS],
+  ] as const) {
+    if (value !== undefined && !(allowed as readonly string[]).includes(value)) {
+      fail(
+        `Unsupported ${label} '${value}'. Supported: ${allowed.join(", ")} (see \`selfauth list\`).`,
+      );
+      return 1;
+    }
+  }
+  const invalid = parsePermissions(options.permissions).map(permissionProblem).find(Boolean);
+  if (invalid) {
+    fail(invalid);
+    return 1;
+  }
+
+  // Questions are asked only in a terminal, and only for what no flag already answered.
+  const prompter =
+    options.prompter ?? (process.stdin.isTTY && !options.yes ? createPrompter() : undefined);
+  try {
+    return await run(dirArg, options, prompter);
+  } catch (error) {
+    if (error instanceof PromptCancelled) {
+      say("\nCancelled. Nothing written.");
+      return 130;
+    }
+    throw error;
+  }
+}
+
+async function run(
+  dirArg: string | undefined,
+  options: InitOptions,
+  prompter: Prompter | undefined,
+): Promise<number> {
+  if (prompter) {
+    say("SelfAuth: new project (Ctrl-C cancels; nothing is written until you confirm)\n");
+  }
+  let folder = dirArg;
+  if (folder === undefined && prompter) {
+    const here = await detectProject(resolve("."));
+    folder = await prompter.text("Project folder (. for the current folder)", {
+      default: here.empty ? "." : "my-app",
+      validate: folderProblem,
+    });
+  }
+  const dir = resolve(folder ?? ".");
   const project = await detectProject(dir);
-  const interactive = process.stdin.isTTY && !options.yes;
 
   say(`SelfAuth init → ${dir}`);
   if (project.selfauth) {
@@ -59,41 +128,65 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   }
   if (!project.empty) info("Directory is not empty; existing files will never be overwritten.");
 
-  let backend = options.backend as Backend | undefined;
-  if (!backend && interactive)
-    backend = (await ask(`Backend? ${BACKENDS.join(" | ")}`, "express")) as Backend;
-  backend ??= "express";
-  if (!BACKENDS.includes(backend)) {
-    fail(
-      `Unsupported backend '${backend}'. Supported: ${BACKENDS.join(", ")} (see \`selfauth list\`).`,
-    );
-    return 1;
-  }
-  let database = options.database as Database | undefined;
-  if (!database && interactive)
-    database = (await ask(`Database? ${DATABASES.join(" | ")}`, "postgresql")) as Database;
-  database ??= "postgresql";
-  if (!DATABASES.includes(database)) {
-    fail(
-      `Unsupported database '${database}'. Supported: ${DATABASES.join(", ")} (see \`selfauth list\`).`,
-    );
-    return 1;
-  }
-  let frontend = options.frontend as Frontend | undefined;
-  if (!frontend && interactive)
-    frontend = (await ask(`Frontend? ${FRONTENDS.join(" | ")}`, "none")) as Frontend;
-  frontend ??= "none";
-  if (!FRONTENDS.includes(frontend)) {
-    fail(`Unsupported frontend '${frontend}'. Supported: ${FRONTENDS.join(", ")}.`);
-    return 1;
-  }
-  let permissions = options.permissions;
-  if (permissions === undefined && interactive) {
-    permissions = await ask(
-      "Application permissions, comma-separated (e.g. orders.view,orders.create)?",
-      "",
-    );
-  }
+  const backend = (options.backend ??
+    (prompter
+      ? await prompter.select<Backend>(
+          "Which backend?",
+          [
+            { value: "express", label: "Express 5", hint: "the reference implementation" },
+            { value: "fastify", label: "Fastify 5", hint: "same core, Fastify adapter" },
+          ],
+          "express",
+        )
+      : "express")) as Backend;
+  const database = (options.database ??
+    (prompter
+      ? await prompter.select<Database>(
+          "Which database?",
+          [
+            { value: "postgresql", label: "PostgreSQL", hint: "via Prisma; for real use" },
+            {
+              value: "memory",
+              label: "In-memory",
+              hint: "to try SelfAuth out; not for production",
+            },
+          ],
+          "postgresql",
+        )
+      : "postgresql")) as Database;
+  const frontend = (options.frontend ??
+    (prompter
+      ? await prompter.select<Frontend>(
+          "Which frontend?",
+          [
+            { value: "none", label: "None", hint: "API only" },
+            { value: "vue", label: "Vue 3", hint: "Vite, in client/" },
+            { value: "react", label: "React", hint: "Vite, in client/" },
+          ],
+          "none",
+        )
+      : "none")) as Frontend;
+  const permissions =
+    options.permissions ??
+    (prompter
+      ? await prompter.text(
+          "Application permissions, comma-separated (e.g. orders.view,orders.create; Enter for none)",
+          { validate: permissionsProblem },
+        )
+      : "");
+  // A generated frontend has a known dev-server address; an API-only project needs yours.
+  const appBaseUrl =
+    options.appBaseUrl ??
+    (frontend === "none" && prompter
+      ? await prompter.text("Where will your frontend run? (used in email links)", {
+          default: "http://localhost:5173",
+          validate: urlProblem,
+        })
+      : `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`);
+  const install =
+    options.install ??
+    (prompter ? await prompter.confirm("Run npm install after creating the files?", true) : false);
+
   const answers: InitAnswers = {
     name:
       basename(dir)
@@ -103,13 +196,8 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     backend,
     database,
     frontend,
-    permissions: (permissions ?? "")
-      .split(",")
-      .map((p) => p.trim())
-      .filter(Boolean),
-    appBaseUrl:
-      options.appBaseUrl ??
-      `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`,
+    permissions: parsePermissions(permissions),
+    appBaseUrl,
   };
 
   let files;
@@ -128,7 +216,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
     say("\nDry run: nothing written.");
     return 0;
   }
-  if (interactive && !/^y(es)?$/i.test(await ask("\nCreate these files?", "y"))) {
+  if (prompter && !(await prompter.confirm("Create these files?", true))) {
     say("Cancelled. Nothing written.");
     return 1;
   }
@@ -149,7 +237,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
       : `Created ${files.length} files: server/ (API), client/ (${frontend}) and a workspace root. Each package has its own selfauth.manifest.json.`,
   );
 
-  if (options.install) {
+  if (install) {
     say("\nInstalling dependencies (npm install)…");
     const result = spawnSync("npm", ["install"], { cwd: dir, stdio: "inherit" });
     if (result.status !== 0) {
@@ -162,7 +250,7 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
   say("\nNext steps:");
   if (cd !== ".") say(`  cd ${cd}`);
   const ws = frontend !== "none";
-  if (!options.install)
+  if (!install)
     say(ws ? "  npm install               # installs server/ and client/" : "  npm install");
   say(
     `  cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}` +

@@ -6,6 +6,13 @@ runtime.
 
 ## New project
 
+Run `npx selfauth init` with no flags in a terminal and it asks: the folder, the backend,
+the database, the frontend and your permissions (arrow keys, or a number; a bad answer is
+explained and asked again; Ctrl-C cancels and writes nothing). It shows the list of files and
+asks before it writes anything. Every flag below answers its question in advance, so you only
+see what you left out. With `--yes`, or when there is no terminal (CI, scripts, coding agents),
+it asks nothing and uses the defaults for whatever the flags leave out.
+
 ```bash
 npx selfauth init my-app --database postgresql --frontend vue --permissions orders.view
 cd my-app && npm install                  # one install covers server/ and client/

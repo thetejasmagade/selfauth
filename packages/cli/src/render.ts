@@ -13,10 +13,25 @@ export interface InitAnswers {
 }
 
 /** Resolved configuration written to src/config/selfauth.config.ts (validated by the spec schema). */
+/** A message when `permission` is not a valid application permission, otherwise null. */
+export function permissionProblem(permission: string): string | null {
+  return !PERMISSION_PATTERN.test(permission) || permission.startsWith("auth.")
+    ? `invalid permission '${permission}' (format: resource.action, lowercase; 'auth.' is reserved)`
+    : null;
+}
+
+/** Splits `a.b, c.d` into permissions, dropping empty entries. */
+export function parsePermissions(list: string | undefined): string[] {
+  return (list ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   for (const p of answers.permissions) {
-    if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth."))
-      throw new Error(`invalid permission '${p}' (format: resource.action)`);
+    const problem = permissionProblem(p);
+    if (problem) throw new Error(problem);
   }
   const permissions = [...new Set(answers.permissions)];
   return parseConfig({
