@@ -7,7 +7,9 @@ import { SPEC_VERSION } from "@selfauth/spec";
 import {
   buildConfig,
   renderConfig,
+  renderConfigJson,
   renderEnvExample,
+  renderGoGitignore,
   isWorkspace,
   renderGitignore,
   renderPackageJson,
@@ -18,7 +20,7 @@ import {
   renderWebTsconfig,
   type InitAnswers,
 } from "./render.js";
-import type { Backend } from "./templates.js";
+import { BACKEND_DATABASES, type Backend } from "./templates.js";
 import {
   frontendAuthFiles,
   frontendInfo,
@@ -31,6 +33,7 @@ import {
   type TemplateSource,
 } from "./templates.js";
 import { adaptForDialect, isDerivedDialect } from "./dialect.js";
+import { GO_REFERENCE_MODULE } from "./templates.js";
 import { isDemoFile, withoutNotesExample } from "./example.js";
 import { trimTrailingSlashes } from "./layout.js";
 import { CLI_VERSION } from "./version.js";
@@ -51,7 +54,7 @@ export const sha256 = (content: string) =>
 
 /** Files copied from the reference implementations (template id `<stack>:<source path>`). */
 export async function templateFiles(
-  answers: Pick<InitAnswers, "database" | "frontend" | "backend">,
+  answers: Pick<InitAnswers, "database" | "frontend" | "backend" | "module">,
   source: TemplateSource,
   layout: "project" | "add" = "project",
   srcDir = "src",
@@ -69,8 +72,10 @@ export async function templateFiles(
     return path;
   };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
-  const dialect = usesPrisma(answers.database) ? answers.database : null;
+  const dialect =
+    answers.backend !== "gin" && usesPrisma(answers.database) ? answers.database : null;
   const adapt = (target: string, content: string) => {
+    if (answers.backend === "gin") return adaptForGo(target, content, answers.module);
     const derived = dialect ? adaptForDialect(dialect, target, content) : content;
     return layout === "add"
       ? adaptForAdd(target, derived, srcDir)
@@ -113,6 +118,23 @@ export async function templateFiles(
     }
   }
   return files;
+}
+
+/**
+ * The one change a Go project needs from the reference application: its module path. The
+ * reference is written with `example.com/app`; go.mod and every import of the application's own
+ * packages use the project's module instead.
+ */
+export function adaptForGo(target: string, content: string, module: string | undefined): string {
+  if (module === undefined || module === GO_REFERENCE_MODULE) return content;
+  if (target === "go.mod") {
+    const adapted = content.replace(`module ${GO_REFERENCE_MODULE}\n`, `module ${module}\n`);
+    if (adapted === content) throw new Error("go.mod template changed: update adaptForGo()");
+    return adapted;
+  }
+  return target.endsWith(".go")
+    ? content.replaceAll(`"${GO_REFERENCE_MODULE}/`, `"${module}/`)
+    : content;
 }
 
 /**
@@ -174,7 +196,7 @@ export function buildManifest(
     specVersion: SPEC_VERSION,
     database: {
       type: answers.database,
-      orm: ormFor(answers.database),
+      orm: ormFor(answers.database, answers.backend),
     },
     ownedResources: owned,
     options: {
@@ -182,6 +204,7 @@ export function buildManifest(
       srcDir,
       structure,
       backend: answers.backend ?? "express",
+      ...(answers.backend === "gin" && answers.module ? { module: answers.module } : {}),
       frontend: answers.frontend,
       permissions: answers.permissions,
       appBaseUrl: answers.appBaseUrl,
@@ -216,6 +239,7 @@ export async function planInit(
   answers: InitAnswers,
   source: TemplateSource = templateSource(),
 ): Promise<PlannedFile[]> {
+  if (answers.backend === "gin") return planGin(answers, source);
   if (isWorkspace(answers)) return planWorkspace(answers, source);
   const files = await templateFiles(answers, source);
   const deps = stackDependencies(answers.database, answers.backend);
@@ -240,6 +264,38 @@ export async function planInit(
   );
   files.push(
     buildManifest(answers, files, await ownedResources(answers.database, source, answers.backend)),
+  );
+  return files;
+}
+
+/**
+ * A Go (Gin) project: the Go application copied from the reference, plus its configuration,
+ * environment example, README, .gitignore and manifest. API only (no frontend), no package.json.
+ */
+async function planGin(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
+  if (answers.frontend !== "none") {
+    throw new Error("The Gin backend is API only for now: use --frontend none.");
+  }
+  if (!BACKEND_DATABASES.gin.includes(answers.database)) {
+    throw new Error(
+      `The Gin backend supports ${BACKEND_DATABASES.gin.join(" and ")} (got '${answers.database}').`,
+    );
+  }
+  const module = answers.module ?? answers.name;
+  const withModule = { ...answers, module };
+  const files = await templateFiles(withModule, source);
+  files.push(
+    { path: ".gitignore", template: "rendered:gitignore", content: renderGoGitignore() },
+    { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
+    { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
+    {
+      path: "selfauth.config.json",
+      template: "rendered:config",
+      content: renderConfigJson(buildConfig(answers)),
+    },
+  );
+  files.push(
+    buildManifest(withModule, files, await ownedResources(answers.database, source, "gin")),
   );
   return files;
 }

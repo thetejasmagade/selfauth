@@ -426,6 +426,206 @@
         "devDependencies": ["prisma", "@types/pg"],
         "manifest": "apps/playground-fastify/selfauth.manifest.json"
       }
+    },
+    "gin": {
+      "files": [
+        {
+          "source": "apps/playground-gin/cmd/create-admin/main.go",
+          "target": "cmd/create-admin/main.go",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-gin/cmd/migrate/main.go",
+          "target": "cmd/migrate/main.go",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-gin/cmd/seed/main.go",
+          "target": "cmd/seed/main.go",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-gin/cmd/server/main.go",
+          "target": "cmd/server/main.go"
+        },
+        {
+          "source": "apps/playground-gin/go.mod",
+          "target": "go.mod"
+        },
+        {
+          "source": "apps/playground-gin/go.sum",
+          "target": "go.sum"
+        },
+        {
+          "source": "apps/playground-gin/internal/app/app.go",
+          "target": "internal/app/app.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/app/app_test.go",
+          "target": "internal/app/app_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/app/wire.go",
+          "target": "internal/app/wire.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/authz.go",
+          "target": "internal/auth/authz.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/clock.go",
+          "target": "internal/auth/clock.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/common_passwords.go",
+          "target": "internal/auth/common_passwords.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/crypto.go",
+          "target": "internal/auth/crypto.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/email.go",
+          "target": "internal/auth/email.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/email_test.go",
+          "target": "internal/auth/email_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/errors.go",
+          "target": "internal/auth/errors.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/logger.go",
+          "target": "internal/auth/logger.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/logger_test.go",
+          "target": "internal/auth/logger_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/mailer.go",
+          "target": "internal/auth/mailer.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/password.go",
+          "target": "internal/auth/password.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/password_test.go",
+          "target": "internal/auth/password_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/ratelimit.go",
+          "target": "internal/auth/ratelimit.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/ratelimit_test.go",
+          "target": "internal/auth/ratelimit_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/service.go",
+          "target": "internal/auth/service.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/auth/store.go",
+          "target": "internal/auth/store.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/config/config.go",
+          "target": "internal/config/config.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/config/config_test.go",
+          "target": "internal/config/config_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/config/env.go",
+          "target": "internal/config/env.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/email/mailer.go",
+          "target": "internal/email/mailer.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/ginauth/ginauth.go",
+          "target": "internal/ginauth/ginauth.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/ginauth/routes.go",
+          "target": "internal/ginauth/routes.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/httpx/httpx.go",
+          "target": "internal/httpx/httpx.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/routes/routes.go",
+          "target": "internal/routes/routes.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/routes/routes_test.go",
+          "target": "internal/routes/routes_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/memory/memory.go",
+          "target": "internal/store/memory/memory.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/memory/memory_test.go",
+          "target": "internal/store/memory/memory_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/postgres/migrate.go",
+          "target": "internal/store/postgres/migrate.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/postgres/postgres.go",
+          "target": "internal/store/postgres/postgres.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/postgres/postgres_test.go",
+          "target": "internal/store/postgres/postgres_test.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/postgres/ratelimit.go",
+          "target": "internal/store/postgres/ratelimit.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/store.go",
+          "target": "internal/store/store.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/storetest/storetest.go",
+          "target": "internal/store/storetest/storetest.go"
+        },
+        {
+          "source": "apps/playground-gin/db/migrations",
+          "target": "db/migrations",
+          "directory": true,
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/config/testdata/default.json",
+          "target": "internal/config/testdata/default.json"
+        }
+      ],
+      "dependencies": [],
+      "devDependencies": [],
+      "postgresql": {
+        "dependencies": [],
+        "devDependencies": [],
+        "manifest": "apps/playground-gin/selfauth.manifest.json"
+      }
     }
   },
   "frontends": {

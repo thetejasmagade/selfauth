@@ -25,8 +25,8 @@ const exit = (code: number) => {
 
 program
   .command("init [dir]")
-  .description("generate a new Express or Fastify project with SelfAuth authentication")
-  .option("--backend <framework>", "express | fastify (default: express)")
+  .description("generate a new Express, Fastify or Gin (Go) project with SelfAuth authentication")
+  .option("--backend <framework>", "express | fastify | gin (default: express)")
   .option("--database <db>", "postgresql | mysql | sqlite | mongodb | memory")
   .option("--frontend <fw>", "none | vue | react (generated into web/)")
   .option(
@@ -40,6 +40,7 @@ program
   .option("-y, --yes", "non-interactive: accept the plan")
   .option("--dry-run", "show the plan without writing anything")
   .option("--install", "run npm install after generating")
+  .option("--module <path>", "Gin: the Go module path (default: the project name)")
   .action(async (dir: string | undefined, opts) => exit(await init(dir, opts)));
 
 program

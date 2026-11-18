@@ -76,15 +76,27 @@ export function hasFlatLayout(manifest: Manifest | null): boolean {
  * projects made with the old flat layout keep their old paths.
  */
 export function projectPath(manifest: Manifest | null, target: string): string {
+  if (isGoProject(manifest)) return GO_PATHS[target] ?? target;
   const own = hasFlatLayout(manifest) ? (FLAT_LAYOUT[target] ?? target) : target;
   return manifest?.options?.layout === "add" ? addLayoutPath(own, manifest.options.srcDir) : own;
 }
+
+/** Where a Go (Gin) project keeps the file that implements `target`'s role. */
+const GO_PATHS: Record<string, string> = {
+  "src/config/selfauth.config.ts": "selfauth.config.json",
+  "src/email/mailer.ts": "internal/email/mailer.go",
+};
+
+/** True for a Go project (its manifest says `backend: gin`). */
+export const isGoProject = (manifest: Manifest | null): boolean =>
+  manifest?.options?.backend === "gin";
 
 /** Imports the project's selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */
 export async function loadConfig(
   dir: string,
   manifest: Manifest | null = null,
 ): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
+  if (isGoProject(manifest)) return loadJsonConfig(dir);
   const relativePath = projectPath(manifest, "src/config/selfauth.config.ts");
   const path = join(dir, relativePath);
   if (!existsSync(path)) return { errors: [`${relativePath} not found`] };
@@ -99,6 +111,23 @@ export async function loadConfig(
       errors: issues
         ? issues.map((i) => `config ${i.path.join(".")}: ${i.message}`)
         : [`could not load ${relativePath}: ${(error as Error).message}`],
+    };
+  }
+}
+
+/** Reads and validates a Go project's selfauth.config.json. */
+async function loadJsonConfig(dir: string): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
+  const file = "selfauth.config.json";
+  const path = join(dir, file);
+  if (!existsSync(path)) return { errors: [`${file} not found`] };
+  try {
+    return { config: parseConfig(JSON.parse(await readFile(path, "utf8"))), errors: [] };
+  } catch (error) {
+    const issues = (error as { issues?: { path: PropertyKey[]; message: string }[] }).issues;
+    return {
+      errors: issues
+        ? issues.map((i) => `config ${i.path.join(".")}: ${i.message}`)
+        : [`could not read ${file}: ${(error as Error).message}`],
     };
   }
 }

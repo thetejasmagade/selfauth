@@ -1,4 +1,6 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { basename, relative, resolve } from "node:path";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
@@ -11,7 +13,9 @@ import {
 } from "../render.js";
 import {
   BACKENDS,
+  BACKEND_DATABASES,
   DATABASE_INFO,
+  goModuleProblem,
   DATABASES,
   hasDatabase,
   frontendInfo,
@@ -27,6 +31,8 @@ export interface InitOptions {
   frontend?: string;
   permissions?: string;
   appBaseUrl?: string;
+  /** Gin: the Go module path (default: the project name). */
+  module?: string;
   yes?: boolean;
   dryRun?: boolean;
   install?: boolean;
@@ -68,6 +74,29 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
       );
       return 1;
     }
+  }
+  if (options.backend === "gin") {
+    if (
+      options.database !== undefined &&
+      !BACKEND_DATABASES.gin.includes(options.database as Database)
+    ) {
+      fail(
+        `The Gin backend supports ${BACKEND_DATABASES.gin.join(" and ")} (got '${options.database}').`,
+      );
+      return 1;
+    }
+    if (options.frontend !== undefined && options.frontend !== "none") {
+      fail("The Gin backend is API only for now: use --frontend none.");
+      return 1;
+    }
+  }
+  if (options.module !== undefined && options.backend !== "gin") {
+    fail("--module is for the Gin backend (the Go module path).");
+    return 1;
+  }
+  if (options.module !== undefined && goModuleProblem(options.module)) {
+    fail(`--module: ${goModuleProblem(options.module)}`);
+    return 1;
   }
   const invalid =
     parsePermissions(options.permissions).map(permissionProblem).find(Boolean) ??
@@ -115,6 +144,10 @@ async function run(
     fail("This directory already contains a SelfAuth project (selfauth.manifest.json).");
     return 1;
   }
+  if (existsSync(join(dir, "go.mod"))) {
+    fail("This directory already has a go.mod. `selfauth init` creates new projects only.");
+    return 1;
+  }
   if (project.hasPackageJson) {
     fail("This directory already has a package.json.");
     info(
@@ -133,30 +166,42 @@ async function run(
           [
             { value: "express", label: "Express 5", hint: "the reference implementation" },
             { value: "fastify", label: "Fastify 5", hint: "same core, Fastify adapter" },
+            {
+              value: "gin",
+              label: "Gin (Go)",
+              hint: "a Go port of the core; API only; PostgreSQL or in-memory",
+            },
           ],
           "express",
         )
       : "express")) as Backend;
+  const gin = backend === "gin";
   const database = (options.database ??
     (prompter
       ? await prompter.select<Database>(
           "Which database?",
-          [
-            { value: "postgresql", label: "PostgreSQL", hint: "via Prisma; for real use" },
-            { value: "mysql", label: "MySQL", hint: "via Prisma; MySQL 8 or MariaDB" },
-            { value: "mongodb", label: "MongoDB", hint: "via Mongoose; MongoDB 6 or newer" },
-            { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
-            {
-              value: "memory",
-              label: "In-memory",
-              hint: "to try SelfAuth out; not for production",
-            },
-          ],
+          (
+            [
+              {
+                value: "postgresql",
+                label: "PostgreSQL",
+                hint: gin ? "via pgx; for real use" : "via Prisma; for real use",
+              },
+              { value: "mysql", label: "MySQL", hint: "via Prisma; MySQL 8 or MariaDB" },
+              { value: "mongodb", label: "MongoDB", hint: "via Mongoose; MongoDB 6 or newer" },
+              { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
+              {
+                value: "memory",
+                label: "In-memory",
+                hint: "to try SelfAuth out; not for production",
+              },
+            ] as const
+          ).filter((choice) => BACKEND_DATABASES[backend].includes(choice.value)),
           "postgresql",
         )
       : "postgresql")) as Database;
   const frontend = (options.frontend ??
-    (prompter
+    (prompter && !gin
       ? await prompter.select<Frontend>(
           "Which frontend?",
           [
@@ -184,17 +229,31 @@ async function run(
           validate: appBaseUrlProblem,
         })
       : `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`);
-  const install =
-    options.install ??
-    (prompter ? await prompter.confirm("Run npm install after creating the files?", true) : false);
+  const projectName =
+    basename(dir)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "app";
+  const module = gin
+    ? (options.module ??
+      (prompter
+        ? await prompter.text("Go module path (go.mod and imports)", {
+            default: projectName,
+            validate: goModuleProblem,
+          })
+        : projectName))
+    : undefined;
+  const install = gin
+    ? false
+    : (options.install ??
+      (prompter
+        ? await prompter.confirm("Run npm install after creating the files?", true)
+        : false));
 
   const answers: InitAnswers = {
-    name:
-      basename(dir)
-        .toLowerCase()
-        .replace(/[^a-z0-9-]+/g, "-")
-        .replace(/^-+|-+$/g, "") || "app",
+    name: projectName,
     backend,
+    ...(module === undefined ? {} : { module }),
     database,
     frontend,
     permissions: parsePermissions(permissions),
@@ -210,7 +269,7 @@ async function run(
   }
 
   say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${gin ? "pgx" : database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -250,6 +309,21 @@ async function run(
   const cd = relative(process.cwd(), dir) || ".";
   say("\nNext steps:");
   if (cd !== ".") say(`  cd ${cd}`);
+  if (gin) {
+    say(
+      `  export SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}   # the server reads the environment, not .env`,
+    );
+    if (hasDatabase(database)) {
+      say("  export DATABASE_URL=...   # see .env.example");
+      say("  go run ./cmd/migrate status && go run ./cmd/migrate up   # read the migration first");
+      say("  go run ./cmd/seed");
+    }
+    say("  go run ./cmd/server");
+    say(
+      "\nBefore production: implement NewMailer in internal/email/mailer.go, then run `npx selfauth doctor`.",
+    );
+    return 0;
+  }
   const ws = frontend !== "none";
   if (!install)
     say(ws ? "  npm install               # installs server/ and client/" : "  npm install");

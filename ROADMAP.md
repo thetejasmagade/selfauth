@@ -14,7 +14,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | M7 — LLM Skills | Phase 7 | ✅ |
 | M8 — Manual Distribution | Phase 8 | ✅ (publishing awaits npm setup) |
 | M9 — Security and Conformance | Phase 9 | ✅ Levels, sign-offs, support matrix, security review, CodeQL + gitleaks, tests in generated projects |
-| M10 — Additional Frameworks | Phase 10 | 🟡 Fastify done (87/87 on both stores, `init --backend fastify`); more to come |
+| M10 — Additional Frameworks | Phase 10 | 🟡 Fastify and Gin (Go) done (90/90 on their stores, `init --backend fastify\|gin`); more to come |
 | M11 — Stable Open-source Release | Phase 12 | ⏳ |
 
 ## Sprint 1 — Foundation
@@ -154,10 +154,23 @@ databases (Phase 6 CLI).
 - `selfauth add` for existing Fastify projects (Fastify `setup.ts`, `examples/existing-fastify-app`), and the browser end-to-end suite runs every frontend against both backends.
 - ADR 0024.
 
+## Phase 10 — Gin (Go) done
+
+- `apps/playground-gin`: a Go port of the core (`internal/auth`) behind a Gin adapter, with an
+  in-memory store and a PostgreSQL store (pgx, the same migration SQL as the TypeScript apps, a
+  small migration runner). All 90 conformance cases pass on both stores; a Go test harness hosts
+  one isolated instance per case and a TypeScript driver runs the shared suite against it.
+- `selfauth init --backend gin` (API only; PostgreSQL or in-memory); template `gin/`; CI smoke-tests
+  generated Gin projects. `selfauth doctor`, `validate`, `diff`, `upgrade` and `db` work on them.
+  `selfauth add` does not apply to Go.
+- `conformance/adapters/gin.json` and the generated [`docs/conformance-gin.md`](docs/conformance-gin.md):
+  authorization level on both stores; production-profile is not claimed.
+- ADR 0027.
+
 ## Next
 
 1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").
-2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify: a production-profile review.
+2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify and Gin: a production-profile review. For Gin: MySQL/SQLite/MongoDB stores and a frontend.
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`, tests for the `add` layout.
 
 ## Decisions made after Sprint 1 review

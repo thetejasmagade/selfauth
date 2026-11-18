@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,7 +27,7 @@ type harness struct {
 
 func testConfig(t *testing.T, edit func(*config.Config)) *config.Config {
 	t.Helper()
-	raw, err := os.ReadFile("../../selfauth.config.json")
+	raw, err := os.ReadFile("../config/testdata/default.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,5 +254,112 @@ func TestProductionRefusesUnsafeSettings(t *testing.T) {
 		if _, err := NewAuth(o); err == nil {
 			t.Errorf("%s: accepted in production", name)
 		}
+	}
+}
+
+// SEC-HASH-006: hashing must not stall other requests. Many password hashes run at once while a
+// request that needs none is answered straight away.
+func TestHashingDoesNotBlockOtherRequests(t *testing.T) {
+	cfg := testConfig(t, func(c *config.Config) {
+		// Real parameters, so each hash takes measurable time.
+		c.Authentication.Password.Hashing = config.Hashing{MemoryKiB: 19_456, Iterations: 2, Parallelism: 1}
+		big := config.RateLimitRule{Limit: 100_000, WindowSeconds: 900}
+		c.Authentication.RateLimit.Register = config.RateLimitOperation{PerAccount: big, PerAddress: big}
+	})
+	h := newHarness(t, cfg, "test")
+	const hashes = 24
+	done := make(chan struct{}, hashes)
+	for i := 0; i < hashes; i++ {
+		go func(i int) {
+			body := fmt.Sprintf(`{"email":"u%d@b.co","password":"a long enough pass"}`, i)
+			h.do("POST", "/auth/register", body, browser)
+			done <- struct{}{}
+		}(i)
+	}
+	if rec := h.do("GET", "/health", "", nil); rec.Code != http.StatusOK {
+		t.Fatalf("health: %d", rec.Code)
+	}
+	if len(done) == hashes {
+		t.Fatal("every hash finished before a request that needs none was answered: hashing is blocking other requests")
+	}
+	for i := 0; i < hashes; i++ {
+		<-done
+	}
+}
+
+// SEC-TOKEN-005 and SEC-REDIRECT-001: responses carry a no-referrer policy, and the backend never
+// redirects, so no request parameter can steer a browser anywhere.
+func TestResponsesNeverRedirectAndSendNoReferrer(t *testing.T) {
+	h := newHarness(t, testConfig(t, nil), "test")
+	if rec := h.do("POST", "/auth/register", credentials, browser); rec.Header().Get("Referrer-Policy") != "no-referrer" {
+		t.Errorf("Referrer-Policy = %q", rec.Header().Get("Referrer-Policy"))
+	}
+	for _, path := range []string{
+		"/auth/login?redirect=https://evil.example", "/auth/login/", "/auth//login", "/AUTH/login",
+		"/auth/me?next=//evil.example", "/health/", "/nope?redirect=/x",
+	} {
+		for _, method := range []string{"GET", "POST"} {
+			rec := h.do(method, path, "", browser)
+			if rec.Code >= 300 && rec.Code < 400 || rec.Header().Get("Location") != "" {
+				t.Errorf("%s %s redirected: %d %q", method, path, rec.Code, rec.Header().Get("Location"))
+			}
+		}
+	}
+}
+
+// SEC-SECRET-003: token-mode CSRF cannot start without a secret.
+func TestTokenModeNeedsASecret(t *testing.T) {
+	cfg := testConfig(t, func(c *config.Config) { c.HTTP.CSRF.Mode = "token" })
+	base, _ := url.Parse("https://app.example.test")
+	for name, secret := range map[string][]byte{"none": nil, "too short": []byte("short")} {
+		_, err := NewAuth(AuthOptions{
+			Config: cfg, Env: config.Env{NodeEnv: "test", AppBaseURL: base, CSRFSecret: secret},
+			Store: memory.New(), Mailer: &auth.MemoryMailer{},
+		})
+		if err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+}
+
+// SEC-SECRET-004: a rotated-out secret still verifies, but only the current one signs.
+func TestCSRFSecretRotation(t *testing.T) {
+	cfg := testConfig(t, func(c *config.Config) { c.HTTP.CSRF.Mode = "token" })
+	base, _ := url.Parse("https://app.example.test")
+	oldSecret, newSecret := []byte(strings.Repeat("o", 32)), []byte(strings.Repeat("n", 32))
+	store := memory.New()
+	_ = store.SyncRoles(context.Background(), auth.RoleDefinitions(cfg))
+	build := func(secret, previous []byte) *harness {
+		a, err := NewAuth(AuthOptions{
+			Config: cfg, Env: config.Env{NodeEnv: "test", AppBaseURL: base, CSRFSecret: secret, CSRFSecretPrevious: previous},
+			Store: store, Mailer: &auth.MemoryMailer{},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		router, _ := NewRouter(Options{Config: cfg, Auth: a})
+		return &harness{t: t, router: router}
+	}
+	before := build(oldSecret, nil)
+	rec := before.do("POST", "/auth/register", credentials, browser)
+	var body struct {
+		CSRFToken string `json:"csrfToken"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &body)
+	cookie := rec.Result().Cookies()[0].String()
+	call := func(h *harness, token string) int {
+		return h.do("POST", "/auth/logout-all", "", with(map[string]string{"Cookie": cookie, "X-SelfAuth-CSRF": token})).Code
+	}
+	after := build(newSecret, oldSecret) // rotated: the old secret is "previous"
+	if got := call(after, body.CSRFToken); got != http.StatusNoContent {
+		t.Fatalf("a token signed with the previous secret must still be accepted: %d", got)
+	}
+	// Once the previous secret is dropped, tokens signed with it stop working.
+	rec = before.do("POST", "/auth/login", credentials, browser)
+	_ = json.Unmarshal(rec.Body.Bytes(), &body)
+	cookie = rec.Result().Cookies()[0].String()
+	dropped := build(newSecret, nil)
+	if got := call(dropped, body.CSRFToken); got != http.StatusForbidden {
+		t.Fatalf("a token signed with a dropped secret must be refused: %d", got)
 	}
 }

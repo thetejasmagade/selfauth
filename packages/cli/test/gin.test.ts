@@ -1,0 +1,242 @@
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createdObjects } from "@selfauth/migration";
+import { parseConfig } from "@selfauth/spec";
+import { describe, expect, it } from "vitest";
+import {
+  applyPlan,
+  diagnose,
+  inspect,
+  planInit,
+  planUpgrade,
+  runValidation,
+  type InitAnswers,
+} from "../src/index.js";
+import { init } from "../src/commands/init.js";
+import { INTEGRATIONS } from "../src/commands/list.js";
+import { GO_REFERENCE_MODULE } from "../src/templates.js";
+
+/**
+ * `selfauth init --backend gin`: the Go reference application (apps/playground-gin, held to the
+ * conformance suite on memory and PostgreSQL), copied into a new project with its module path
+ * replaced. API only; PostgreSQL or in-memory.
+ */
+const REPO = fileURLToPath(new URL("../../../", import.meta.url));
+const REFERENCE = "apps/playground-gin";
+const answers = (
+  database: InitAnswers["database"] = "postgresql",
+  extra: Partial<InitAnswers> = {},
+): InitAnswers => ({
+  name: "demo",
+  backend: "gin",
+  database,
+  frontend: "none",
+  permissions: ["orders.view"],
+  appBaseUrl: "http://localhost:5173",
+  ...extra,
+});
+const temp = () => mkdtemp(join(tmpdir(), "selfauth-gin-"));
+const text = (files: { path: string; content: string }[], path: string) =>
+  files.find((f) => f.path === path)!.content;
+
+describe("planInit --backend gin", () => {
+  it.each(["memory", "postgresql"] as const)(
+    "copies the Go reference implementation, changing only the module path (%s)",
+    async (database) => {
+      const files = await planInit(answers(database, { module: "github.com/acme/demo" }));
+      const templated = files.filter((f) => f.template.startsWith("gin:"));
+      expect(templated.length).toBeGreaterThanOrEqual(35);
+      for (const f of templated) {
+        const reference = await readFile(join(REPO, f.template.slice("gin:".length)), "utf8");
+        expect(f.content, f.path).toBe(
+          f.path === "go.mod" || f.path.endsWith(".go")
+            ? reference
+                .replace("module example.com/app\n", "module github.com/acme/demo\n")
+                .replaceAll(`"${GO_REFERENCE_MODULE}/`, '"github.com/acme/demo/')
+            : reference,
+        );
+      }
+      // No import of the reference module survives.
+      expect(
+        files.filter((f) => f.path.endsWith(".go") && f.content.includes("example.com/app")),
+      ).toEqual([]);
+      expect(text(files, "go.mod")).toMatch(/^module github\.com\/acme\/demo$/m);
+      expect(new Set(files.map((f) => f.path)).size).toBe(files.length);
+    },
+  );
+
+  it("is a Go project: no Node files, no Prisma, no other backend", async () => {
+    const paths = (await planInit(answers())).map((f) => f.path);
+    for (const absent of ["package.json", "tsconfig.json", "prisma/schema.prisma", "src/app.ts"])
+      expect(paths).not.toContain(absent);
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        "cmd/server/main.go",
+        "internal/auth/service.go",
+        "internal/ginauth/ginauth.go",
+        "selfauth.config.json",
+        "selfauth.manifest.json",
+        ".env.example",
+        ".gitignore",
+        "README.md",
+      ]),
+    );
+    // The conformance harness and its TypeScript driver stay in the SelfAuth repository.
+    expect(paths.filter((p) => p.startsWith("test/"))).toEqual([]);
+  });
+
+  it("defaults the module path to the project name", async () => {
+    const files = await planInit(answers());
+    expect(text(files, "go.mod")).toMatch(/^module demo$/m);
+    expect(text(files, "cmd/server/main.go")).toContain('"demo/internal/app"');
+  });
+
+  it("gives PostgreSQL projects the database commands and migrations, memory ones neither", async () => {
+    const pg = (await planInit(answers("postgresql"))).map((f) => f.path);
+    expect(pg).toEqual(
+      expect.arrayContaining([
+        "cmd/migrate/main.go",
+        "cmd/seed/main.go",
+        "cmd/create-admin/main.go",
+        "db/migrations/20261116085533_selfauth_init/migration.sql",
+      ]),
+    );
+    const memory = (await planInit(answers("memory"))).map((f) => f.path);
+    expect(
+      memory.filter((p) => p.startsWith("db/") || /^cmd\/(migrate|seed|create)/.test(p)),
+    ).toEqual([]);
+    expect(memory).toContain("internal/store/store.go");
+  });
+
+  it("writes a valid configuration and records the backend, module and no ORM in the manifest", async () => {
+    const files = await planInit(answers("postgresql", { module: "acme/demo" }));
+    const config = JSON.parse(text(files, "selfauth.config.json"));
+    expect(parseConfig(config)).toEqual(config);
+    expect(config.adapter).toEqual({
+      backend: "gin",
+      frontend: "none",
+      database: "postgresql",
+      orm: "none",
+    });
+    expect(config.authorization.permissions).toEqual(["orders.view"]);
+    const manifest = JSON.parse(text(files, "selfauth.manifest.json"));
+    expect(manifest.options).toMatchObject({ backend: "gin", module: "acme/demo", structure: 2 });
+    expect(manifest.database).toEqual({ type: "postgresql", orm: "none" });
+    expect(manifest.ownedResources.tables).toContain("auth_users");
+    expect(manifest.files.length).toBe(files.length - 1);
+  });
+
+  it("is API only, and only PostgreSQL or in-memory", async () => {
+    await expect(planInit(answers("postgresql", { frontend: "vue" }))).rejects.toThrow(/API only/);
+    await expect(planInit(answers("mysql"))).rejects.toThrow(/postgresql and memory/);
+  });
+
+  it("describes the Go project in its README, .env.example and .gitignore", async () => {
+    const files = await planInit(answers());
+    const readme = text(files, "README.md");
+    expect(readme).toContain("go run ./cmd/server");
+    expect(readme).toContain("go run ./cmd/migrate up");
+    expect(readme).not.toContain("npm run");
+    const env = text(files, ".env.example");
+    expect(env).toContain("APP_ENV=development");
+    expect(env).toContain("DATABASE_URL=postgresql://");
+    expect(env).not.toContain("NODE_ENV");
+    expect(text(files, ".gitignore")).toMatch(/^\.env$/m);
+  });
+});
+
+describe("the reference application and its generated defaults agree", () => {
+  it("ships the configuration `init` generates for its own choices", async () => {
+    const generated = JSON.parse(
+      text(await planInit(answers("postgresql", { permissions: [] })), "selfauth.config.json"),
+    );
+    const reference = JSON.parse(
+      await readFile(join(REPO, REFERENCE, "selfauth.config.json"), "utf8"),
+    );
+    expect(reference).toEqual(generated);
+    // Tests read this copy so they keep checking the defaults when a project edits its own config.
+    const testdata = JSON.parse(
+      await readFile(join(REPO, REFERENCE, "internal/config/testdata/default.json"), "utf8"),
+    );
+    expect(testdata).toEqual(reference);
+  });
+
+  it("lists exactly the objects its migrations create (the ownership manifest)", async () => {
+    const manifest = JSON.parse(
+      await readFile(join(REPO, REFERENCE, "selfauth.manifest.json"), "utf8"),
+    );
+    const sql = await readFile(
+      join(REPO, REFERENCE, "db/migrations/20261116085533_selfauth_init/migration.sql"),
+      "utf8",
+    );
+    const created = createdObjects(sql);
+    expect([...manifest.ownedResources.tables].sort()).toEqual([...created.tables].sort());
+    expect([...manifest.ownedResources.types].sort()).toEqual([...created.types].sort());
+  });
+});
+
+describe("a generated Gin project", () => {
+  it("is up to date for upgrade, and passes doctor and validate", async () => {
+    const dir = await temp();
+    await applyPlan(dir, await planInit(answers("postgresql", { module: "acme/demo" })));
+    const plan = await planUpgrade(dir);
+    expect(plan.items.filter((i) => i.status !== "unchanged")).toEqual([]);
+    const report = await diagnose(dir);
+    expect(report.errors).toEqual([]);
+    // The mailer is the one thing the developer must still provide.
+    expect(report.warnings.join("\n")).toContain("implement NewMailer in internal/email/mailer.go");
+    expect((await runValidation(dir)).problems).toEqual([]);
+  });
+
+  it("notices an edited configuration that breaks the schema, and a deleted file", async () => {
+    const dir = await temp();
+    await applyPlan(dir, await planInit(answers()));
+    const path = join(dir, "selfauth.config.json");
+    const broken = JSON.parse(await readFile(path, "utf8"));
+    broken.authentication.password.minLength = 2;
+    await writeFile(path, JSON.stringify(broken));
+    const report = await runValidation(dir);
+    expect(report.ok).toBe(false);
+    expect(report.problems.join("\n")).toMatch(/minLength/);
+  });
+
+  it("keeps the module path when upgrading, and leaves your edits alone", async () => {
+    const dir = await temp();
+    await applyPlan(dir, await planInit(answers("memory", { module: "acme/demo" })));
+    const mailer = join(dir, "internal/email/mailer.go");
+    await writeFile(mailer, `${await readFile(mailer, "utf8")}\n// mine\n`);
+    const plan = await planUpgrade(dir);
+    expect(plan.items.find((i) => i.path === "internal/email/mailer.go")!.status).toBe("kept");
+    expect(plan.items.filter((i) => i.status === "update" || i.status === "conflict")).toEqual([]);
+  });
+
+  it("is an installed SelfAuth project for detect, not an unsupported language", async () => {
+    const dir = await temp();
+    await applyPlan(dir, await planInit(answers()));
+    expect((await inspect(dir)).recommendation).toBe("upgrade");
+  });
+
+  it("is refused by init when the folder already has a go.mod", async () => {
+    const dir = await temp();
+    await writeFile(join(dir, "go.mod"), "module x\n");
+    expect(await init(dir, { backend: "gin", database: "memory", yes: true })).toBe(1);
+  });
+});
+
+describe("existing Go projects and selfauth list", () => {
+  it("are reported as unsupported by detect, pointing at `init --backend gin`", async () => {
+    const dir = await temp();
+    await writeFile(join(dir, "go.mod"), "module x\n");
+    const report = await inspect(dir);
+    expect(report.recommendation).toBe("unsupported");
+    expect(JSON.stringify(report)).toContain("init --backend gin");
+  });
+
+  it("offers Gin for new projects only", () => {
+    const gin = INTEGRATIONS.find((i) => i.id === "gin")!;
+    expect(gin.kind).toBe("backend");
+    expect(gin.add).toBe(false);
+  });
+});

@@ -49,7 +49,9 @@ export const manifestSchema = z.strictObject({
        */
       structure: z.number().int().min(1).default(1),
       /** The HTTP framework the backend was generated for. Manifests without it are Express. */
-      backend: z.enum(["express", "fastify"]).default("express"),
+      backend: z.enum(["express", "fastify", "gin"]).default("express"),
+      /** Go module path of a Gin project (its imports are written with it). */
+      module: z.string().optional(),
       frontend: z.enum(["none", "vue", "react"]).default("none"),
       permissions: z.array(z.string()).default([]),
       appBaseUrl: z.string().optional(),

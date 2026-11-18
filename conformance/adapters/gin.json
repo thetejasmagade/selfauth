@@ -1,0 +1,352 @@
+{
+  "$comment": "What the Gin (Go) reference implementation claims, and the evidence for every requirement not proven by a conformance case. Checked by apps/playground-gin/test/conformance/report.test.ts; rendered to docs/conformance-gin.md.",
+  "adapter": "gin",
+  "title": "Gin (Go) reference implementation",
+  "specVersion": "0.1",
+  "claims": {
+    "postgresql": "authorization",
+    "memory": "authorization"
+  },
+  "supports": [
+    {
+      "kind": "backend",
+      "id": "gin",
+      "title": "Gin 1.12 + Go (a Go port of the core)"
+    },
+    {
+      "kind": "database",
+      "id": "postgresql",
+      "title": "PostgreSQL via pgx (the same migration SQL as the TypeScript apps; a small migration runner)",
+      "store": "postgresql"
+    },
+    {
+      "kind": "database",
+      "id": "memory",
+      "title": "In-memory (development and tests only)",
+      "store": "memory"
+    },
+    {
+      "kind": "frontend",
+      "id": "none",
+      "title": "API only (no generated frontend)"
+    }
+  ],
+  "independentAudit": false,
+  "limitations": [
+    "Gin supports PostgreSQL and the in-memory store only. MySQL, SQLite and MongoDB are not implemented for Go.",
+    "API only: there is no generated frontend for Gin, and `selfauth add` does not work on existing Go projects (new projects only).",
+    "PostgreSQL is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter (pool sizing, statement timeouts, behaviour under replica failover were chosen and tested, not audited).",
+    "The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.",
+    "The migration runner does not detect destructive statements (unlike `selfauth db plan` for Prisma projects): read every migration before applying it.",
+    "Two implementations of the core now exist. The conformance suite detects drift in the behaviour it covers; behaviour outside the cases is covered by the Go unit tests and review. Known differences (trusted proxies as a list only, simple case folding of email addresses, trailing slashes) are listed in apps/playground-gin/README.md.",
+    "Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).",
+    "The mailer is a stub: you must implement NewMailer before production, and the server refuses to start in production without one.",
+    "Production-profile status is not claimed for Gin: the adapter has had no review except its author's. The sign-offs below are self-assessed, and no independent security audit has been done."
+  ],
+  "signoffs": [
+    {
+      "requirement": "IDENT-DELETE-005",
+      "method": "documentation",
+      "evidence": ["docs/data-retention.md"],
+      "finding": "docs/data-retention.md lists what deletion clears, deletes, revokes and keeps, how long, and how to purge it; checked against deleteUser in the Go core (internal/auth/service.go) and the migration SQL, which is the same schema as the TypeScript apps."
+    },
+    {
+      "requirement": "AUTHN-REG-003",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-gin/internal/store/storetest/storetest.go",
+        "apps/playground-gin/internal/store/postgres/postgres_test.go",
+        "apps/playground-gin/internal/store/postgres/postgres.go"
+      ],
+      "finding": "The store contract suite makes the role link fail and asserts no user or credential remains; it runs against the in-memory and the PostgreSQL store, where creation is one transaction."
+    },
+    {
+      "requirement": "AUTHN-LOGIN-003",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/auth/service_test.go"],
+      "finding": "A test counts Argon2 evaluations: a login for an account that does not exist costs exactly as many as a login with a wrong password."
+    },
+    {
+      "requirement": "AUTHN-LOGIN-003",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/auth/service.go"],
+      "finding": "Login calls VerifyDummy on the no-user path and has no early return before password verification."
+    },
+    {
+      "requirement": "AUTHN-REG-010",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/auth/service_test.go"],
+      "finding": "A test counts Argon2 evaluations: registering an address that already has an account costs the same as a new one."
+    },
+    {
+      "requirement": "AUTHN-REG-010",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/auth/service.go"],
+      "finding": "Register hashes the password before looking the email up, so every path costs the same."
+    },
+    {
+      "requirement": "AUTHZ-CORE-002",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/routes/routes.go",
+        "apps/playground-gin/internal/routes/routes_test.go",
+        "apps/playground-gin/internal/app/app_test.go",
+        "apps/playground-gin/internal/ginauth/ginauth.go"
+      ],
+      "finding": "The example route is guarded and tested anonymously; routes on ProtectedRoutes deny every request that no guard allows (tested). Unlike the TypeScript apps there is no test that fails on any unguarded route in application code: that remains a review item."
+    },
+    {
+      "requirement": "AUTHZ-PERM-001",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Config validation rejects malformed permission names (the Go configuration is validated at start-up with the specification's bounds)."
+    },
+    {
+      "requirement": "AUTHZ-PERM-002",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Config validation rejects project permissions using the reserved 'auth.' prefix."
+    },
+    {
+      "requirement": "AUTHZ-PERM-004",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Config validation rejects roles that reference undefined permissions."
+    },
+    {
+      "requirement": "AUTHZ-PERM-004",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/app/app_test.go"],
+      "finding": "RequirePermission with an undefined permission panics when the route is defined."
+    },
+    {
+      "requirement": "AUTHZ-RBAC-005",
+      "method": "migration-test",
+      "evidence": [
+        "apps/playground-gin/internal/store/storetest/storetest.go",
+        "apps/playground-gin/internal/store/postgres/postgres_test.go"
+      ],
+      "finding": "Role and permission sync is exercised against PostgreSQL and never prunes assignments: a user keeps a role that disappeared from the configuration."
+    },
+    {
+      "requirement": "AUTHZ-RBAC-005",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/cmd/seed/main.go",
+        "apps/playground-gin/internal/store/store.go"
+      ],
+      "finding": "Roles are synchronized by the seed command only; the PostgreSQL store does no sync at startup (the in-memory store is synchronized on start because it holds no data)."
+    },
+    {
+      "requirement": "SEC-HASH-001",
+      "method": "adapter-test",
+      "evidence": ["conformance/cases/identity.json"],
+      "finding": "CT-IDENT-007 asserts the stored verifier is an Argon2id PHC string."
+    },
+    {
+      "requirement": "SEC-HASH-001",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/auth/password.go", "docs/adr/0027-gin-backend.md"],
+      "finding": "Hashing is golang.org/x/crypto/argon2 (the Go project's maintained implementation) with IDKey (Argon2id); there is no hand-written implementation, and verification compares in constant time."
+    },
+    {
+      "requirement": "SEC-HASH-006",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/app/app_test.go"],
+      "finding": "A test runs many password hashes at once and answers a request that needs none before they finish; every request is its own goroutine and concurrent hashes are bounded so memory cannot be exhausted."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-001",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Config validation rejects minLength below 8."
+    },
+    {
+      "requirement": "SEC-PWPOLICY-005",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/config/validate_test.go",
+        "apps/playground-gin/internal/auth/password.go"
+      ],
+      "finding": "No setting or code path expires or rotates passwords; the password block of the configuration struct has only length, common-password and hashing keys, and a test rejects an added age key."
+    },
+    {
+      "requirement": "SEC-TOKEN-005",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-gin/internal/auth/service_test.go",
+        "apps/playground-gin/internal/app/app_test.go"
+      ],
+      "finding": "Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Gin projects are API only, so rendering email-link pages is the frontend's job (the reference frontends are tested separately)."
+    },
+    {
+      "requirement": "SEC-COOKIE-003",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/app/app_test.go"],
+      "finding": "NewAuth refuses an insecure session cookie and an http base URL when APP_ENV is production."
+    },
+    {
+      "requirement": "SEC-REDIRECT-001",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/ginauth/routes.go",
+        "apps/playground-gin/internal/app/app.go"
+      ],
+      "finding": "The Gin backend never redirects: no handler issues a Location header, and trailing-slash and path-fixing redirects are disabled. Redirect handling after sign-in belongs to a frontend, which a Gin project does not generate."
+    },
+    {
+      "requirement": "SEC-REDIRECT-001",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/app/app_test.go"],
+      "finding": "A test sends hostile redirect and next parameters and odd paths and asserts no response is a redirect or carries a Location header."
+    },
+    {
+      "requirement": "SEC-SECRET-001",
+      "method": "static-analysis",
+      "evidence": [".github/workflows/security.yml"],
+      "finding": "The security workflow runs gitleaks over the full history on every push and pull request and weekly; the configuration struct has no secret fields."
+    },
+    {
+      "requirement": "SEC-SECRET-001",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/config/config.go",
+        "apps/playground-gin/internal/config/validate_test.go"
+      ],
+      "finding": "The configuration is decoded strictly and has no field that holds a secret (a test walks the struct); secrets come from environment variables."
+    },
+    {
+      "requirement": "SEC-SECRET-002",
+      "method": "adapter-test",
+      "evidence": ["packages/cli/test/gin.test.ts"],
+      "finding": "A test asserts the generated .env.example holds placeholders only and .gitignore covers .env."
+    },
+    {
+      "requirement": "SEC-SECRET-003",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-gin/internal/config/config_test.go",
+        "apps/playground-gin/internal/app/app_test.go"
+      ],
+      "finding": "Tests assert start-up fails without a valid SELFAUTH_APP_BASE_URL, and that token-mode CSRF cannot start without a secret of at least 32 bytes."
+    },
+    {
+      "requirement": "SEC-SECRET-004",
+      "method": "adapter-test",
+      "evidence": [
+        "apps/playground-gin/internal/config/config_test.go",
+        "apps/playground-gin/internal/app/app_test.go"
+      ],
+      "finding": "Tests assert CSRF secrets under 32 bytes are refused, tokens signed with the previous secret are still accepted, and tokens signed with a dropped secret are refused."
+    },
+    {
+      "requirement": "SEC-SECRET-004",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/ginauth/ginauth.go"],
+      "finding": "The previous secret is verified but never used to sign, so rotation cannot keep an old key alive."
+    },
+    {
+      "requirement": "SEC-AUDIT-004",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/auth/store.go",
+        "apps/playground-gin/internal/ginauth/routes.go"
+      ],
+      "finding": "The Store interface can only append security events (RecordEvent), and no route or service updates or deletes one."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "The options that reveal registered emails are off in the default configuration, and sign-in after registration is rejected unless the reveal option is on."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "documentation",
+      "evidence": ["docs/customization.md"],
+      "finding": "The customization guide describes the revealExistingEmail trade-off."
+    },
+    {
+      "requirement": "SEC-ENUM-004",
+      "method": "adapter-test",
+      "evidence": ["packages/cli/test/gin.test.ts"],
+      "finding": "selfauth doctor warns when revealExistingEmail is enabled in a Gin project's selfauth.config.json."
+    },
+    {
+      "requirement": "SEC-HTTP-002",
+      "method": "documentation",
+      "evidence": ["docs/frontend-deployment.md"],
+      "finding": "The deployment guide requires HTTPS and shows the HSTS header; NewAuth and the environment loader refuse an http base URL in production."
+    },
+    {
+      "requirement": "DATA-MODEL-001",
+      "method": "migration-test",
+      "evidence": ["apps/playground-gin/internal/store/postgres/postgres_test.go"],
+      "finding": "A test asserts the unique indexes exist on a fresh database, and the store contract suite shows concurrent registrations of one address create one account."
+    },
+    {
+      "requirement": "DATA-MODEL-003",
+      "method": "migration-test",
+      "evidence": ["apps/playground-gin/internal/store/postgres/postgres_test.go"],
+      "finding": "Migrations are applied and verified on a fresh PostgreSQL schema by the project's migration runner: once, idempotently, with edited migrations refused and concurrent runs serialized."
+    },
+    {
+      "requirement": "DATA-MODEL-003",
+      "method": "code-review",
+      "evidence": [
+        "apps/playground-gin/internal/store/store.go",
+        "apps/playground-gin/cmd/migrate/main.go",
+        "docs/database.md"
+      ],
+      "finding": "The application never migrates or seeds at startup; migrations are applied only by the explicit migrate command."
+    },
+    {
+      "requirement": "DATA-MODEL-004",
+      "method": "migration-test",
+      "evidence": ["apps/playground-gin/internal/store/postgres/postgres_test.go"],
+      "finding": "A test migrates a schema that already holds an application table with rows and asserts they are untouched and that every other table is SelfAuth's own (auth_ prefix)."
+    },
+    {
+      "requirement": "ERR-FORMAT-003",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/auth/errors.go", "conformance/src/runner/run.ts"],
+      "finding": "Every error carries a stable code; no Go code matches message text (errors are inspected with errors.As and switched on Code), and the conformance runner branches on error.code."
+    },
+    {
+      "requirement": "CONF-FILE-001",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "The configuration is decoded with unknown fields disallowed; tests reject unknown top-level and nested keys."
+    },
+    {
+      "requirement": "CONF-FILE-002",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Unknown keys are rejected, so a secret cannot be added to the config file."
+    },
+    {
+      "requirement": "CONF-FILE-002",
+      "method": "code-review",
+      "evidence": ["apps/playground-gin/internal/config/config.go"],
+      "finding": "No field in the configuration struct carries a secret."
+    },
+    {
+      "requirement": "CONF-FILE-003",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Out-of-range TTLs, lengths and timeouts are rejected, not clamped."
+    },
+    {
+      "requirement": "CONF-FILE-004",
+      "method": "adapter-test",
+      "evidence": ["apps/playground-gin/internal/store/store_test.go"],
+      "finding": "The store factory rejects a configuration naming a database this adapter does not implement (MySQL, SQLite, MongoDB), and the proxy setting refuses a hop count."
+    },
+    {
+      "requirement": "CONF-FILE-005",
+      "method": "schema-test",
+      "evidence": ["apps/playground-gin/internal/config/validate_test.go"],
+      "finding": "Config validation rejects an unsupported major specVersion."
+    }
+  ]
+}

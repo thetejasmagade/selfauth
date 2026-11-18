@@ -111,6 +111,27 @@ function projectScripts(where: string, label: string): void {
     );
   }
 }
+// A Go (Gin) project has no package.json: vet and test it with the Go toolchain.
+function goChecks(where: string): void {
+  if (!existsSync(join(where, "go.mod"))) return;
+  const vet = run(["go", "vet", "./..."], where);
+  add(
+    "backend: go vet",
+    vet.status === 0 ? "PASS" : "FAIL",
+    vet.status === 0 ? "" : tail(vet.stdout + vet.stderr),
+  );
+  if (argv.includes("--skip-tests")) {
+    add("backend: go test", "SKIPPED", "--skip-tests");
+    return;
+  }
+  const test = run(["go", "test", "./..."], where);
+  add(
+    "backend: go test",
+    test.status === 0 ? "PASS" : "FAIL",
+    test.status === 0 ? "" : tail(test.stdout + test.stderr),
+  );
+}
+goChecks(dir);
 const workspace = Boolean(readPackageJson(dir)?.workspaces);
 projectScripts(dir, workspace ? "workspace" : "backend");
 if (!workspace && existsSync(join(dir, "web", "package.json")))

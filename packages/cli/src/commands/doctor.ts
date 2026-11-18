@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import {
   fileDrift,
+  isGoProject,
   loadConfig,
   loadManifest,
   packageLabel,
@@ -87,12 +88,10 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
   }
 
   const mailer = join(dir, projectPath(manifest, "src/email/mailer.ts"));
-  if (
-    existsSync(mailer) &&
-    (await readFile(mailer, "utf8")).includes("No email provider configured")
-  ) {
+  const go = isGoProject(manifest);
+  if (existsSync(mailer) && /no email provider configured/i.test(await readFile(mailer, "utf8"))) {
     report.warnings.push(
-      `no email provider yet: implement createMailer() in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
+      `no email provider yet: implement ${go ? "NewMailer" : "createMailer()"} in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
     );
   }
   // A full-stack project keeps one .gitignore at its root, above the server package.
@@ -105,7 +104,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
   if (existsSync(join(dir, ".env"))) {
     if (!env["SELFAUTH_APP_BASE_URL"])
       report.errors.push(".env: SELFAUTH_APP_BASE_URL is missing (email links need it)");
-    if (manifest.database.orm !== "none" && !env["DATABASE_URL"])
+    if (manifest.database.type !== "memory" && !env["DATABASE_URL"])
       report.warnings.push(".env: DATABASE_URL is missing");
   } else {
     report.notes.push("no .env yet (copy .env.example)");

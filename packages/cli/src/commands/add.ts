@@ -62,11 +62,17 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   }
   const detected = await detectProject(dir);
   const requested = options.backend ?? detected.framework ?? undefined;
-  if (requested !== undefined && !BACKENDS.includes(requested as Backend)) {
-    fail(`Unsupported backend '${requested}'. Supported: ${BACKENDS.join(", ")}.`);
+  if (requested === "gin") {
+    fail(
+      "`selfauth add` supports Express and Fastify projects. For Go, create a new project: `selfauth init --backend gin`.",
+    );
     return 1;
   }
-  const backend = (requested ?? "express") as Backend;
+  if (requested !== undefined && !BACKENDS.includes(requested as Backend)) {
+    fail(`Unsupported backend '${requested}'. Supported: express, fastify.`);
+    return 1;
+  }
+  const backend = (requested ?? "express") as Exclude<Backend, "gin">;
   const layout = await detectSourceLayout(dir, backend);
   const srcDir = options.src ?? layout.sourceDir;
   say(`Source folder: ${srcDir} (${options.src ? "from --src" : layout.basis})`);
