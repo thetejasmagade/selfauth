@@ -9,3 +9,10 @@ packages:
 onlyBuiltDependencies:
   - "@prisma/engines"
   - prisma
+
+# Advisories accepted on purpose. Review and remove each once a patched release exists.
+auditConfig:
+  ignoreGhsas:
+    # picomatch ReDoS (high), reached only via apps/playground-vue > vue-router (build-time globbing).
+    # No patched version was published when this was added (2026-11-18).
+    - GHSA-fc5q-39xc-vjpf
