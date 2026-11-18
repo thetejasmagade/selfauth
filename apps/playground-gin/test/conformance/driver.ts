@@ -32,13 +32,18 @@ export function ginDriver(port: number): DriverFactory {
       async request(req: HttpRequest) {
         const method = req.method.toUpperCase();
         const hasBody = req.body !== undefined && method !== "GET" && method !== "OPTIONS";
-        const body =
-          !hasBody ? undefined : typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+        const body = !hasBody
+          ? undefined
+          : typeof req.body === "string"
+            ? req.body
+            : JSON.stringify(req.body);
         const res = await send(
           port,
           method,
           `/i/${created.id}${req.path}`,
-          body === undefined ? req.headers : { ...req.headers, "content-length": String(Buffer.byteLength(body)) },
+          body === undefined
+            ? req.headers
+            : { ...req.headers, "content-length": String(Buffer.byteLength(body)) },
           body,
         );
         const headers: Record<string, string | string[]> = {};

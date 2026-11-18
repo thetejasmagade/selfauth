@@ -64,21 +64,18 @@ export function send(
   body?: string,
 ): Promise<RawResponse> {
   return new Promise((resolve, reject) => {
-    const req = http.request(
-      { host: "127.0.0.1", port, method, path, headers, agent },
-      (res) => {
-        const chunks: Buffer[] = [];
-        res.on("data", (c: Buffer) => chunks.push(c));
-        res.on("end", () =>
-          resolve({
-            status: res.statusCode ?? 0,
-            headers: res.headers,
-            text: Buffer.concat(chunks).toString("utf8"),
-          }),
-        );
-        res.on("error", reject);
-      },
-    );
+    const req = http.request({ host: "127.0.0.1", port, method, path, headers, agent }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c: Buffer) => chunks.push(c));
+      res.on("end", () =>
+        resolve({
+          status: res.statusCode ?? 0,
+          headers: res.headers,
+          text: Buffer.concat(chunks).toString("utf8"),
+        }),
+      );
+      res.on("error", reject);
+    });
     req.on("error", reject);
     if (body !== undefined) req.write(body);
     req.end();
