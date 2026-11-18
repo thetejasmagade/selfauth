@@ -37,8 +37,8 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | backend | `fastify` | Fastify 5 + TypeScript |
 | database | `postgresql` | PostgreSQL via Prisma (store `postgresql`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
-| frontend | `vue` | Vue 3 (generated and built with a Fastify API; browser tests run against Express) |
-| frontend | `react` | React (generated and built with a Fastify API; browser tests run against Express) |
+| frontend | `vue` | Vue 3 (generated and built with a Fastify API; browser-tested against Fastify) |
+| frontend | `react` | React (generated and built with a Fastify API; browser-tested against Fastify) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 
@@ -85,7 +85,6 @@ Every mandatory requirement is covered by a case or by another check; the build 
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.
 - `selfauth add` (an existing project) supports Express only; a Fastify project is made with `selfauth init --backend fastify`.
-- The Vue and React browser end-to-end suite runs against the Express backend. Fastify full-stack projects are generated, type-checked, built and exercised through the API by CI.
 - Production-profile status is not claimed for Fastify yet: the Fastify adapter has had one review pass, by its author. The sign-offs below are self-assessed, and no independent security audit has been done.
 
 ## Sign-offs

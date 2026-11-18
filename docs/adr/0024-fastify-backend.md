@@ -53,6 +53,5 @@ is the smallest step from there and the most requested.
 - A third framework repeats this recipe: an adapter, an app shell, a reference app, an adapter record
   and a smoke run. Fastify's test harness (`test/http.ts`, a small `inject` wrapper shaped like
   supertest) is reusable.
-- The Vue and React browser end-to-end suite still runs against Express only. Fastify full-stack
-  projects are generated, type-checked, built and exercised through the API by CI; recorded as a
-  known limitation.
+- The Vue and React browser end-to-end suite first ran against Express only. It now runs every
+  frontend against both backends (`apps/e2e`), so this limitation is closed.

@@ -28,12 +28,12 @@
     {
       "kind": "frontend",
       "id": "vue",
-      "title": "Vue 3 (generated and built with a Fastify API; browser tests run against Express)"
+      "title": "Vue 3 (generated and built with a Fastify API; browser-tested against Fastify)"
     },
     {
       "kind": "frontend",
       "id": "react",
-      "title": "React (generated and built with a Fastify API; browser tests run against Express)"
+      "title": "React (generated and built with a Fastify API; browser-tested against Fastify)"
     }
   ],
   "independentAudit": false,
@@ -44,7 +44,6 @@
     "Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).",
     "The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.",
     "`selfauth add` (an existing project) supports Express only; a Fastify project is made with `selfauth init --backend fastify`.",
-    "The Vue and React browser end-to-end suite runs against the Express backend. Fastify full-stack projects are generated, type-checked, built and exercised through the API by CI.",
     "Production-profile status is not claimed for Fastify yet: the Fastify adapter has had one review pass, by its author. The sign-offs below are self-assessed, and no independent security audit has been done."
   ],
   "signoffs": [

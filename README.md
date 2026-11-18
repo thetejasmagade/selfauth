@@ -47,7 +47,7 @@ selfauth/
 ├── apps/playground-fastify/  Fastify reference implementation (same core, Fastify adapter)
 ├── apps/playground-vue/   Vue 3 reference frontend
 ├── apps/playground-react/ React reference frontend
-├── apps/e2e/            One Playwright spec run against both frontends
+├── apps/e2e/            One Playwright spec run against both frontends and both backends
 ├── docs/adr/           Architecture decision records
 ├── templates/          Copyable standalone projects (manual install, no CLI)
 ├── skills/selfauth/    The `selfauth` agent skill (Claude Code, Codex, Cursor)
