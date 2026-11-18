@@ -4,7 +4,32 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import registry from "./registry.json" with { type: "json" };
 
-export type Database = "memory" | "postgresql";
+export type Database = "memory" | "postgresql" | "sqlite";
+export const DATABASES: readonly Database[] = ["postgresql", "sqlite", "memory"];
+
+/** Databases that use Prisma and the SQL schema (PostgreSQL is the reference; the rest are derived). */
+export const usesPrisma = (database: Database): database is Exclude<Database, "memory"> =>
+  database !== "memory";
+
+/** What differs between databases for messages, `.env.example` and connection checks. */
+export const DATABASE_INFO: Record<
+  Database,
+  { label: string; urlExample: string; urlPrefixes: string[]; urlHint: string }
+> = {
+  postgresql: {
+    label: "PostgreSQL",
+    urlExample: "postgresql://user:password@localhost:5432/app",
+    urlPrefixes: ["postgresql://", "postgres://"],
+    urlHint: 'it must start with "postgresql://" (or "postgres://")',
+  },
+  sqlite: {
+    label: "SQLite",
+    urlExample: "file:./app.db",
+    urlPrefixes: ["file:"],
+    urlHint: 'it must start with "file:", for example file:./app.db',
+  },
+  memory: { label: "in-memory", urlExample: "", urlPrefixes: [], urlHint: "" },
+};
 export type Frontend = "none" | "vue" | "react";
 export type Backend = "express" | "fastify";
 export const BACKENDS: readonly Backend[] = ["express", "fastify"];
@@ -100,7 +125,9 @@ function applies(file: RegistryFile, sel: Selection): boolean {
   if (file.layout && file.layout !== (sel.layout ?? "project")) return false;
   const w = file.when;
   if (!w) return true;
-  if (w.database && w.database !== sel.database) return false;
+  // Registry entries marked `postgresql` are the Prisma files; other SQL databases derive them.
+  if (w.database === "memory" && sel.database !== "memory") return false;
+  if (w.database === "postgresql" && !usesPrisma(sel.database)) return false;
   if (w.frontend === "none" && sel.frontend !== "none") return false;
   if (w.frontend === "any" && sel.frontend === "none") return false;
   return true;
@@ -131,8 +158,16 @@ export function stackDependencies(
   manifest?: string;
 } {
   const stack = registry.stacks[backend];
-  if (database !== "postgresql")
+  if (database === "memory")
     return { dependencies: stack.dependencies, devDependencies: stack.devDependencies };
+  if (database === "sqlite") {
+    const dialect = registry.dialects.sqlite;
+    return {
+      dependencies: [...stack.dependencies, ...dialect.dependencies],
+      devDependencies: [...stack.devDependencies, ...dialect.devDependencies],
+      manifest: stack.postgresql.manifest,
+    };
+  }
   return {
     dependencies: [...stack.dependencies, ...stack.postgresql.dependencies],
     devDependencies: [...stack.devDependencies, ...stack.postgresql.devDependencies],

@@ -22,11 +22,14 @@ import type { Backend } from "./templates.js";
 import {
   frontendAuthFiles,
   frontendInfo,
+  registry,
   stackDependencies,
   stackFiles,
   templateSource,
+  usesPrisma,
   type TemplateSource,
 } from "./templates.js";
+import { adaptForDialect, isDerivedDialect } from "./dialect.js";
 import { isDemoFile, withoutNotesExample } from "./example.js";
 import { trimTrailingSlashes } from "./layout.js";
 import { CLI_VERSION } from "./version.js";
@@ -65,12 +68,15 @@ export async function templateFiles(
     return path;
   };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
-  const adapt = (target: string, content: string) =>
-    layout === "add"
-      ? adaptForAdd(target, content, srcDir)
+  const dialect = usesPrisma(answers.database) ? answers.database : null;
+  const adapt = (target: string, content: string) => {
+    const derived = dialect ? adaptForDialect(dialect, target, content) : content;
+    return layout === "add"
+      ? adaptForAdd(target, derived, srcDir)
       : target.startsWith("web/")
-        ? withoutNotesExample(target, content)
-        : content;
+        ? withoutNotesExample(target, derived)
+        : derived;
+  };
   const backend = answers.backend ?? "express";
   for (const entry of stackFiles({
     backend,
@@ -79,15 +85,20 @@ export async function templateFiles(
     layout,
   })) {
     const stack = entry.target.startsWith("web/") ? answers.frontend : backend;
+    // A derived database has its own migration (generated from its schema, scripts/sync-dialects.mjs).
+    const entrySource =
+      dialect && isDerivedDialect(dialect) && entry.target === "prisma/migrations"
+        ? registry.dialects[dialect].migrations
+        : entry.source;
     if (entry.directory) {
-      for (const rel of await source.listDirectory(entry.source)) {
+      for (const rel of await source.listDirectory(entrySource)) {
         if (isDemoFile(`${entry.target}/${rel}`)) continue;
         const path = place(rebase(`${entry.target}/${rel}`));
         if (path === null) continue;
         files.push({
           path,
-          template: `${stack}:${entry.source}/${rel}`,
-          content: adapt(`${entry.target}/${rel}`, await source.read(`${entry.source}/${rel}`)),
+          template: `${stack}:${entrySource}/${rel}`,
+          content: adapt(`${entry.target}/${rel}`, await source.read(`${entrySource}/${rel}`)),
         });
       }
     } else {
@@ -162,7 +173,7 @@ export function buildManifest(
     specVersion: SPEC_VERSION,
     database: {
       type: answers.database,
-      orm: answers.database === "postgresql" ? "prisma" : "none",
+      orm: usesPrisma(answers.database) ? "prisma" : "none",
     },
     ownedResources: owned,
     options: {
@@ -189,9 +200,10 @@ export async function ownedResources(
   backend: Backend = "express",
 ): Promise<Manifest["ownedResources"]> {
   const manifestSource = stackDependencies(database, backend).manifest;
-  return manifestSource
-    ? (JSON.parse(await source.read(manifestSource)) as Manifest).ownedResources
-    : { tables: [], types: [], migrations: [] };
+  if (!manifestSource) return { tables: [], types: [], migrations: [] };
+  const owned = (JSON.parse(await source.read(manifestSource)) as Manifest).ownedResources;
+  // The PostgreSQL manifest also lists its enum types; derived databases store enums as text.
+  return isDerivedDialect(database) ? { ...owned, types: [] } : owned;
 }
 
 /** Every file `init` would create, in memory. Nothing is written. */

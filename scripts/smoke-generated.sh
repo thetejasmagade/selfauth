@@ -4,6 +4,7 @@
 # sign-up → email verification → login → protected route flow.
 #   [SMOKE_BACKEND=fastify] scripts/smoke-generated.sh memory [none|vue|react|add|add-layout|manual]
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react|manual]
+#   scripts/smoke-generated.sh sqlite [none|vue|react]   (a database file in the project; no server)
 # The second argument adds a frontend (installed, typechecked and built), or
 # runs `selfauth add` against an existing Express (or, with SMOKE_BACKEND=fastify, Fastify) app
 # instead of `init` (add-layout:
@@ -14,7 +15,7 @@
 # with `selfauth skill install`, and its detect-project / validate-auth scripts
 # (the installed copies) must recommend the right command and pass.
 set -euo pipefail
-DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add|add-layout|manual]}"
+DB="${1:?usage: smoke-generated.sh memory|postgresql|sqlite [none|vue|react|add|add-layout|manual]}"
 MODE="${2:-none}"
 # SMOKE_BACKEND=fastify uses Fastify (init modes, and add / add-layout on the Fastify example); the default is Express.
 BACKEND="${SMOKE_BACKEND:-express}"
@@ -128,7 +129,8 @@ else
   else
     ENVFILE=server/.env
     cp server/.env.example "$ENVFILE"
-    START=(node "--env-file=$ENVFILE" server/dist/server.js)
+    # Started from server/, as `npm start -w server` does: a relative SQLite file: URL is read from there.
+    START=(bash -c "cd server && exec node --env-file=.env dist/server.js")
   fi
 fi
 if [[ "$DB" == "postgresql" && "$MODE" == "manual" ]]; then
@@ -137,8 +139,13 @@ if [[ "$DB" == "postgresql" && "$MODE" == "manual" ]]; then
   step "migrate with Prisma directly, seed roles"
   npm run -s db:migrate
   npm run -s db:seed
-elif [[ "$DB" == "postgresql" ]]; then
-  : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
+elif [[ "$DB" == "postgresql" || "$DB" == "sqlite" ]]; then
+  if [[ "$DB" == "sqlite" ]]; then
+    # The URL a person would write: relative, so `selfauth db` and the server must agree on where it is.
+    SMOKE_DATABASE_URL="file:./smoke.db"
+  else
+    : "${SMOKE_DATABASE_URL:?set SMOKE_DATABASE_URL}"
+  fi
   sed -i "s#^DATABASE_URL=.*#DATABASE_URL=$SMOKE_DATABASE_URL#" "$ENVFILE"
   step "selfauth db plan / migrate / validate (from the project root)"
   node "$CLI" db plan

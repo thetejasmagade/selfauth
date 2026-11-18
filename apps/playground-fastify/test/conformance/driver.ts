@@ -11,6 +11,7 @@ import { normalizeEmail } from "../../src/auth/core/email.ts";
 import type { Auth } from "../../src/auth/index.ts";
 import type { PrismaAuthStore } from "../../src/auth/stores/prisma.ts";
 import { buildTestApp, type StoreKind } from "../helpers.ts";
+import { readSecurityEvents } from "./events.ts";
 import { request } from "../http.ts";
 
 /** Hashing fixtures once per password keeps the suite fast. */
@@ -207,8 +208,7 @@ const createPlaygroundDriver = async (
     },
     async events() {
       if (t.memory) return t.memory.events as unknown as Record<string, unknown>[];
-      const events = await t.prisma!.db.authSecurityEvent.findMany({ orderBy: { seq: "asc" } });
-      return events.map(({ seq: _seq, ...e }) => e);
+      return readSecurityEvents(t.prisma!);
     },
     close: t.close,
     async logs() {

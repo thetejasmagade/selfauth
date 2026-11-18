@@ -149,6 +149,33 @@ jobs:
           scripts/smoke-generated.sh memory add-layout
           SMOKE_BACKEND=fastify scripts/smoke-generated.sh memory add-layout
 
+  derived-databases:
+    name: Conformance on derived databases (${{ matrix.database }}, ${{ matrix.app }})
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite]
+        app: [playground, playground-fastify]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Run every conformance case against the derived database
+        run: node scripts/dialect-conformance.mjs ${{ matrix.database }} ${{ matrix.app }}
+
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})
     needs: changes
@@ -160,6 +187,9 @@ jobs:
         include:
           - { database: memory, mode: none }
           - { database: postgresql, mode: none }
+          # SQLite (derived from the PostgreSQL reference): API only, and full-stack on Fastify.
+          - { database: sqlite, mode: none }
+          - { backend: fastify, database: sqlite, mode: react }
           - { database: memory, mode: vue }
           - { database: postgresql, mode: react }
           - { database: memory, mode: add }

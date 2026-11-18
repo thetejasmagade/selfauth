@@ -5,7 +5,8 @@
   "specVersion": "0.1",
   "claims": {
     "postgresql": "authorization",
-    "memory": "authorization"
+    "memory": "authorization",
+    "sqlite": "authorization"
   },
   "supports": [
     {
@@ -18,6 +19,12 @@
       "id": "postgresql",
       "title": "PostgreSQL via Prisma",
       "store": "postgresql"
+    },
+    {
+      "kind": "database",
+      "id": "sqlite",
+      "title": "SQLite via Prisma (derived from the PostgreSQL reference; verified by scripts/dialect-conformance.mjs in CI)",
+      "store": "sqlite"
     },
     {
       "kind": "database",
@@ -38,6 +45,7 @@
   ],
   "independentAudit": false,
   "limitations": [
+    "SQLite is a single file on one host. It is claimed at authorization level, not production: the production profile expects a shared store for rate limits across instances (SEC-RATE-006), and SQLite does not give you that across machines.",
     "Express 5 and Fastify 5 are the only supported backends (Phase 10 continues).",
     "MongoDB and Mongoose are in the configuration schema but not implemented; createAuth() refuses them.",
     "The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.",

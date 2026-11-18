@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfig } from "@selfauth/spec";
 import { describe, expect, it } from "vitest";
+import { withoutMarkers } from "../src/dialect.js";
 import {
   applyPlan,
   diagnose,
@@ -45,7 +46,11 @@ describe("planInit --backend fastify", () => {
       expect(templated.length).toBeGreaterThanOrEqual(25);
       for (const f of templated) {
         const source = f.template.slice("fastify:".length);
-        expect(f.content, f.path).toBe(await readFile(join(REPO, source), "utf8"));
+        // Byte for byte, except PostgreSQL's store loses the dialect marker comments (dialect.ts).
+        const reference = await readFile(join(REPO, source), "utf8");
+        expect(f.content, f.path).toBe(
+          f.path === "src/auth/stores/prisma.ts" ? withoutMarkers(reference) : reference,
+        );
       }
       expect(files.some((f) => f.template.startsWith("express:"))).toBe(false);
       expect(new Set(files.map((f) => f.path)).size).toBe(files.length);
@@ -173,6 +178,7 @@ describe("existing Fastify projects (selfauth add)", () => {
     expect(report.options.map((o) => o.command)).toEqual([
       "selfauth add --database memory --backend fastify",
       "selfauth add --database postgresql --backend fastify",
+      "selfauth add --database sqlite --backend fastify",
     ]);
   });
 

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseEnv } from "node:util";
+import { DATABASE_INFO, type Database } from "./templates.js";
 
 /**
  * Where `DATABASE_URL` comes from for `selfauth db`: the environment, or the project's `.env`.
@@ -48,15 +49,15 @@ export async function readDatabaseEnv(
   return { url: undefined, source: null, environment: env, envFile, path };
 }
 
-/** The value `.env.example` ships with: a placeholder, not a database. */
-export const EXAMPLE_DATABASE_URL = "postgresql://user:password@localhost:5432/app";
+/** The value `.env.example` ships with for PostgreSQL: a placeholder, not a database. */
+export const EXAMPLE_DATABASE_URL = DATABASE_INFO.postgresql.urlExample;
 
 /** Problems with a connection string that Prisma would report badly (or not at all). */
-export function databaseUrlProblems(url: string): string[] {
+export function databaseUrlProblems(url: string, database: Database = "postgresql"): string[] {
   const problems: string[] = [];
-  if (!/^postgres(ql)?:\/\//.test(url))
-    problems.push('it must start with "postgresql://" (or "postgres://")');
-  if (url.trim() === EXAMPLE_DATABASE_URL)
+  const info = DATABASE_INFO[database];
+  if (!info.urlPrefixes.some((prefix) => url.startsWith(prefix))) problems.push(info.urlHint);
+  if (url.trim() === info.urlExample && database === "postgresql")
     problems.push("it is still the placeholder from .env.example; put your real connection string");
   if (/^["'].*["']$/.test(url.trim()))
     problems.push("it is wrapped in quotes that are part of the value");

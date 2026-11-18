@@ -1,5 +1,11 @@
 import { parseConfig, PERMISSION_PATTERN, type SelfAuthConfig } from "@selfauth/spec";
-import type { Backend, Database, Frontend } from "./templates.js";
+import {
+  DATABASE_INFO,
+  usesPrisma,
+  type Backend,
+  type Database,
+  type Frontend,
+} from "./templates.js";
 
 export interface InitAnswers {
   name: string;
@@ -63,7 +69,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
       backend: answers.backend ?? "express",
       frontend: answers.frontend,
       database: answers.database,
-      orm: answers.database === "postgresql" ? "prisma" : "none",
+      orm: usesPrisma(answers.database) ? "prisma" : "none",
     },
     authorization: {
       permissions,
@@ -110,7 +116,7 @@ export function renderPackageJson(
     typecheck: "tsc -p tsconfig.json --noEmit",
     test: 'node --test "test/**/*.test.ts"',
   };
-  if (answers.database === "postgresql") {
+  if (usesPrisma(answers.database)) {
     Object.assign(scripts, {
       generate: "prisma generate",
       postinstall: "prisma generate",
@@ -243,18 +249,16 @@ export function renderEnvExample(answers: InitAnswers): string {
       "# HOST=0.0.0.0",
     );
   }
-  if (answers.database === "postgresql") {
-    lines.push(
-      "# PostgreSQL connection for Prisma.",
-      "DATABASE_URL=postgresql://user:password@localhost:5432/app",
-    );
+  if (usesPrisma(answers.database)) {
+    const info = DATABASE_INFO[answers.database];
+    lines.push(`# ${info.label} connection for Prisma.`, `DATABASE_URL=${info.urlExample}`);
   }
   return `${lines.join("\n")}\n`;
 }
 
 /** Workspace root package.json: runs both packages (`concurrently` so it also works on Windows). */
 export function renderRootPackageJson(answers: InitAnswers): string {
-  const pg = answers.database === "postgresql";
+  const pg = usesPrisma(answers.database);
   const scripts: Record<string, string> = {
     dev: 'concurrently -k -n server,client -c blue,green "npm run dev -w server" "npm run dev -w client"',
     "dev:server": "npm run dev -w server",
@@ -305,7 +309,7 @@ export function renderGitignore(options: { workspace?: boolean } = {}): string {
 type Row = [string, string];
 
 function serverRows(answers: InitAnswers): Row[] {
-  const pg = answers.database === "postgresql";
+  const pg = usesPrisma(answers.database);
   return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
@@ -319,7 +323,7 @@ function serverRows(answers: InitAnswers): Row[] {
     ["  email/mailer.ts", "plug in your email provider here"],
     [
       "  db/store.ts",
-      `picks the data store (${pg ? "PostgreSQL, or in-memory without DATABASE_URL" : "in-memory"})`,
+      `picks the data store (${pg ? `${DATABASE_INFO[answers.database].label}, or in-memory without DATABASE_URL` : "in-memory"})`,
     ],
     ["  http/", "error responses and request ids"],
     [
@@ -356,10 +360,7 @@ export function renderLayout(answers: InitAnswers): string {
   const indent = (rows: Row[]): Row[] => rows.map(([name, note]) => [`  ${name}`, note]);
   const rows: Row[] = isWorkspace(answers)
     ? [
-        [
-          "server/",
-          `the ${frameworkName(answers)} API (${answers.database === "postgresql" ? "PostgreSQL" : "in-memory"})`,
-        ],
+        ["server/", `the ${frameworkName(answers)} API (${DATABASE_INFO[answers.database].label})`],
         ...indent(serverRows(answers)),
         ["  package.json, tsconfig.json", "its own package"],
         ["  .env.example", "copy to server/.env"],
@@ -382,7 +383,7 @@ export function renderLayout(answers: InitAnswers): string {
 }
 
 export function renderReadme(answers: InitAnswers): string {
-  const pg = answers.database === "postgresql";
+  const pg = usesPrisma(answers.database);
   const ws = isWorkspace(answers);
   const env = ws ? "server/.env" : ".env";
   const base = ws ? "server/" : "";

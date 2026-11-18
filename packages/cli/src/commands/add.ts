@@ -6,10 +6,12 @@ import { applyPlan, ConflictError, planAdd, selfauthRoot } from "../plan.js";
 import { preflightAdd } from "../preflight.js";
 import {
   BACKENDS,
+  DATABASES,
   stackDependencies,
   templateSource,
   type Backend,
   type Database,
+  usesPrisma,
 } from "../templates.js";
 import { detectProject } from "../detect.js";
 import { appBaseUrlProblem } from "../render.js";
@@ -47,7 +49,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   const dir = resolve(dirArg ?? ".");
   const database = (options.database ?? "memory") as Database;
   say(`SelfAuth add → ${dir}`);
-  if (!["memory", "postgresql"].includes(database)) {
+  if (!DATABASES.includes(database)) {
     fail(`Unsupported database '${database}'.`);
     return 1;
   }
@@ -130,9 +132,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     throw error;
   }
   const root = selfauthRoot(check.srcDir);
-  ok(
-    `Created ${files.length} files under ${root}/${database === "postgresql" ? " and prisma/" : ""}.`,
-  );
+  ok(`Created ${files.length} files under ${root}/${usesPrisma(database) ? " and prisma/" : ""}.`);
 
   const deps = stackDependencies(database, backend);
   const versions = await templateSource().versions();
@@ -190,7 +190,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   say(
     `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see ${root}/config/env.ts.`,
   );
-  if (database === "postgresql") {
+  if (usesPrisma(database)) {
     say(`${step++}. Ignore the generated client: add "${root}/generated/" to .gitignore, then:`);
     say("     npx prisma generate && npx selfauth db plan && npx selfauth db migrate");
     say(`     node --env-file=.env ${root}/scripts/seed.ts`);

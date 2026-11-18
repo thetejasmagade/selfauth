@@ -43,10 +43,11 @@ export interface UpgradePlan {
 export const PROPOSAL_SUFFIX = ".selfauth-new";
 
 function answersFrom(manifest: Manifest): Pick<InitAnswers, "database" | "frontend" | "backend"> {
-  if (manifest.database.type === "mongodb")
-    throw new Error("MongoDB projects are not supported yet");
+  const database = manifest.database.type;
+  if (database === "mongodb" || database === "mysql")
+    throw new Error(`${database} projects are not supported yet`);
   return {
-    database: manifest.database.type,
+    database,
     frontend: manifest.options?.frontend ?? "none",
     backend: manifest.options?.backend ?? "express",
   };

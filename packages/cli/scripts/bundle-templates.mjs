@@ -20,6 +20,7 @@ for (const stack of [...Object.values(registry.stacks), ...Object.values(registr
   for (const f of stack.files) sources.add(f.source);
   if (stack.postgresql?.manifest) sources.add(stack.postgresql.manifest);
 }
+for (const dialect of Object.values(registry.dialects ?? {})) sources.add(dialect.migrations);
 for (const source of sources) {
   mkdirSync(dirname(join(out, source)), { recursive: true });
   cpSync(join(repo, source), join(out, source), { recursive: true });

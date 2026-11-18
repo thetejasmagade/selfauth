@@ -8,6 +8,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/coverage/**",
       "**/.turbo/**",
+      "**/.dialect/**", // test copies made by scripts/dialect-conformance.mjs
       "**/node_modules/**",
       "templates/**", // generated copies of linted reference files (scripts/sync-templates.mjs)
     ],

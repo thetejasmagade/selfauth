@@ -134,10 +134,10 @@ export async function preflightAdd(
     if (options.allowExistingAuth) report.warnings.push(msg);
     else report.errors.push(`${msg}; re-run with --allow-existing-auth if that is intended.`);
   }
-  if (options.database === "postgresql" && project.prisma) {
+  if (options.database !== "memory" && project.prisma) {
     report.errors.push(
       "this project already uses Prisma: merging SelfAuth's models into an existing schema is not automated yet. " +
-        "Use --database memory to try SelfAuth, or copy the models from a project made with `selfauth init --database postgresql`.",
+        "Use --database memory to try SelfAuth, or copy the models from a project made with `selfauth init --database <database>`.",
     );
   }
 
