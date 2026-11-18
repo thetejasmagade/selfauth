@@ -180,6 +180,7 @@ describe("existing Fastify projects (selfauth add)", () => {
       "selfauth add --database postgresql --backend fastify",
       "selfauth add --database mysql --backend fastify",
       "selfauth add --database sqlite --backend fastify",
+      "selfauth add --database mongodb --backend fastify",
     ]);
   });
 

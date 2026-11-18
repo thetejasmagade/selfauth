@@ -4,12 +4,25 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import registry from "./registry.json" with { type: "json" };
 
-export type Database = "memory" | "postgresql" | "mysql" | "sqlite";
-export const DATABASES: readonly Database[] = ["postgresql", "mysql", "sqlite", "memory"];
+export type Database = "memory" | "postgresql" | "mysql" | "sqlite" | "mongodb";
+export const DATABASES: readonly Database[] = [
+  "postgresql",
+  "mysql",
+  "sqlite",
+  "mongodb",
+  "memory",
+];
 
 /** Databases that use Prisma and the SQL schema (PostgreSQL is the reference; the rest are derived). */
-export const usesPrisma = (database: Database): database is Exclude<Database, "memory"> =>
-  database !== "memory";
+export const usesPrisma = (database: Database): database is "postgresql" | "mysql" | "sqlite" =>
+  database !== "memory" && database !== "mongodb";
+
+/** The ORM a database uses (the manifest's `database.orm`). */
+export const ormFor = (database: Database): "prisma" | "mongoose" | "none" =>
+  usesPrisma(database) ? "prisma" : database === "mongodb" ? "mongoose" : "none";
+
+/** Whether the project keeps its data in a database (everything but the in-memory store). */
+export const hasDatabase = (database: Database): boolean => database !== "memory";
 
 /** What differs between databases for messages, `.env.example` and connection checks. */
 export const DATABASE_INFO: Record<
@@ -33,6 +46,12 @@ export const DATABASE_INFO: Record<
     urlExample: "file:./app.db",
     urlPrefixes: ["file:"],
     urlHint: 'it must start with "file:", for example file:./app.db',
+  },
+  mongodb: {
+    label: "MongoDB",
+    urlExample: "mongodb://localhost:27017/app",
+    urlPrefixes: ["mongodb://", "mongodb+srv://"],
+    urlHint: 'it must start with "mongodb://" (or "mongodb+srv://")',
   },
   memory: { label: "in-memory", urlExample: "", urlPrefixes: [], urlHint: "" },
 };
@@ -134,6 +153,7 @@ function applies(file: RegistryFile, sel: Selection): boolean {
   // Registry entries marked `postgresql` are the Prisma files; other SQL databases derive them.
   if (w.database === "memory" && sel.database !== "memory") return false;
   if (w.database === "postgresql" && !usesPrisma(sel.database)) return false;
+  if (w.database === "mongodb" && sel.database !== "mongodb") return false;
   if (w.frontend === "none" && sel.frontend !== "none") return false;
   if (w.frontend === "any" && sel.frontend === "none") return false;
   return true;
@@ -166,6 +186,12 @@ export function stackDependencies(
   const stack = registry.stacks[backend];
   if (database === "memory")
     return { dependencies: stack.dependencies, devDependencies: stack.devDependencies };
+  if (database === "mongodb") {
+    return {
+      dependencies: [...stack.dependencies, ...registry.mongodb.dependencies],
+      devDependencies: stack.devDependencies,
+    };
+  }
   if (database === "sqlite" || database === "mysql") {
     const dialect = registry.dialects[database];
     return {

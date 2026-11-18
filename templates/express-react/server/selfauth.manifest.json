@@ -49,7 +49,7 @@
     {
       "path": "src/auth/index.ts",
       "template": "express:apps/playground/src/auth/index.ts",
-      "sha256": "eaccd625f9706530b67941a13cf3c7f5e876bfe54bef5878bb26956d1b065fdd"
+      "sha256": "738fa3dfc21716460128bf86801d1f56c83d9d3650427862dc916dfa847d4627"
     },
     {
       "path": "src/auth/core/authorization.ts",

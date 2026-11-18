@@ -72,6 +72,7 @@ describe("selfauth detect", () => {
       ["selfauth add --database postgresql", true],
       ["selfauth add --database mysql", true],
       ["selfauth add --database sqlite", true],
+      ["selfauth add --database mongodb", true],
     ]);
     expect(r.options[0]!.tsconfigChanges).toEqual({
       allowImportingTsExtensions: true,

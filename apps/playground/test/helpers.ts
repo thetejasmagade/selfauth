@@ -12,12 +12,9 @@ import {
 import { createLogger, MemoryLogSink } from "../src/auth/core/logger.ts";
 import type { RateLimitStore } from "../src/auth/core/rate-limit.ts";
 import type { AuthStore } from "../src/auth/core/store.ts";
-import {
-  createPrismaClient,
-  PrismaAuthStore,
-  PrismaRateLimitStore,
-} from "../src/auth/stores/prisma.ts";
-import { createTestSchema, TEST_DATABASE_URL, type TestSchema } from "./postgres.ts";
+import type { PrismaAuthStore } from "../src/auth/stores/prisma.ts";
+import { createTestDatabase, type TestDatabase } from "./database.ts";
+import type { TestSchema } from "./postgres.ts";
 import { loadEnv, type Env } from "../src/config/env.ts";
 import { getRequestId } from "../src/http/request-id.ts";
 
@@ -37,6 +34,8 @@ export interface TestApp {
   /** Set for the postgres store. */
   prisma?: PrismaAuthStore;
   schema?: TestSchema;
+  /** Set for a database-backed store: what the conformance driver reads and changes. */
+  database?: TestDatabase;
   mailer: MemoryMailer;
   clock: ManualClock;
   logs: MemoryLogSink;
@@ -64,15 +63,13 @@ export async function buildTestApp(
   let memory: MemoryAuthStore | undefined;
   let prisma: PrismaAuthStore | undefined;
   let schema: TestSchema | undefined;
+  let database: TestDatabase | undefined;
   if (options.store === "postgres") {
-    schema = await createTestSchema();
-    const db = createPrismaClient({
-      connectionString: TEST_DATABASE_URL!,
-      schema: schema.schema,
-      max: 4,
-    });
-    store = prisma = new PrismaAuthStore(db);
-    rateLimitStore = new PrismaRateLimitStore(db);
+    database = await createTestDatabase();
+    store = database.store;
+    rateLimitStore = database.rateLimitStore;
+    prisma = database.prisma;
+    schema = database.schema;
   } else {
     store = memory = new MemoryAuthStore();
   }
@@ -99,8 +96,7 @@ export async function buildTestApp(
     ...(options.mount ? { mount: options.mount } : {}),
   });
   const close = async () => {
-    await prisma?.db.$disconnect();
-    await schema?.drop();
+    await database?.close();
   };
   return {
     app,
@@ -111,6 +107,7 @@ export async function buildTestApp(
     ...(memory ? { memory } : {}),
     ...(prisma ? { prisma } : {}),
     ...(schema ? { schema } : {}),
+    ...(database ? { database } : {}),
     mailer,
     clock,
     logs,

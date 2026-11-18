@@ -169,6 +169,41 @@
           "source": "packages/cli/template-variants/setup.ts",
           "target": "src/setup.ts",
           "layout": "add"
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/auth/stores/mongoose.ts",
+          "target": "src/auth/stores/mongoose.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/db/store.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/migrate.ts",
+          "target": "src/scripts/migrate.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": {
+            "database": "mongodb"
+          }
         }
       ],
       "dependencies": ["express", "cookie", "@node-rs/argon2"],
@@ -347,6 +382,41 @@
           "when": {
             "database": "postgresql"
           }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/auth/stores/mongoose.ts",
+          "target": "src/auth/stores/mongoose.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/db/store.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/migrate.ts",
+          "target": "src/scripts/migrate.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": {
+            "database": "mongodb"
+          }
         }
       ],
       "dependencies": ["fastify", "cookie", "@node-rs/argon2"],
@@ -502,5 +572,16 @@
       "dependencies": ["@prisma/client", "@prisma/adapter-mariadb", "mariadb"],
       "devDependencies": ["prisma"]
     }
+  },
+  "mongodb": {
+    "dependencies": ["mongoose"],
+    "collections": [
+      "auth_users",
+      "auth_sessions",
+      "auth_one_time_tokens",
+      "auth_roles",
+      "auth_security_events",
+      "auth_rate_limits"
+    ]
   }
 }

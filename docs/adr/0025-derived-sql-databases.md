@@ -49,8 +49,7 @@ code.
   one file on one host, and the production profile expects a rate-limit store shared across
   instances (SEC-RATE-006); MySQL has such a store, but its production profile (isolation level,
   deadlock handling) has not been reviewed.
-- **MongoDB is different.** It has no SQL schema to derive from; it gets its own Mongoose store and
-  its own conformance run (a later change).
+- **MongoDB is different.** It has no SQL schema to derive from; see ADR 0026.
 
 ## Consequences
 

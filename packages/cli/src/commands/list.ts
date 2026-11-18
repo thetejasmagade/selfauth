@@ -44,6 +44,14 @@ export const INTEGRATIONS: Integration[] = [
   },
   {
     kind: "database",
+    id: "mongodb",
+    label:
+      "MongoDB 6+ via Mongoose 9 (its own store, not derived from SQL; authorization level; indexes via `selfauth db migrate`)",
+    production: true,
+    add: true,
+  },
+  {
+    kind: "database",
     id: "sqlite",
     label:
       "SQLite via Prisma 7: one file on one host, no server to run (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
