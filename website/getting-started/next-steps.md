@@ -1,38 +1,25 @@
 ---
 title: Next steps
-description: A learning path after your first SelfAuth project runs. Where to read next to understand the files, add routes and pages, configure it and go to production.
-keywords: [learning path, next steps, roadmap for beginners, tutorial order]
+description: Where to go after your first SelfAuth project runs. A suggested reading order for the files, routes, pages, configuration and production.
+keywords: [learning path, next steps, tutorial order]
 ---
 
 # Next steps
 
-You now have a running project. This is a good order to learn the rest.
+You've got a running project. Here's the order I'd read things in.
 
-## A learning path
+Start with [Project structure](/structure/) so you know where everything is and which files are safe to edit. Then [add an API route](/build/add-api-route) of your own and [protect it](/build/protect-routes). Once that works, [permissions and roles](/build/permissions-roles) explain who can do what, and [resources and ownership](/build/resource-ownership) show how to let users see only their own data.
 
-| Step | Read | You will be able to |
-| --- | --- | --- |
-| 1 | [Project structure](/structure/) | Find any file and know whether to edit it |
-| 2 | [Add an API route](/build/add-api-route) | Create your own endpoint |
-| 3 | [Protect routes](/build/protect-routes) | Require a signed-in user or a permission |
-| 4 | [Permissions and roles](/build/permissions-roles) | Decide who may do what |
-| 5 | [Resources and ownership](/build/resource-ownership) | Let users see only their own data |
-| 6 | [Add a frontend page](/build/frontend-pages) | Add pages and guarded routes (Vue or React) |
-| 7 | [Change the database](/build/database-changes) | Add your own tables and columns |
-| 8 | [The configuration file](/configuration/config-file) | Tune sessions, passwords and limits |
-| 9 | [Send real email](/build/email) | Replace the console mailer |
-| 10 | [Going to production](/advanced/production) | Deploy safely |
+If you generated a frontend, [adding a page](/build/frontend-pages) is next. After that, [change the database](/build/database-changes) to add your own tables, tune things in [the configuration file](/configuration/config-file), and [send real email](/build/email). When you're ready to deploy, work through [Going to production](/advanced/production).
 
 ## Quick answers
 
-- **Which files should I never edit?** The folder `auth/` (TypeScript: `src/auth/core/`, Go: `internal/auth/`). See [the ownership map](/structure/#ownership-map).
-- **Where do my own routes go?** `src/routes/` (TypeScript) or `internal/routes/` (Go).
-- **Where do my own pages go?** `client/src/pages/`.
-- **How do I change password rules?** `selfauth.config.ts`, then see [Configuration](/configuration/config-file#password).
-- **How do I update SelfAuth later?** [`selfauth diff` and `upgrade`](/cli/upgrade).
+- Files you shouldn't edit: the `auth/` folder (`src/auth/core/` in TypeScript, `internal/auth/` in Go). See the [ownership map](/structure/#ownership-map).
+- Where your routes go: `src/routes/`, or `internal/routes/` in Go.
+- Where your pages go: `client/src/pages/`.
+- Changing password rules: edit the config, then check the [password section](/configuration/config-file#password).
+- Updating SelfAuth later: [`selfauth diff` and `upgrade`](/cli/upgrade).
 
-## Get help
+## Getting help
 
-- [Troubleshooting](/troubleshooting) and the [FAQ](/faq)
-- [GitHub issues](https://github.com/thetejasmagade/selfauth/issues) for bugs
-- Report security problems privately, as described in the [security policy](https://github.com/thetejasmagade/selfauth/blob/main/SECURITY.md)
+Try [Troubleshooting](/troubleshooting) and the [FAQ](/faq) first. Bugs go in [GitHub issues](https://github.com/thetejasmagade/selfauth/issues). Security problems should be reported privately, as described in the [security policy](https://github.com/thetejasmagade/selfauth/blob/main/SECURITY.md).

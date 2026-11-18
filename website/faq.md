@@ -10,15 +10,15 @@ keywords: [faq, questions, is selfauth production ready, social login, mfa, lice
 
 ### Is SelfAuth a library I install?
 
-No. It is a **generator**. The CLI writes plain source code into your project, and nothing in that code depends on SelfAuth. You can uninstall the CLI and the app keeps working.
+No, it's a generator. The CLI writes plain source code into your project and nothing in that code depends on SelfAuth. Uninstall the CLI and the app carries on.
 
 ### Does anything phone home?
 
-No. Generated code makes no calls to SelfAuth or any other service, apart from the database and mail provider **you** configure.
+No. Generated code makes no calls to SelfAuth or any other service, apart from the database and mail provider you configure.
 
 ### How is it different from Auth0, Clerk or Firebase Auth?
 
-Those are hosted services: your users live in their database. With SelfAuth your users live in **your** database, the code is yours to change, and there is no per-user fee. In return you run and operate it yourself, and you get fewer features (no social login or MFA yet).
+Those are hosted services, so your users live in their database. With SelfAuth they live in yours, you can change the code, and there's no per-user fee. The price is that you run it yourself, and it does less: no social login or MFA yet.
 
 ### How is it different from Passport, Lucia or other libraries?
 
@@ -32,7 +32,7 @@ Yes. SelfAuth is MIT licensed, and generated output and templates are additional
 
 ### Is it secure? Is it production-ready?
 
-It is built with secure defaults and verified by a 90-case conformance suite, but it is **pre-alpha** and has had **no independent human security audit**. Treat it as suitable for evaluation and for projects where you review the code yourself. Read [Security model](/advanced/security) and [Going to production](/advanced/production).
+It has secure defaults and passes a 90-case conformance suite, but it's pre-alpha and nobody outside the project has audited it. Good for evaluating, and for projects where you'll review the code yourself. Not something to trust blindly. Read [Security model](/advanced/security) and [Going to production](/advanced/production).
 
 ### Why are passwords hashed with Argon2id?
 
@@ -44,7 +44,7 @@ Not in the generated code. SelfAuth uses opaque server-side sessions, so a sessi
 
 ### Why does the server refuse to start in production?
 
-Strict checks on purpose: it needs a real database, a real mail provider, `https`, and secure cookies. See [Startup errors](/advanced/production#startup-errors-you-may-meet).
+Those checks are there to protect you: it needs a real database, a real mail provider, `https`, and secure cookies. See [Startup errors](/advanced/production#startup-errors-you-may-meet).
 
 ## Features
 
@@ -58,7 +58,7 @@ Yes. A user can hold many roles and holds the union of their permissions.
 
 ### Can I add my own fields to the user (name, avatar)?
 
-Yes, but keep them in **your own table** that references `auth_users(id)`: see [Change the database](/build/database-changes). You may also add columns to `auth_users`, but the SelfAuth store will not read or write them.
+Yes, but keep them in your own table that references `auth_users(id)`: see [Change the database](/build/database-changes). You may also add columns to `auth_users`, but the SelfAuth store will not read or write them.
 
 ### How do I let users log in with a username?
 

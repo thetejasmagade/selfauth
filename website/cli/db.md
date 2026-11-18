@@ -6,7 +6,7 @@ keywords: [selfauth db, migrate, prisma migrate, db plan, db status, approve-des
 
 # `selfauth db`
 
-Wraps your project's **native** migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite; the index script for MongoDB; the Go runner for Gin) and adds a safety review. SelfAuth **never** migrates when the server starts.
+Wraps your project's native migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite; the index script for MongoDB; the Go runner for Gin) and adds a safety review. SelfAuth never migrates when the server starts.
 
 ```text
 selfauth db <command> [--dir <dir>]
@@ -22,7 +22,7 @@ selfauth db <command> [--dir <dir>]
 | `plan` | Reviews pending migrations for destructive statements and changes to tables SelfAuth does not own. Changes nothing |
 | `migrate [--approve-destructive]` | Applies pending migrations. Refuses destructive or non-owned changes unless you pass the flag |
 | `validate` | Checks the schema against the ownership manifest |
-| `rollback` | **Explains** how to roll back. There are no automatic down migrations |
+| `rollback` | Explains how to roll back. There are no automatic down migrations |
 | `generate <name>` | Creates a migration from changes to your schema, without applying it (Prisma projects) |
 
 ## Examples with real output
@@ -93,22 +93,18 @@ An in-memory project answers: `✗ database commands need a database: this proje
 | Removing rows | `TRUNCATE`, `DELETE` |
 | Changing a column in a risky way | changing a column type, `SET NOT NULL`, renaming |
 | Dropping a constraint or an index | `DROP CONSTRAINT`, `DROP INDEX` |
-| Touching an object that is **not owned by SelfAuth** | any statement on a table not listed in `selfauth.manifest.json` under `ownedResources` |
+| Touching an object that is not owned by SelfAuth | any statement on a table not listed in `selfauth.manifest.json` under `ownedResources` |
 | Creating an object that already exists in the database | a baseline problem |
 
 This protects you when a teammate's migration, an upgrade or an ORM-generated change would damage data.
 
 ## Rules
 
-- **Review before applying.** Open the SQL. Take a **backup** before migrating production.
-- **Run migrations as a deploy step**, not at application start.
-- **No down migrations.** Restore a backup or write a new forward migration.
-- **Existing databases** that were not created with Prisma fail with `P3005`. Baseline them with `prisma migrate resolve --applied <migration>`, and only for migrations whose objects really exist.
+- Review before applying. Open the SQL. Take a backup before migrating production.
+- Run migrations as a deploy step, not at application start.
+- No down migrations. Restore a backup or write a new forward migration.
+- Existing databases that were not created with Prisma fail with `P3005`. Baseline them with `prisma migrate resolve --applied <migration>`, and only for migrations whose objects really exist.
 
 ## Troubleshooting
 
 See [Troubleshooting](/troubleshooting#database-url-is-not-set) for `DATABASE_URL is not set`, special characters in passwords and pooled databases such as Supabase.
-
-## Next
-
-- [`selfauth skill`](./skill)

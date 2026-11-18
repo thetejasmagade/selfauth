@@ -5,7 +5,11 @@ const REPO = "https://github.com/thetejasmagade/selfauth";
 // Set DOCS_BASE (for example "/selfauth/") when the site is not served from the domain root,
 // and DOCS_HOSTNAME (for example "https://docs.example.com") to emit canonical URLs and a sitemap.
 const base = process.env["DOCS_BASE"] ?? "/";
-const hostname = process.env["DOCS_HOSTNAME"]?.replace(/\/$/, "");
+// On Vercel the production domain is provided; elsewhere set DOCS_HOSTNAME yourself.
+const vercelHost = process.env["VERCEL_PROJECT_PRODUCTION_URL"];
+const hostname = (
+  process.env["DOCS_HOSTNAME"] ?? (vercelHost ? `https://${vercelHost}` : undefined)
+)?.replace(/\/$/, "");
 
 const sidebar: DefaultTheme.Sidebar = [
   {

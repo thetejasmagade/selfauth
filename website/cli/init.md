@@ -6,7 +6,7 @@ keywords: [selfauth init, create project, --backend, --database, --frontend, --p
 
 # `selfauth init`
 
-Creates a **new project** in a folder. The folder may be empty or not exist yet. It must not already contain a `package.json`, a `go.mod` or a SelfAuth manifest: for an existing project use [`add`](./add).
+Creates a new project in a folder. The folder may be empty or not exist yet. It must not already contain a `package.json`, a `go.mod` or a SelfAuth manifest: for an existing project use [`add`](./add).
 
 ```text
 selfauth init [dir] [options]
@@ -14,9 +14,9 @@ selfauth init [dir] [options]
 
 ## Interactive or not
 
-Run it with no options in a terminal and it **asks** each question: the folder, backend, database, frontend (not for Gin), your permissions, the address of your frontend (for API-only projects), the Go module path (for Gin), and whether to run `npm install`. Move with the arrow keys or type a number. A bad answer is explained and asked again. **Ctrl-C cancels and writes nothing.** Before writing, it shows the list of files and asks for confirmation.
+Run it with no options in a terminal and it asks each question: the folder, backend, database, frontend (not for Gin), your permissions, the address of your frontend (for API-only projects), the Go module path (for Gin), and whether to run `npm install`. Move with the arrow keys or type a number. A bad answer is explained and asked again. Ctrl-C cancels and writes nothing. Before writing, it shows the list of files and asks for confirmation.
 
-Every option below answers its question in advance, so you only see the questions you left out. With `--yes`, or when there is no terminal (CI, scripts, agents), nothing is asked and the **defaults** are used for whatever you did not give.
+Every option below answers its question in advance, so you only see the questions you left out. With `--yes`, or when there is no terminal (CI, scripts, agents), nothing is asked and the defaults are used for whatever you did not give.
 
 ## Options
 
@@ -26,9 +26,9 @@ Every option below answers its question in advance, so you only see the question
 | `--backend <framework>` | `express`, `fastify`, `gin` | `express` | The web framework |
 | `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Gin supports only `postgresql` and `memory` |
 | `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. Not available for Gin |
-| `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are **not** given to any role: see [Permissions and roles](/build/permissions-roles) |
+| `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are not given to any role: see [Permissions and roles](/build/permissions-roles) |
 | `--app-base-url <url>` | an `http` or `https` address | `http://localhost:5173` | Frontend address used in email links |
-| `--module <path>` | a Go module path, such as `github.com/you/my-api` | the project name | **Gin only.** Used in `go.mod` and all imports |
+| `--module <path>` | a Go module path, such as `github.com/you/my-api` | the project name | Gin only. Used in `go.mod` and all imports |
 | `-y`, `--yes` | – | – | Do not ask; accept the plan |
 | `--dry-run` | – | – | Print the plan and write nothing |
 | `--install` | – | asked (default yes) in the wizard; no with `--yes` | Run `npm install` afterwards. Not used for Gin |
@@ -135,7 +135,3 @@ The file counts depend on the options you chose.
 | `This directory already has a go.mod.` | The folder holds a Go project | Use an empty folder: `init` creates new projects only |
 | An error about the Go module path | The `--module` value is not a valid module path | Use a path like `github.com/you/my-api` |
 | An error about the database for Gin | Gin supports PostgreSQL and memory only | Use `--database postgresql` or `memory` |
-
-## Next
-
-- [`selfauth add`](./add)

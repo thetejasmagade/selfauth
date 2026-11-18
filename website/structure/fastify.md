@@ -6,7 +6,7 @@ keywords: [fastify, directory structure, preHandler, fastify adapter, boilerplat
 
 # Fastify API project structure
 
-`npx selfauth init my-app --backend fastify` creates the **same project as [Express](./express)**: the same folders, scripts, configuration, stores and tests. Only the HTTP glue differs.
+`npx selfauth init my-app --backend fastify` creates the same project as [Express](./express): the same folders, scripts, configuration, stores and tests. Only the HTTP glue differs.
 
 ## What is different
 
@@ -55,7 +55,3 @@ app.get("/api/orders", { preHandler: auth.requirePermission("orders.view") }, as
 ```
 
 For deny-by-default groups of routes, use `auth.protectedRoutes(app, "/api/orders")`: see [Protect routes](/build/protect-routes).
-
-## Next
-
-- [Add an API route](/build/add-api-route)

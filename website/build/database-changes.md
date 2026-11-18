@@ -15,17 +15,17 @@ The steps for Prisma were run against a generated SQLite project, and the output
 
 ## Rules to remember
 
-- **Migrations are reviewed SQL files.** Nothing changes your database when the server starts.
-- **Never edit a migration that has already been applied.** Write a new one.
-- **There are no down migrations.** To undo a change, restore a backup or write a new forward migration.
-- **Keep your data in your own tables** where you can. You may add columns to `auth_*` tables, but the SelfAuth stores only read the columns they know.
+- Migrations are reviewed SQL files. Nothing changes your database when the server starts.
+- Never edit a migration that has already been applied. Write a new one.
+- There are no down migrations. To undo a change, restore a backup or write a new forward migration.
+- Keep your data in your own tables where you can. You may add columns to `auth_*` tables, but the SelfAuth stores only read the columns they know.
 - Table names that start with `auth_` belong to SelfAuth. Name yours differently (`orders`, `invoices`).
 
 ## Add your own table
 
 ### With Prisma (PostgreSQL, MySQL, SQLite)
 
-**Step 1. Edit `prisma/schema.prisma`** (full stack: `server/prisma/schema.prisma`). Add the model at the end, and the back-reference inside `AuthUser`:
+Step 1. Edit `prisma/schema.prisma` (full stack: `server/prisma/schema.prisma`). Add the model at the end, and the back-reference inside `AuthUser`:
 
 ```prisma
 // inside `model AuthUser { ... }` add one line:
@@ -48,7 +48,7 @@ model Order {
 
 On PostgreSQL, the ids in `auth_users` are UUIDs, so write `userId String @map("user_id") @db.Uuid`, and `id String @id @default(uuid()) @db.Uuid`. The relation is what makes the database enforce that an order belongs to a real user, and `onDelete: Cascade` removes a user's orders when the account row is removed.
 
-**Step 2. Create the migration** (this writes SQL but does not apply it):
+Step 2. Create the migration (this writes SQL but does not apply it):
 
 ```bash
 npx selfauth db generate add_orders
@@ -60,7 +60,7 @@ npx selfauth db generate add_orders
   ✓ Created prisma/migrations/20261118114551_add_orders/migration.sql; review it, then run `selfauth db plan`.
 ```
 
-**Step 3. Read it.** Open the new `migration.sql`. For SQLite it is:
+Step 3. Read it. Open the new `migration.sql`. For SQLite it is:
 
 ```sql
 -- CreateTable
@@ -76,7 +76,7 @@ CREATE TABLE "orders" (
 CREATE INDEX "orders_user_id_idx" ON "orders"("user_id");
 ```
 
-**Step 4. Check and apply:**
+Step 4. Check and apply:
 
 ```bash
 npx selfauth db plan
@@ -94,13 +94,13 @@ Pending migrations (1):
 
 `db plan` flags statements that drop data and changes to tables SelfAuth owns. `db migrate` refuses those unless you add `--approve-destructive`.
 
-**Step 5. Regenerate the Prisma client** so that TypeScript knows the new model:
+Step 5. Regenerate the Prisma client so that TypeScript knows the new model:
 
 ```bash
 npx prisma generate
 ```
 
-**Step 6. Check that SelfAuth still agrees:**
+Step 6. Check that SelfAuth still agrees:
 
 ```bash
 npx selfauth validate
@@ -181,7 +181,7 @@ go run ./cmd/migrate status     # lists applied and pending migrations
 go run ./cmd/migrate up         # applies pending ones, each in its own transaction
 ```
 
-The runner records a checksum for each applied file and **refuses to continue if an applied file was edited**. It takes a database lock so two deployments cannot run at once. For queries, use your own `pgx` pool in your routes.
+The runner records a checksum for each applied file and refuses to continue if an applied file was edited. It takes a database lock so two deployments cannot run at once. For queries, use your own `pgx` pool in your routes.
 
 ### With MongoDB
 
@@ -204,7 +204,3 @@ You generated with `--database memory` and now want PostgreSQL. Generate a new p
 5. Start the server: the log now says `Using PostgreSQL (Prisma) store.`
 
 If something fails, see [Troubleshooting](/troubleshooting#database-url-is-not-set).
-
-## Next
-
-- [Send real email](./email)

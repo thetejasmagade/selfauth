@@ -6,7 +6,7 @@ keywords: [tests, node:test, go test, smoke test, MemoryAuthStore, MemoryMailer,
 
 # Write tests
 
-Every generated project contains tests of its own authentication wiring. They use your **real** configuration, routes and app with an in-memory store and a capturing mailer, so they need no database and send no email. They are yours to extend.
+Every generated project contains tests of its own authentication wiring. They use your real configuration, routes and app with an in-memory store and a capturing mailer, so they need no database and send no email. They are yours to extend.
 
 ## Run them
 
@@ -109,8 +109,4 @@ func TestOrdersRequireSignIn(t *testing.T) {
 
 ## What is already covered elsewhere
 
-The security rules inside `auth/core` (hashing, tokens, rate limits, session rotation) are tested by the 90-case **conformance suite** in the SelfAuth repository, against every backend and database. Your project's tests should focus on **your** routes and rules. See [Conformance and support](/advanced/conformance).
-
-## Next
-
-- [The configuration file](/configuration/config-file)
+The security rules inside `auth/core` (hashing, tokens, rate limits, session rotation) are tested by the 90-case conformance suite in the SelfAuth repository, against every backend and database. Your project's tests should focus on your routes and rules. See [Conformance and support](/advanced/conformance).

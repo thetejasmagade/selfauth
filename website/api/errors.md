@@ -23,7 +23,7 @@ Every failed request returns JSON in this shape:
 
 | Field | Meaning |
 | --- | --- |
-| `code` | A stable machine-readable code from the table below. **Branch on this.** |
+| `code` | A stable machine-readable code from the table below. Branch on this. |
 | `message` | A human-readable sentence. It may change or be localized: never compare it |
 | `requestId` | The same id as the `X-Request-Id` response header. Quote it when you look in the logs |
 | `details` | Only for `VALIDATION_FAILED` and `PASSWORD_POLICY_VIOLATION`. Describes only the input the client sent |
@@ -44,8 +44,8 @@ Errors are never more specific than the table allows: there is no "user not foun
 | `FORBIDDEN` | 403 | Signed in but not permitted | Show "not allowed" |
 | `REAUTHENTICATION_REQUIRED` | 403 | The operation needs a recent password entry (admin routes) | Ask the user to sign in again |
 | `CSRF_FAILED` | 403 | The origin or CSRF header check failed | Send the `X-SelfAuth-CSRF` header; check trusted origins. See [Troubleshooting](/troubleshooting#403-csrf_failed) |
-| `NOT_FOUND` | 404 | The resource does not exist, **or the user may not know it exists** | Show "not found" |
-| `EMAIL_TAKEN` | 409 | Registering a known email, **only when** `registration.revealExistingEmail` is on | Tell the user to sign in |
+| `NOT_FOUND` | 404 | The resource does not exist, or the user may not know it exists | Show "not found" |
+| `EMAIL_TAKEN` | 409 | Registering a known email, only when `registration.revealExistingEmail` is on | Tell the user to sign in |
 | `CONFLICT` | 409 | A state conflict, for example removing the last administrator | Show the conflict |
 | `PAYLOAD_TOO_LARGE` | 413 | The body is larger than `http.bodyLimitBytes` | Send less data |
 | `RATE_LIMITED` | 429 | A rate limit was exceeded. The `Retry-After` header says how many seconds to wait | Wait, then retry |
@@ -58,7 +58,7 @@ The frontend client adds two codes of its own: `NETWORK_ERROR` (the request did 
 An attacker must not be able to tell whether an email has an account. The codes that could leak that fact are therefore deliberately blunt:
 
 - `INVALID_CREDENTIALS` is the same for an unknown email, a deleted account and a wrong password.
-- `EMAIL_NOT_VERIFIED` and `ACCOUNT_UNAVAILABLE` are shown **only after the password was verified**, so they reveal nothing to someone who does not know it.
+- `EMAIL_NOT_VERIFIED` and `ACCOUNT_UNAVAILABLE` are shown only after the password was verified, so they reveal nothing to someone who does not know it.
 - `EMAIL_TAKEN` exists only as an explicit opt-in trade-off.
 - Registration, password-reset requests and verification resends answer `202` whatever the email.
 
@@ -71,7 +71,3 @@ Return your own errors in the same envelope so clients can treat them alike:
 ```
 
 In Express, throw `new HttpError(status, code, message)` from `src/http/errors.ts`; the app's error handler formats it. Do not leak stack traces, SQL or file paths.
-
-## Next
-
-- [Server API (TypeScript)](./server)

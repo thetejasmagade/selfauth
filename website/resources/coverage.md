@@ -6,7 +6,7 @@ keywords: [documentation coverage, checklist, docs maintenance, add a page, docs
 
 # Documentation coverage
 
-This page maps every implemented feature to its documentation. Planned features are listed separately and are **not** documented as available.
+This page maps every implemented feature to its documentation. Planned features are listed separately and are not documented as available.
 
 ## Feature coverage
 
@@ -58,7 +58,7 @@ This page maps every implemented feature to its documentation. Planned features 
 
 ## Planned or not available
 
-These are **not** implemented and are not documented as usable:
+These are not implemented and are not documented as usable:
 
 - Social login, magic links, passkeys, multi-factor authentication and single sign-on.
 - Merging into an existing Prisma schema with `selfauth add`.
@@ -96,6 +96,6 @@ These are **not** implemented and are not documented as usable:
 2. Add it to the `sidebar` in `website/.vitepress/config.mts`, and to the table above.
 3. Write for a beginner: explain terms, show the command, show the expected output, say where the code goes.
 4. Run `pnpm docs:check` and `pnpm docs:build`. The build fails on a dead internal link.
-5. Mark output as **real** only if you copied it from a run of the current version.
+5. Mark output as real only if you copied it from a run of the current version.
 
 When you add a feature to the CLI, a route, an option or an error code, the check tells you which page is missing it.

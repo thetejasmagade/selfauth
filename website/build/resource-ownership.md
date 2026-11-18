@@ -6,9 +6,9 @@ keywords: [ownership, resource policy, authorizeResource, ownershipPolicy, owner
 
 # Resources and ownership
 
-A permission such as `orders.view` says "this user may view orders". It does not say **whose** orders. If you stop there, any user can read everybody's orders by guessing ids.
+A permission such as `orders.view` says "this user may view orders". It does not say whose orders. If you stop there, any user can read everybody's orders by guessing ids.
 
-This guide adds the second half: an **ownership policy**, so that
+This guide adds the second half: an ownership policy, so that
 
 - a user sees and opens only their own orders;
 - a user holding the extra permission `orders.view_any` (for example support staff) can see all of them;
@@ -28,12 +28,12 @@ flowchart LR
 
 | Piece | What it is |
 | --- | --- |
-| **Policy** | A rule for one type of object. `ownershipPolicy(load)` is the ready-made "owner, or holder of `<action>_any`" rule. You supply `load(id)`, which fetches the object from your database. |
-| **`authorizeResource`** | A guard for routes with an id. It runs the policy and answers `404` if the policy says no. |
-| **`ownerFilter`** | For **list** routes. It tells you which owner to filter the query by, so you never fetch other people's rows. |
+| Policy | A rule for one type of object. `ownershipPolicy(load)` is the ready-made "owner, or holder of `<action>_any`" rule. You supply `load(id)`, which fetches the object from your database. |
+| `authorizeResource` | A guard for routes with an id. It runs the policy and answers `404` if the policy says no. |
+| `ownerFilter` | For list routes. It tells you which owner to filter the query by, so you never fetch other people's rows. |
 
 ::: warning Always load from the database
-`load` must read the object from **your storage**, never from the request body or query. If an attacker could say who the owner is, the check would be pointless.
+`load` must read the object from your storage, never from the request body or query. If an attacker could say who the owner is, the check would be pointless.
 :::
 
 ## Step 1: Declare permissions and give them to roles
@@ -308,7 +308,7 @@ Bob's list is empty and Bob's attempt to open Alice's order is `404`: the same a
 
 | Helper | Allows when |
 | --- | --- |
-| `ownershipPolicy(load)` | the user holds `<action>` **and** `resource.ownerId` equals their id, **or** the user holds `<action>_any` |
+| `ownershipPolicy(load)` | the user holds `<action>` and `resource.ownerId` equals their id, or the user holds `<action>_any` |
 | `ownerFilter(context, action)` | returns `{ ownerId }` to filter by, or an object without an owner when the user holds `<action>_any`, or `null` when they hold neither |
 | `authorizeResource(action, getResource)` | the policy registered for the resource `type` says allow. No policy registered for the type means `403 FORBIDDEN` |
 
@@ -329,11 +329,7 @@ A policy has two functions: `load(id)` returns the resource (or `null`), and `au
 
 ## Checklist
 
-- [ ] The list route filters **in the query** with `ownerFilter`, not after fetching everything.
+- [ ] The list route filters in the query with `ownerFilter`, not after fetching everything.
 - [ ] The create route takes the owner from the session, not from the body.
 - [ ] `load` reads from your database.
 - [ ] Update and delete routes use `authorizeResource` with their own permission (for example `orders.update`).
-
-## Next
-
-- [Add a frontend page](./frontend-pages)

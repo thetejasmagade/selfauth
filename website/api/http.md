@@ -10,17 +10,17 @@ The routes served under `http.basePath` (default `/auth`) by the generated Expre
 
 ## Conventions
 
-- **Bodies** are JSON (`Content-Type: application/json`) and limited to `http.bodyLimitBytes` (default 16 KiB). A larger body gets `413 PAYLOAD_TOO_LARGE`.
-- **Session** is an opaque token in an `HttpOnly` cookie named `__Host-session` by default (`dev_session` in development). Browsers send it automatically. Use `credentials: "include"` when the API is on another origin.
-- **CSRF:** every `POST`, `PUT`, `PATCH` and `DELETE` must come from a trusted origin and carry the CSRF header:
+- Bodies are JSON (`Content-Type: application/json`) and limited to `http.bodyLimitBytes` (default 16 KiB). A larger body gets `413 PAYLOAD_TOO_LARGE`.
+- Session is an opaque token in an `HttpOnly` cookie named `__Host-session` by default (`dev_session` in development). Browsers send it automatically. Use `credentials: "include"` when the API is on another origin.
+- CSRF: every `POST`, `PUT`, `PATCH` and `DELETE` must come from a trusted origin and carry the CSRF header:
   - `header` mode (default): `X-SelfAuth-CSRF: 1`.
   - `token` mode: `X-SelfAuth-CSRF: <csrfToken>`, using the `csrfToken` returned by `login`, `me` and `password/change`.
 
-  A request that fails either check gets `403 CSRF_FAILED`. This applies to the **whole app**, not only `/auth`.
-- **Errors** always look like `{ "error": { "code": "…", "message": "…", "requestId": "…" } }`. Branch on `code`, never on `message`. Every response carries `X-Request-Id`. See [Error codes](./errors).
-- **Rate limits** apply per account and per IP address to `login`, `register`, `password/change`, `password/reset-request` and `email/verification`. When exceeded: `429 RATE_LIMITED` with a `Retry-After` header.
-- **Enumeration safety:** `register`, `password/reset-request` and `email/verification` answer the same way whether or not the email exists. `login` returns the same `INVALID_CREDENTIALS` for an unknown email and a wrong password.
-- **Caching:** authentication responses are sent with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
+  A request that fails either check gets `403 CSRF_FAILED`. This applies to the whole app, not only `/auth`.
+- Errors always look like `{ "error": { "code": "…", "message": "…", "requestId": "…" } }`. Branch on `code`, never on `message`. Every response carries `X-Request-Id`. See [Error codes](./errors).
+- Rate limits apply per account and per IP address to `login`, `register`, `password/change`, `password/reset-request` and `email/verification`. When exceeded: `429 RATE_LIMITED` with a `Retry-After` header.
+- Enumeration safety: `register`, `password/reset-request` and `email/verification` answer the same way whether or not the email exists. `login` returns the same `INVALID_CREDENTIALS` for an unknown email and a wrong password.
+- Caching: authentication responses are sent with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
 
 The `user` object is `{ id, email, emailVerified, state, roles, permissions }`. It never includes credentials.
 
@@ -49,7 +49,7 @@ The `user` object is `{ id, email, emailVerified, state, roles, permissions }`. 
 
 ## Administration
 
-These routes need a permission and a **recent password entry** within `authorization.reauthenticationWindowMinutes` (default 15). A stale session gets `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
+These routes need a permission and a recent password entry within `authorization.reauthenticationWindowMinutes` (default 15). A stale session gets `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
 
 | Route | Body | Success | Typical errors |
 | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ Rules enforced for you: you cannot grant a permission you do not hold, and the l
 
 ## Email links
 
-Verification and reset emails link to **frontend** pages built from `SELFAUTH_APP_BASE_URL`:
+Verification and reset emails link to frontend pages built from `SELFAUTH_APP_BASE_URL`:
 
 - `<app>/verify-email#token=…`: the page POSTs `{ token }` to `/auth/email/verify`;
 - `<app>/reset-password#token=…`: the page POSTs `{ token, newPassword }` to `/auth/password/reset`.

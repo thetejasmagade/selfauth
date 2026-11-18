@@ -6,10 +6,10 @@ keywords: [quick start, getting started, install, selfauth init, npx selfauth, r
 
 # Quick start
 
-In about ten minutes you will generate a project, start it and sign in. This page uses **Express with the in-memory store**, because it needs nothing but Node.js. The [Gin](#variant-gin-go) and [Vue/React](#variant-with-a-frontend) variants are at the end.
+You'll generate a project, start it and sign in, in about ten minutes. I'm using Express with the in-memory store here because it needs nothing but Node.js. If you'd rather use [Gin](#variant-gin-go) or [Vue/React](#variant-with-a-frontend), those are at the bottom.
 
 ::: info Real and illustrative output
-Blocks labelled **Output** were captured from a real run of this version. Values that differ on every run (ids, tokens, timestamps) are shown as they were captured, and yours will differ.
+Blocks labelled Output come from a real run of this version. Ids, tokens and timestamps change every run, so yours will look different.
 :::
 
 ## Before you start
@@ -26,7 +26,7 @@ node --version
 npx selfauth init my-app --database memory --permissions orders.view,orders.create -y
 ```
 
-What the parts mean:
+Here's what each part does:
 
 | Part | Meaning |
 | --- | --- |
@@ -35,7 +35,7 @@ What the parts mean:
 | `--permissions orders.view,orders.create` | Declare two permissions your app will use later |
 | `-y` | Do not ask questions: accept the plan |
 
-Leave out the flags and the command asks you each question instead (arrow keys, or a number). It also shows the list of files and asks before writing anything.
+Leave the flags out and it asks you each question instead, then shows the list of files and checks with you before writing anything.
 
 **Output** (the list of files is shortened here to the summary lines):
 
@@ -61,7 +61,7 @@ cd my-app
 npm install
 ```
 
-This installs Express and the Argon2 password hashing library. Nothing from SelfAuth is installed, because the generated code does not depend on it.
+This installs Express and the Argon2 hashing library. Nothing from SelfAuth gets installed, since the generated code doesn't depend on it.
 
 ## Step 3: Create your settings file
 
@@ -79,7 +79,7 @@ PORT=3000
 SELFAUTH_APP_BASE_URL=http://localhost:5173
 ```
 
-`SELFAUTH_APP_BASE_URL` is the address of your **frontend**. It is only used to build the links in verification and password-reset emails. See [Environment variables](/configuration/environment).
+`SELFAUTH_APP_BASE_URL` is the address of your frontend. It is only used to build the links in verification and password-reset emails. See [Environment variables](/configuration/environment).
 
 ## Step 4: Start the server
 
@@ -97,7 +97,7 @@ Using in-memory store.
 Listening on http://localhost:3000
 ```
 
-The server restarts when you save a file. Leave it running and open a **second terminal** for the next steps.
+The server restarts when you save a file. Leave it running and open a second terminal for the rest.
 
 ## Step 5: Check that it is alive
 
@@ -129,7 +129,7 @@ HTTP/1.1 401 Unauthorized
 {"error":{"code":"UNAUTHENTICATED","message":"Authentication required.","requestId":"4f9b2df3-8a60-45ba-a5c0-b8a144b03d3a"}}
 ```
 
-A request without a session is refused with the error code `UNAUTHENTICATED`. To sign in and get through, continue with [Try the authentication flow](./first-flow).
+No session, so the request is refused with `UNAUTHENTICATED`. To get past it you need to sign in, which is what [the next page](./first-flow) walks through.
 
 ## Step 7: Run the tests
 
@@ -167,7 +167,7 @@ SelfAuth doctor → /home/you/my-app
 0 error(s), 2 warning(s).
 ```
 
-The two warnings are the to-do list before production. See [Going to production](/advanced/production).
+Those two warnings are your to-do list before production. See [Going to production](/advanced/production).
 
 ## Variant: with a frontend
 
@@ -179,7 +179,7 @@ cp server/.env.example server/.env
 npm run dev                  # API on :3000 and the Vue app on :5173
 ```
 
-Open `http://localhost:5173`. You get working **Sign in**, **Create account**, **Verify email**, **Forgot password** and **Account** pages. Use `--frontend react` for React. The folders are explained in [Full stack: Vue or React](/structure/full-stack).
+Open `http://localhost:5173`. You get working Sign in, Create account, Verify email, Forgot password and Account pages. Use `--frontend react` for React. The folders are explained in [Full stack: Vue or React](/structure/full-stack).
 
 ## Variant: Gin (Go)
 
@@ -199,7 +199,7 @@ go run ./cmd/server
 2026/11/18 11:38:21 Listening on http://localhost:3000
 ```
 
-A Gin server reads **environment variables from the process**. It does not load a `.env` file by itself, which is why `export` is used. On Windows PowerShell use `$env:SELFAUTH_APP_BASE_URL="http://localhost:5173"`. Run the server from the project folder, because it reads `selfauth.config.json` from the current directory. See [Gin (Go) API](/structure/gin).
+A Gin server reads environment variables from the process. It does not load a `.env` file by itself, which is why `export` is used. On Windows PowerShell use `$env:SELFAUTH_APP_BASE_URL="http://localhost:5173"`. Run the server from the project folder, because it reads `selfauth.config.json` from the current directory. See [Gin (Go) API](/structure/gin).
 
 ## Variant: PostgreSQL
 
@@ -218,7 +218,3 @@ Details are in [`selfauth db`](/cli/db) and [What each database changes](/struct
 ## If something fails
 
 See [Troubleshooting](/troubleshooting). The most common causes are an old Node.js version and a port already in use.
-
-## Next
-
-- [Try the authentication flow](./first-flow)

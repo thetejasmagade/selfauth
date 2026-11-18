@@ -6,15 +6,15 @@ keywords: [requireAuth, requirePermission, authorizeResource, protectedRoutes, g
 
 # Protect routes
 
-A **guard** is a function that runs before your handler and either lets the request through or stops it with an error. SelfAuth gives you three guards, and one helper that makes guards mandatory.
+A guard is a function that runs before your handler and either lets the request through or stops it with an error. SelfAuth gives you three guards, and one helper that makes guards mandatory.
 
 ## The three guards
 
 | Guard | Question it answers | When it fails |
 | --- | --- | --- |
 | `requireAuth` | Is someone signed in? | `401 UNAUTHENTICATED` |
-| `requirePermission("x.y")` | Is someone signed in **and** do they hold permission `x.y`? | `401 UNAUTHENTICATED` without a session, `403 FORBIDDEN` without the permission |
-| `authorizeResource("x.y", getResource)` | May this user do `x.y` to **this particular object**? | `401`, `403`, or `404 NOT_FOUND` when they may not know it exists |
+| `requirePermission("x.y")` | Is someone signed in and do they hold permission `x.y`? | `401 UNAUTHENTICATED` without a session, `403 FORBIDDEN` without the permission |
+| `authorizeResource("x.y", getResource)` | May this user do `x.y` to this particular object? | `401`, `403`, or `404 NOT_FOUND` when they may not know it exists |
 
 In the code: Express `auth.requireAuth`, Fastify `auth.requireAuth`, Gin `a.RequireAuth()` (with parentheses, because it returns the guard).
 
@@ -44,7 +44,7 @@ api.GET("/reports", a.RequirePermission("reports.view"), func(c *gin.Context) {
 
 :::
 
-**What you will see.** For a user without the permission:
+What you will see. For a user without the permission:
 
 ```text
 HTTP/1.1 403 Forbidden
@@ -52,7 +52,7 @@ HTTP/1.1 403 Forbidden
 {"error":{"code":"FORBIDDEN","message":"...","requestId":"..."}}
 ```
 
-**Typos are caught at startup.** `requirePermission("reprots.view")` throws when the route is defined, because that permission is not in your configuration. In Gin it panics at startup. You find the mistake when you start the server, not when a user hits the route.
+Typos are caught at startup. `requirePermission("reprots.view")` throws when the route is defined, because that permission is not in your configuration. In Gin it panics at startup. You find the mistake when you start the server, not when a user hits the route.
 
 ## Several guards
 
@@ -76,7 +76,7 @@ api.POST("/reports", a.RequirePermission("reports.create"), validate, handler)
 
 ## Deny by default with `protectedRoutes`
 
-The risk of guards is forgetting one. `protectedRoutes` flips the default: **a route is refused unless a guard explicitly allowed it.**
+The risk of guards is forgetting one. `protectedRoutes` flips the default: a route is refused unless a guard explicitly allowed it.
 
 ::: code-group
 
@@ -132,7 +132,3 @@ The built-in administrator permissions (`auth.users.manage`, `auth.roles.assign`
 ::: tip The server decides, always
 Hiding a button in the browser is a convenience. A user can call your API directly, so every route needs its own guard on the server.
 :::
-
-## Next
-
-- [Permissions and roles](./permissions-roles)

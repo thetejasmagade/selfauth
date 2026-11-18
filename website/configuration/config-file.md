@@ -6,7 +6,7 @@ keywords: [selfauth.config.ts, configuration, options, defaults, session timeout
 
 # The configuration file
 
-All behavior of the authentication code is **configuration**, not code you need to edit. Secrets are never stored here: they come from [environment variables](./environment).
+All behavior of the authentication code is configuration, not code you need to edit. Secrets are never stored here: they come from [environment variables](./environment).
 
 | Backend | File | Format |
 | --- | --- | --- |
@@ -15,10 +15,10 @@ All behavior of the authentication code is **configuration**, not code you need 
 
 ## How it is checked
 
-The configuration is validated **when the server starts**:
+The configuration is validated when the server starts:
 
-- **Unknown keys are rejected.** A typo in a security setting cannot be silently ignored.
-- **Values outside the allowed range are rejected, not clamped.** A weak setting fails fast instead of shipping.
+- Unknown keys are rejected. A typo in a security setting cannot be silently ignored.
+- Values outside the allowed range are rejected, not clamped. A weak setting fails fast instead of shipping.
 - Cross-field rules are checked (for example the `__Host-` cookie prefix needs `secure: true`).
 
 You can check it any time without starting the server:
@@ -157,7 +157,7 @@ In development the cookie is named `dev_session` and is not `Secure`: `localDeve
 
 <a id="rate-limits"></a>
 
-Each operation is limited **per account** and **per address** in a window of seconds. Defaults (window 900 seconds = 15 minutes):
+Each operation is limited per account and per address in a window of seconds. Defaults (window 900 seconds = 15 minutes):
 
 | Operation (`rateLimit.<op>`) | `perAccount` limit | `perAddress` limit |
 | --- | --- | --- |
@@ -179,7 +179,7 @@ rateLimit: {
 }
 ```
 
-When a limit is exceeded the response is `429 RATE_LIMITED` with a `Retry-After` header. The attempt is counted **before** the password is checked, so guesses cannot outrun the limit.
+When a limit is exceeded the response is `429 RATE_LIMITED` with a `Retry-After` header. The attempt is counted before the password is checked, so guesses cannot outrun the limit.
 
 ::: warning Behind a proxy
 Per-address limits use the client address. If your app is behind a reverse proxy or load balancer, set `http.trustProxy`, or every user will appear to come from the proxy and share one limit.
@@ -251,7 +251,3 @@ http: { /* ... */ trustedOrigins: ["https://app.example.com"] },
 ```
 
 :::
-
-## Next
-
-- [Environment variables](./environment)

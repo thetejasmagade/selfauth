@@ -6,7 +6,7 @@ keywords: [architecture, request lifecycle, sessions, csrf, middleware, how it w
 
 # How SelfAuth works
 
-There are two separate worlds: **the generator** that you run once on your computer, and **the generated app** that runs in production.
+Two things are going on here, and they never overlap. The generator runs once on your computer. The generated app runs in production.
 
 ## The generator
 
@@ -18,16 +18,16 @@ flowchart TB
   cli -- "init / add" --> app["Your project<br/>(you own these files)"]
 ```
 
-1. A **specification** describes what authentication must do and what it must never do.
-2. **Reference apps** implement the specification for each framework. A **conformance suite** of 90 test cases runs against every one of them.
-3. The **templates** the CLI copies are exactly those tested apps.
+1. A specification describes what authentication must do and what it must never do.
+2. Reference apps implement the specification for each framework. A conformance suite of 90 test cases runs against every one of them.
+3. The templates the CLI copies are exactly those tested apps.
 4. `selfauth init` writes a template into your folder and records what it wrote in `selfauth.manifest.json`.
 
-Because the template is the tested app, there is no separate "generated version" that might behave differently.
+The template is the tested app, so there's no separate "generated version" that could behave differently.
 
 ## The generated app
 
-A generated backend has four layers.
+A generated backend is built in four layers.
 
 ```mermaid
 flowchart TB
@@ -40,10 +40,10 @@ flowchart TB
   core --> mail
 ```
 
-- The **core** contains all the rules and no web code. It is the same logic in every framework.
-- The **adapter** turns HTTP requests into core calls and core results into HTTP responses.
-- The **store** saves data. You can swap it.
-- The **mailer** is yours: SelfAuth cannot know which email provider you use.
+- The core holds all the rules and no web code. It's the same logic in every framework.
+- The adapter turns HTTP requests into core calls and core results into HTTP responses.
+- The store saves data. You can swap it.
+- The mailer is yours, because SelfAuth can't know which email provider you use.
 
 ## One request, step by step
 
@@ -72,11 +72,11 @@ sequenceDiagram
   end
 ```
 
-Three details matter:
+Three things worth noticing:
 
-- The cookie holds a random token, not data. Your server looks the session up on **every** request, so a revoked session stops working immediately.
+- The cookie holds a random token, not data. Your server looks the session up on every request, so a revoked session stops working immediately.
 - Permissions are read from the database on the server for each request. The browser cannot grant itself anything.
-- Frontend checks such as hiding a button are only for convenience. The server decides.
+- Hiding a button in the browser is just polish. The server makes the call.
 
 ## The sign-in flow
 
@@ -98,7 +98,7 @@ sequenceDiagram
   end
 ```
 
-The attempt is counted **before** the password is checked, and an unknown email still goes through a dummy hash check, so response time does not reveal whether an account exists.
+The attempt is counted before the password is checked. An unknown email still goes through a dummy hash check, so the response time doesn't give away whether an account exists.
 
 ## Where the pieces live
 
@@ -111,7 +111,3 @@ The attempt is counted **before** the password is checked, and an unknown email 
 | Settings | `src/config/selfauth.config.ts` | `selfauth.config.json` |
 
 See [Project structure](/structure/) for every file.
-
-## Next
-
-- [Concepts and terms](./concepts)

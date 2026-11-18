@@ -6,7 +6,7 @@ keywords: [vue, react, vite, client, server, workspace, pages, router, frontend 
 
 # Full-stack project structure (Vue or React)
 
-`npx selfauth init my-app --frontend vue` (or `react`) creates **two packages in one npm workspace**:
+`npx selfauth init my-app --frontend vue` (or `react`) creates two packages in one npm workspace:
 
 - `server/` is the API. Its contents are exactly the [Express](./express) (or [Fastify](./fastify)) project.
 - `client/` is the frontend, built with Vite.
@@ -58,7 +58,7 @@ my-app/
                 └── ResetPasswordPage.vue
 ```
 
-The pages are plain, **unstyled HTML**: they work, and are ready for your own design.
+The pages are plain, unstyled HTML: they work, and are ready for your own design.
 
 ## Root scripts
 
@@ -74,7 +74,7 @@ The pages are plain, **unstyled HTML**: they work, and are ready for your own de
 
 ## How the browser reaches the API
 
-The dev server proxies `/auth` and `/api` to the API, so the browser sees **one origin** (`http://localhost:5173`). This is the simplest and recommended setup: cookies and CSRF work with no extra configuration.
+The dev server proxies `/auth` and `/api` to the API, so the browser sees one origin (`http://localhost:5173`). This is the simplest and recommended setup: cookies and CSRF work with no extra configuration.
 
 `client/vite.config.ts`:
 
@@ -116,8 +116,3 @@ The verify and reset routes must keep these exact paths: the server builds the e
 3. Protect it with route meta (Vue) or `<RequireAuth>` (React).
 
 The full walkthrough is in [Add a frontend page](/build/frontend-pages).
-
-## Next
-
-- [What each database changes](./databases)
-- [Add a frontend page](/build/frontend-pages)

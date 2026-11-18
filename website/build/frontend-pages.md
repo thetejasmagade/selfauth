@@ -6,7 +6,7 @@ keywords: [vue router, react router, add page, requiresAuth, permission, Can com
 
 # Add a frontend page
 
-This guide adds an **Orders** page that
+This guide adds an Orders page that
 
 - lives at `/orders`;
 - can only be opened by users holding the `orders.view` permission;
@@ -147,7 +147,7 @@ export function OrdersPage() {
 
 Important parts:
 
-- `client.api(method, path, body?)` calls **your own** API with the same cookie, CSRF header and error handling as the auth calls. You do not set any header yourself. It resolves to the parsed JSON, and the type argument (`<Order[]>`) is only a hint for TypeScript.
+- `client.api(method, path, body?)` calls your own API with the same cookie, CSRF header and error handling as the auth calls. You do not set any header yourself. It resolves to the parsed JSON, and the type argument (`<Order[]>`) is only a hint for TypeScript.
 - Failures throw an `AuthApiError` with a `code`. `describeError(e)` turns it into text you can show.
 - The path starts with `/api`, so the dev-server proxy forwards it.
 
@@ -274,8 +274,3 @@ The generated pages are plain HTML on purpose. Add your own CSS file and import 
 ## Change the password length in the forms
 
 The forms carry a browser hint of the minimum length. If you raise `authentication.password.minLength` on the server, update the `minlength` / `minLength` attribute on the register, reset-password and account pages. See [Password](/configuration/config-file#password).
-
-## Next
-
-- [Change the database](./database-changes)
-- [Client API reference](/api/client)

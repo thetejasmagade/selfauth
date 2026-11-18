@@ -6,11 +6,11 @@ keywords: [permissions, roles, rbac, seed, defaultRoles, admin role, create-admi
 
 # Permissions and roles
 
-SelfAuth uses **RBAC** (role-based access control):
+SelfAuth uses RBAC (role-based access control):
 
-- a **permission** is one thing someone may do, such as `orders.view`;
-- a **role** is a named set of permissions, such as `user` or `support`;
-- a **user** has roles, and holds all the permissions of those roles.
+- a permission is one thing someone may do, such as `orders.view`;
+- a role is a named set of permissions, such as `user` or `support`;
+- a user has roles, and holds all the permissions of those roles.
 
 ```mermaid
 flowchart LR
@@ -41,7 +41,7 @@ If you ran `init --permissions orders.view,orders.create`, the `permissions` lis
 "permissions": ["orders.view", "orders.create", "orders.view_any"],
 ```
 
-**Naming rules** (checked at startup and by `selfauth validate`):
+Naming rules (checked at startup and by `selfauth validate`):
 
 - two or more segments separated by dots: `orders.view`, `billing.invoices.refund`;
 - each segment is lowercase letters, digits and underscores, starting with a letter;
@@ -51,7 +51,7 @@ If you ran `init --permissions orders.view,orders.create`, the `permissions` lis
 ## Step 2: Give them to roles
 
 ::: warning Declared is not granted
-Declaring a permission does **not** give it to anyone. A new project has `"user": []`: no permissions at all. Add each permission to the roles that should hold it.
+Declaring a permission does not give it to anyone. A new project has `"user": []`: no permissions at all. Add each permission to the roles that should hold it.
 :::
 
 ```ts
@@ -66,12 +66,12 @@ Declaring a permission does **not** give it to anyone. A new project has `"user"
 | Setting | Meaning |
 | --- | --- |
 | `roles` | Role name → list of permissions. Every listed permission must be declared (or be an `auth.` system permission). |
-| `defaultRoles` | Roles every new account receives. Must exist. **Must not include `admin`.** |
+| `defaultRoles` | Roles every new account receives. Must exist. Must not include `admin`. |
 | `admin` | Always exists and always holds every `auth.*` system permission, plus what you list. |
 
 ## Step 3: Write the roles to the database
 
-The roles live in your database. The server never writes them for you in production. Run the **seed** after each change:
+The roles live in your database. The server never writes them for you in production. Run the seed after each change:
 
 ::: code-group
 
@@ -87,7 +87,7 @@ go run ./cmd/seed
 
 With the in-memory store there is nothing to run: the server writes the roles at every start.
 
-Then **restart the server**, because the configuration is read at startup. Users who are already signed in get their new permissions on their next request, since permissions are read from the database each time.
+Then restart the server, because the configuration is read at startup. Users who are already signed in get their new permissions on their next request, since permissions are read from the database each time.
 
 ## Step 4: Check the result
 
@@ -99,7 +99,7 @@ Register and sign in a user, then call `/auth/me`. The `permissions` array lists
 
 ## The first administrator
 
-Nobody becomes an administrator through the API, on purpose. After the person has registered **and verified** their email, you run on the server:
+Nobody becomes an administrator through the API, on purpose. After the person has registered and verified their email, you run on the server:
 
 ::: code-group
 
@@ -117,7 +117,7 @@ go run ./cmd/create-admin admin@example.com
 
 Expected output: `admin@example.com is now an administrator.` If the account is missing or not verified, it says "No active account with that email. Register and verify it first." and exits with code 1.
 
-An administrator can then use the [administration routes](/api/http#administration) to suspend accounts and assign roles. Those routes also require a **recent password entry**: if the admin signed in more than 15 minutes ago (`reauthenticationWindowMinutes`), the call returns `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
+An administrator can then use the [administration routes](/api/http#administration) to suspend accounts and assign roles. Those routes also require a recent password entry: if the admin signed in more than 15 minutes ago (`reauthenticationWindowMinutes`), the call returns `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
 
 ## System permissions
 
@@ -148,7 +148,3 @@ Rules enforced for you: you cannot grant a permission you do not hold yourself, 
 | Used a permission in a guard that is not declared | The server fails at startup with `Unknown permission` | Declare it |
 | Put `admin` in `defaultRoles` | `selfauth validate` fails | Remove it |
 | Used `orders.*` or `Orders.View` | Configuration is rejected | Use `orders.view` |
-
-## Next
-
-- [Resources and ownership](./resource-ownership)

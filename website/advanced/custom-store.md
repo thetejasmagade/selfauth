@@ -6,7 +6,7 @@ keywords: [custom store, AuthStore, RateLimitStore, conformance, new database, e
 
 # Custom database store
 
-SelfAuth ships stores for PostgreSQL, MySQL, SQLite, MongoDB and memory. If you use something else (DynamoDB, CockroachDB, a legacy schema), you can write your own **store** without touching the security core, because the core talks to storage only through an interface.
+SelfAuth ships stores for PostgreSQL, MySQL, SQLite, MongoDB and memory. If you use something else (DynamoDB, CockroachDB, a legacy schema), you can write your own store without touching the security core, because the core talks to storage only through an interface.
 
 ::: warning Be careful
 The store carries security guarantees: single-use tokens, atomic rate limits, unique emails. A wrong store breaks them silently. Prove yours with the conformance suite before relying on it.
@@ -33,12 +33,12 @@ In Go the equivalents are `auth.Store` and `auth.RateLimitStore` in `internal/au
 
 | Guarantee | What it means in your store |
 | --- | --- |
-| **Unique email** | `createUser` must fail with an email-taken error when the normalized email exists, even under concurrency. Use a unique index |
-| **Atomic user creation** | The user, its password hash and its default roles appear together or not at all |
-| **Single-use tokens** | `consumeToken` must be a conditional update that returns `true` for exactly one caller |
-| **Atomic rate limits** | `RateLimitStore.update` must be atomic across **all** app instances (row lock, compare-and-swap). A per-process map is only correct for one instance |
-| **Hashes only** | Session and token **hashes** are stored, never the raw values |
-| **Last admin protection** | `countActiveUsersWithRole` must count only active users |
+| Unique email | `createUser` must fail with an email-taken error when the normalized email exists, even under concurrency. Use a unique index |
+| Atomic user creation | The user, its password hash and its default roles appear together or not at all |
+| Single-use tokens | `consumeToken` must be a conditional update that returns `true` for exactly one caller |
+| Atomic rate limits | `RateLimitStore.update` must be atomic across all app instances (row lock, compare-and-swap). A per-process map is only correct for one instance |
+| Hashes only | Session and token hashes are stored, never the raw values |
+| Last admin protection | `countActiveUsersWithRole` must count only active users |
 
 ## Steps
 
@@ -49,7 +49,3 @@ In Go the equivalents are `auth.Store` and `auth.RateLimitStore` in `internal/au
 5. Run the conformance suite against your app: the `@selfauth/conformance` package in the SelfAuth repository defines a driver contract. The reference apps (`apps/playground`) show how a driver starts an isolated instance of your app for each of the 90 cases.
 
 The suite is how every shipped store is proven. See [Conformance and support](./conformance).
-
-## Next
-
-- [Conformance and support](./conformance)

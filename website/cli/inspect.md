@@ -6,7 +6,7 @@ keywords: [selfauth doctor, selfauth validate, selfauth detect, selfauth list, h
 
 # `detect`, `list`, `doctor`, `validate`
 
-These commands **only read**. Run them as often as you like.
+These commands only read. Run them as often as you like.
 
 ## `selfauth detect`
 
@@ -61,7 +61,7 @@ Supported integrations (selfauth init):
 selfauth doctor [dir] [--json]
 ```
 
-Checks the configuration and **production readiness** of a SelfAuth project. It does not change anything.
+Checks the configuration and production readiness of a SelfAuth project. It does not change anything.
 
 **Output** (a fresh project on the in-memory store):
 
@@ -103,7 +103,7 @@ Run it before every deployment. See [Going to production](/advanced/production).
 selfauth validate [dir] [--json]
 ```
 
-Checks that the project is **internally consistent**: the configuration schema, which generated files you changed, and (for Prisma projects) that the Prisma schema matches the ownership manifest.
+Checks that the project is internally consistent: the configuration schema, which generated files you changed, and (for Prisma projects) that the Prisma schema matches the ownership manifest.
 
 **Output:**
 
@@ -129,7 +129,3 @@ If Prisma is not installed yet, validate says so instead of guessing:
 ```
 
 Use it in CI: it exits non-zero when it finds a problem.
-
-## Next
-
-- [`diff` and `upgrade`](./upgrade)

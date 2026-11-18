@@ -6,7 +6,7 @@ keywords: [cors, cookies, samesite, csrf, same origin, subdomain, cross-site, pr
 
 # Frontend deployment: cookies, CORS and CSRF
 
-SelfAuth sessions are `HttpOnly` cookies. Where you serve the frontend, relative to the API, decides the cookie, CORS and CSRF settings. Choose the **first** topology that fits.
+SelfAuth sessions are `HttpOnly` cookies. Where you serve the frontend, relative to the API, decides the cookie, CORS and CSRF settings. Choose the first topology that fits.
 
 ```mermaid
 flowchart TD
@@ -57,7 +57,7 @@ Do not set a `Domain` on the cookie unless you must: it shares the cookie with e
 
 ## 3. Cross-site (different registrable domains)
 
-The frontend on `https://myapp.dev`, the API on `https://api.other.io`. Browsers only send the cookie with `SameSite=None`, which removes the browser's own CSRF protection. So **token mode is mandatory.**
+The frontend on `https://myapp.dev`, the API on `https://api.other.io`. Browsers only send the cookie with `SameSite=None`, which removes the browser's own CSRF protection. So token mode is mandatory.
 
 | Setting | Value |
 | --- | --- |
@@ -71,11 +71,11 @@ In token mode the header carries a token bound to the session (returned by `logi
 
 ## Rules for every topology
 
-- **Never** store session or CSRF tokens in `localStorage` or `sessionStorage`.
+- Never store session or CSRF tokens in `localStorage` or `sessionStorage`.
 - Route guards and `<Can>` are convenience. The API authorizes every request.
 - Email links land on frontend pages (`/verify-email`, `/reset-password`) with the token in the URL fragment. Those pages must send `Referrer-Policy: no-referrer` (set it on your static host and keep the `<meta name="referrer">` tag) and remove the fragment at once. The generated pages already do.
 - Post-login redirects must go through `safeRedirect`.
-- Serve everything over **HTTPS** in production. The server refuses to start in production when `SELFAUTH_APP_BASE_URL` is not `https://`, and the cookie is `Secure`. Add HSTS at your proxy once every subdomain serves HTTPS, for example `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+- Serve everything over HTTPS in production. The server refuses to start in production when `SELFAUTH_APP_BASE_URL` is not `https://`, and the cookie is `Secure`. Add HSTS at your proxy once every subdomain serves HTTPS, for example `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
 
 ## Using Gin with a Vue or React app
 
@@ -84,7 +84,3 @@ Gin has no generated frontend, but the Vue and React apps from `init --frontend`
 ## Troubleshooting
 
 `403 CSRF_FAILED` on every POST usually means the frontend origin is not trusted or the header is missing. See [Troubleshooting](/troubleshooting#403-csrf_failed).
-
-## Next
-
-- [CLI reference](/cli/)

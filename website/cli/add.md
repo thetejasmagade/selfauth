@@ -6,13 +6,13 @@ keywords: [selfauth add, add-frontend, existing project, --src, --allow-existing
 
 # `selfauth add` and `selfauth add-frontend`
 
-These commands put SelfAuth into a project you **already have**. They create new files only. Your own files are never edited: the commands print the few edits you make yourself.
+These commands put SelfAuth into a project you already have. They create new files only. Your own files are never edited: the commands print the few edits you make yourself.
 
 Run `npx selfauth detect` first: it tells you which command applies. For the step-by-step walkthrough with layouts and monorepos see [Existing projects](/advanced/existing-projects).
 
 ## `selfauth add`
 
-Adds the backend to an existing **Express 5 or Fastify 5 + TypeScript** project (ESM, TypeScript 5.7 or newer).
+Adds the backend to an existing Express 5 or Fastify 5 + TypeScript project (ESM, TypeScript 5.7 or newer).
 
 ```text
 selfauth add [dir] [options]
@@ -45,28 +45,28 @@ You usually do not need `--src`: `add` finds the file that creates your app and 
 
 `add` prints these steps at the end. In short:
 
-1. **Compiler options.** Add `allowImportingTsExtensions` and `rewriteRelativeImportExtensions` to `tsconfig.json`. `add` first checks that your `tsconfig.json` covers the new folder and stops if it does not.
-2. **Wire it in** (Express):
+1. Compiler options. Add `allowImportingTsExtensions` and `rewriteRelativeImportExtensions` to `tsconfig.json`. `add` first checks that your `tsconfig.json` covers the new folder and stops if it does not.
+2. Wire it in (Express):
 
    ```ts
    const selfauth = await setupSelfAuth(app);   // before your routes
    app.use(selfauth.errorHandler);              // after your routes
    ```
 
-3. **Set the environment:** `SELFAUTH_APP_BASE_URL` and, for a database, `DATABASE_URL`.
-4. **Guard your routes** with `selfauth.auth.requireAuth` and friends.
-5. **Your frontend must send `X-SelfAuth-CSRF: 1`** on state-changing requests. This protects your **whole** app, not only `/auth`.
+3. Set the environment: `SELFAUTH_APP_BASE_URL` and, for a database, `DATABASE_URL`.
+4. Guard your routes with `selfauth.auth.requireAuth` and friends.
+5. Your frontend must send `X-SelfAuth-CSRF: 1` on state-changing requests. This protects your whole app, not only `/auth`.
 6. For Prisma databases, add `<src>/selfauth/generated/` to `.gitignore`.
 
 ### Limits
 
 - Not for Go projects.
-- Merging into an existing Prisma schema is **not** supported. Use `--database memory` to try it, or copy the models by hand as a reviewed migration.
+- Merging into an existing Prisma schema is not supported. Use `--database memory` to try it, or copy the models by hand as a reviewed migration.
 - Several Express apps in one package: `add` uses the first entry file and lists the others; pass `--src` for another.
 
 ## `selfauth add-frontend`
 
-Adds the authentication **module** to an existing Vue or React app: the API client, session state, route guard (Vue) or `<RequireAuth>` (React), `<Can>`, and the redirect and URL-token helpers. It generates **no pages**: you build your own sign-in and sign-up screens with the client.
+Adds the authentication module to an existing Vue or React app: the API client, session state, route guard (Vue) or `<RequireAuth>` (React), `<Can>`, and the redirect and URL-token helpers. It generates no pages: you build your own sign-in and sign-up screens with the client.
 
 ```text
 selfauth add-frontend [dir] [options]
@@ -92,11 +92,11 @@ installAuthGuard(router, store, { login: "/login", forbidden: "/forbidden", home
 createApp(App).use(createAuthPlugin(store)).use(router).mount("#app");
 ```
 
-How the browser reaches the API is **your decision** and `add-frontend` does not make it: see [Frontend deployment](/configuration/frontend-deployment).
+How the browser reaches the API is your decision and `add-frontend` does not make it: see [Frontend deployment](/configuration/frontend-deployment).
 
 ## Monorepos
 
-Run the commands **inside the package**, not at the repository root. At the root, `selfauth detect` reads `pnpm-workspace.yaml` or the `workspaces` field and tells you which package is which:
+Run the commands inside the package, not at the repository root. At the root, `selfauth detect` reads `pnpm-workspace.yaml` or the `workspaces` field and tells you which package is which:
 
 ```bash
 cd apps/api && npx selfauth add --database postgresql --permissions orders.view
@@ -104,7 +104,3 @@ cd apps/web && npx selfauth add-frontend
 ```
 
 Each package gets its own `selfauth.manifest.json`.
-
-## Next
-
-- [`detect`, `list`, `doctor`, `validate`](./inspect)

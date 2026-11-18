@@ -6,7 +6,7 @@ keywords: [environment variables, .env, SELFAUTH_APP_BASE_URL, DATABASE_URL, NOD
 
 # Environment variables
 
-Environment variables hold **secrets and addresses**, which differ between your computer and production. Behavior settings live in the [configuration file](./config-file).
+Environment variables hold secrets and addresses, which differ between your computer and production. Behavior settings live in the [configuration file](./config-file).
 
 ## The variables
 
@@ -16,8 +16,8 @@ Environment variables hold **secrets and addresses**, which differ between your 
 | `APP_ENV` | no | `development` | Gin | The same, for Go |
 | `PORT` | no | `3000` | all | Port to listen on (1 – 65535) |
 | `HOST` | no | `0.0.0.0` | Fastify | Interface to listen on |
-| `SELFAUTH_APP_BASE_URL` | **yes** | – | all | Address of your **frontend**, used to build email links |
-| `DATABASE_URL` | for a real database | – | all | Connection string. If unset in development the in-memory store is used. **Required in production** |
+| `SELFAUTH_APP_BASE_URL` | yes | – | all | Address of your frontend, used to build email links |
+| `DATABASE_URL` | for a real database | – | all | Connection string. If unset in development the in-memory store is used. Required in production |
 | `SELFAUTH_CSRF_SECRET` | with `csrf.mode: "token"` | – | all | 32 or more random bytes, base64url |
 | `SELFAUTH_CSRF_SECRET_PREVIOUS` | no | – | all | The old secret, accepted while rotating |
 | `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin | Path to the configuration file |
@@ -62,7 +62,7 @@ To rotate it, set the new value as `SELFAUTH_CSRF_SECRET` and move the old one t
 | Project | How |
 | --- | --- |
 | Express, Fastify | Copy `.env.example` to `.env` (full stack: `server/.env`). The npm scripts load it with `node --env-file-if-exists=.env` |
-| Gin | The server does **not** read `.env`. Export the variables in your shell, or use a tool such as direnv |
+| Gin | The server does not read `.env`. Export the variables in your shell, or use a tool such as direnv |
 
 ```bash
 # Gin, macOS / Linux
@@ -76,7 +76,7 @@ export DATABASE_URL=postgresql://user:password@localhost:5432/app
 $env:SELFAUTH_APP_BASE_URL = "http://localhost:5173"
 ```
 
-`.env` is ignored by git. `.env.example` holds placeholders only and is committed. **Never commit real secrets.**
+`.env` is ignored by git. `.env.example` holds placeholders only and is committed. Never commit real secrets.
 
 ### Production
 
@@ -110,7 +110,3 @@ if env.Production() && get("SMTP_HOST", "") == "" {
 :::
 
 Then add it to the `Env` type and `.env.example`.
-
-## Next
-
-- [Frontend deployment](./frontend-deployment)

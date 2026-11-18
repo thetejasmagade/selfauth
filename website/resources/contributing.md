@@ -12,7 +12,7 @@ SelfAuth generates security-sensitive code that other people run in production, 
 
 1. Read [`ARCHITECTURE.md`](https://github.com/thetejasmagade/selfauth/blob/main/ARCHITECTURE.md) and [`DECISIONS.md`](https://github.com/thetejasmagade/selfauth/blob/main/DECISIONS.md).
 2. For behavior changes, read the relevant [specification](https://github.com/thetejasmagade/selfauth/tree/main/packages/spec/specs).
-3. For anything larger than a bug fix, **open an issue first**. New adapters always start with an issue.
+3. For anything larger than a bug fix, open an issue first. New adapters always start with an issue.
 
 ## Development setup
 
@@ -40,12 +40,16 @@ pnpm docs:preview   # serve the production build at http://localhost:4173
 pnpm docs:check     # checks the docs against the source code
 ```
 
+### Deploying to Vercel
+
+Import the repository in Vercel and set the Root Directory to `website`. `website/vercel.json` supplies the rest: the VitePress preset, `pnpm install --frozen-lockfile`, `pnpm docs:build` and the `.vitepress/dist` output. Leave "Include source files outside of the Root Directory" switched on, because the changelog page reads `packages/cli/CHANGELOG.md`. Canonical URLs and the sitemap use the production domain Vercel provides, or `DOCS_HOSTNAME` if you set it.
+
 See [Documentation coverage](./coverage) for how pages are kept in step with the code, and for how to add a page.
 
 ## Pull requests
 
 - Keep them small and focused, with acceptance criteria in the description.
-- Add tests, including **negative security cases** (wrong password, expired token, replayed token, missing permission).
+- Add tests, including negative security cases (wrong password, expired token, replayed token, missing permission).
 - Changing a requirement? Update the spec and the conformance cases.
 - Changing architecture? Add an ADR.
 - Changing a published package? Add a changeset with `pnpm changeset`.
@@ -55,7 +59,3 @@ See [Documentation coverage](./coverage) for how pages are kept in step with the
 ## Rules for AI coding agents working on the repository
 
 No mandatory runtime service; no custom cryptography; never overwrite application code without review; never run destructive migrations without approval; every security-sensitive feature needs tests; never claim completion without validation. The full list is in `CONTRIBUTING.md`.
-
-## Next
-
-- [License](./license)

@@ -43,9 +43,9 @@ flowchart LR
 
 | Group | Where | What to do |
 | --- | --- | --- |
-| **Your code** | `routes/`, `email/mailer`, `client/src/pages/`, `client/src/App.*`, `client/src/router.ts`, `test/` | Edit and add files. This is where your app lives. |
-| **Configuration** | `selfauth.config.ts` or `.json`, `.env`, `prisma/schema.prisma`, `db/migrations/`, `package.json` | Change values. Re-run the seed when roles change. |
-| **Security core** | `src/auth/core/`, `src/auth/stores/`, adapter folders, `internal/auth/`, `internal/ginauth/`, `internal/store/` | Do not edit unless you must. This code is covered by the conformance suite. |
+| Your code | `routes/`, `email/mailer`, `client/src/pages/`, `client/src/App.*`, `client/src/router.ts`, `test/` | Edit and add files. This is where your app lives. |
+| Configuration | `selfauth.config.ts` or `.json`, `.env`, `prisma/schema.prisma`, `db/migrations/`, `package.json` | Change values. Re-run the seed when roles change. |
+| Security core | `src/auth/core/`, `src/auth/stores/`, adapter folders, `internal/auth/`, `internal/ginauth/`, `internal/store/` | Do not edit unless you must. This code is covered by the conformance suite. |
 
 If you edit a security-core file, `selfauth validate` lists it as changed, and `selfauth upgrade` will write a `.selfauth-new` proposal next to it instead of replacing it. See [`diff` and `upgrade`](/cli/upgrade).
 
@@ -70,7 +70,7 @@ If you edit a security-core file, `selfauth validate` lists it as changed, and `
 | --- | --- |
 | `selfauth.manifest.json` | The list of files SelfAuth wrote and a fingerprint of each. Used by `doctor`, `validate`, `diff` and `upgrade`. Commit it. |
 | `.env.example` | A template for your `.env`. Contains placeholders only. Commit it. |
-| `.env` | Your real settings. **Never commit it.** It is ignored by `.gitignore`. |
+| `.env` | Your real settings. Never commit it. It is ignored by `.gitignore`. |
 | `README.md` | A short guide generated for the project |
 | `.gitignore` | Ignores `node_modules`, `dist`, `.env` and generated code |
 
@@ -93,7 +93,3 @@ If you edit a security-core file, `selfauth validate` lists it as changed, and `
 ```
 
 The file also holds a `files` list with a fingerprint (hash) of each generated file. `ownedResources` names the database tables SelfAuth created, so `selfauth db plan` can warn if a migration touches tables that are not SelfAuth's.
-
-## Next
-
-- [Express API](./express)

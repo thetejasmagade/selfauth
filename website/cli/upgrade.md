@@ -6,7 +6,7 @@ keywords: [selfauth upgrade, selfauth diff, update, .selfauth-new, manifest, reo
 
 # `selfauth diff` and `selfauth upgrade`
 
-Generated code is **yours**, so a new SelfAuth release never changes it silently. `diff` shows what a newer release would change; `upgrade` applies the safe part and leaves the rest for you to merge.
+Generated code is yours, so a new SelfAuth release never changes it silently. `diff` shows what a newer release would change; `upgrade` applies the safe part and leaves the rest for you to merge.
 
 ## `selfauth diff`
 
@@ -14,7 +14,7 @@ Generated code is **yours**, so a new SelfAuth release never changes it silently
 selfauth diff [dir]
 ```
 
-Compares your project with the templates of the CLI you are running, and prints a diff for each file. It **writes nothing**.
+Compares your project with the templates of the CLI you are running, and prints a diff for each file. It writes nothing.
 
 **Output** when nothing needs doing:
 
@@ -50,20 +50,20 @@ SelfAuth compares each file with the fingerprint in `selfauth.manifest.json` tak
 
 | Your file | Did the template change? | Result |
 | --- | --- | --- |
-| Unchanged since generation | yes | **Updated** |
-| Edited by you | yes | **Kept.** A proposal `<file>.selfauth-new` is written next to it for you to merge, then delete |
+| Unchanged since generation | yes | Updated |
+| Edited by you | yes | Kept. A proposal `<file>.selfauth-new` is written next to it for you to merge, then delete |
 | Edited by you | no | Kept |
 | Deleted by you | – | Stays deleted |
 | New in the release | – | Added (never over an existing file) |
 
 ### The steps to follow
 
-1. **Commit your work first**, so you can review the changes with `git diff`.
+1. Commit your work first, so you can review the changes with `git diff`.
 2. Run `npx @selfauth/cli@latest diff`, then `npx @selfauth/cli@latest upgrade`.
-3. **Merge each `.selfauth-new` proposal.** `git diff --no-index file file.selfauth-new` helps. Delete the proposal when done. `selfauth validate` lists what is left.
-4. **Review and apply new migrations**: `npx selfauth db plan`, then `npx selfauth db migrate`, then `npm run db:seed`. Never edit a migration that has been applied.
-5. **Run your tests** and `npx selfauth doctor`.
-6. **Update the agent skill** if you installed one: `npx selfauth skill install --agent claude --update`.
+3. Merge each `.selfauth-new` proposal. `git diff --no-index file file.selfauth-new` helps. Delete the proposal when done. `selfauth validate` lists what is left.
+4. Review and apply new migrations: `npx selfauth db plan`, then `npx selfauth db migrate`, then `npm run db:seed`. Never edit a migration that has been applied.
+5. Run your tests and `npx selfauth doctor`.
+6. Update the agent skill if you installed one: `npx selfauth skill install --agent claude --update`.
 
 ### Versioning
 
@@ -90,7 +90,3 @@ Only paths and imports change; no file's logic is touched. It stops without chan
 ## Without the CLI
 
 If you installed by hand, compare your files with the new release's `templates/` folder (or two release tags: `git diff v0.14.0 v0.15.0 -- templates/express`), copy the changes you want, and copy the new `selfauth.manifest.json` so a later `diff` stays accurate. New migration folders are additive: copy them and apply them. Never edit one that was applied.
-
-## Next
-
-- [`selfauth db`](./db)

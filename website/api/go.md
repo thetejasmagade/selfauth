@@ -20,7 +20,7 @@ a, err := app.NewAuth(app.AuthOptions{
 router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: routes.Register})
 ```
 
-`NewAuth` refuses unsafe production settings: an insecure cookie, or an application base URL that is not `https`. `NewRouter` builds the Gin engine in a fixed order: request id and recovery, request logging, the JSON body limit, then SelfAuth's CORS, session and CSRF middleware, then `GET /health`, the `/auth` routes, **your routes** (`Mount`), and the 404 handler.
+`NewAuth` refuses unsafe production settings: an insecure cookie, or an application base URL that is not `https`. `NewRouter` builds the Gin engine in a fixed order: request id and recovery, request logging, the JSON body limit, then SelfAuth's CORS, session and CSRF middleware, then `GET /health`, the `/auth` routes, your routes (`Mount`), and the 404 handler.
 
 ## `*ginauth.Auth`
 
@@ -30,9 +30,9 @@ router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, M
 | `RegisterRoutes(group *gin.RouterGroup)` | Registers the `/auth` routes. Called by `NewRouter` |
 | `Context(c) *auth.Context` | The signed-in context, or `nil`. Has `UserID`, `Roles`, `Permissions` (through the embedded `Subject`), `User` and `Session` |
 | `RequireAuth() gin.HandlerFunc` | Guard: `401 UNAUTHENTICATED` without a valid session |
-| `RequirePermission(p string) gin.HandlerFunc` | Guard: `401` without a session, `403 FORBIDDEN` without permission `p`. **Panics when the route is defined** if `p` is not declared in the configuration |
+| `RequirePermission(p string) gin.HandlerFunc` | Guard: `401` without a session, `403 FORBIDDEN` without permission `p`. Panics when the route is defined if `p` is not declared in the configuration |
 | `AuthorizeResource(p string, resource func(c *gin.Context) (resourceType, id string)) gin.HandlerFunc` | Guard that runs the policy registered for the resource type. A denied resource answers `404 NOT_FOUND`; a type with no policy answers `403 FORBIDDEN` |
-| `ProtectedRoutes(group gin.IRoutes) *Protected` | Wraps a group so each route is **denied unless a guard explicitly allowed it**. Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE(path, handlers...)` |
+| `ProtectedRoutes(group gin.IRoutes) *Protected` | Wraps a group so each route is denied unless a guard explicitly allowed it. Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE(path, handlers...)` |
 | `Policies() *auth.PolicyRegistry` | `Register(resourceType, policy)` registers a resource policy |
 | `Service() *auth.Service` | The framework-independent core behind the routes, for custom flows |
 | `Abort(c, err)` | Stops the request with a SelfAuth error in the standard envelope |
@@ -43,7 +43,7 @@ As in the TypeScript API, only `RequirePermission` and `AuthorizeResource` count
 
 | Name | Purpose |
 | --- | --- |
-| `auth.OwnershipPolicy(load)` | Policy: allows an action if the subject holds it **and** owns the resource, or holds the `<action>_any` permission. `load func(ctx context.Context, id string) (*auth.Resource, error)` must read from storage and return `nil, nil` when the resource does not exist |
+| `auth.OwnershipPolicy(load)` | Policy: allows an action if the subject holds it and owns the resource, or holds the `<action>_any` permission. `load func(ctx context.Context, id string) (*auth.Resource, error)` must read from storage and return `nil, nil` when the resource does not exist |
 | `auth.OwnerFilter(subject, action)` | For list queries. Returns `(ownerID, all, ok)`: filter by `ownerID` unless `all`; `ok` is false when the subject holds neither permission |
 | `auth.Resource` | `{ Type, ID, OwnerID string }` |
 | `auth.Subject` | `{ UserID string, Roles []string, Permissions map[string]struct{} }` with `Has(permission) bool` |
@@ -88,7 +88,3 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 ```
 
 A complete example with ownership is in [Resources and ownership](/build/resource-ownership).
-
-## Next
-
-- [Client API (Vue and React)](./client)

@@ -174,7 +174,7 @@ Real output when the header is missing: `{"error":{"code":"CSRF_FAILED","message
 | Cross-site setup with `SameSite=None` | Use [token mode](/configuration/frontend-deployment) and send the token |
 | `vite preview` on another port | Same as above: trust that origin |
 
-The check covers **all** `POST`, `PUT`, `PATCH` and `DELETE` in your app, not only `/auth`.
+The check covers all `POST`, `PUT`, `PATCH` and `DELETE` in your app, not only `/auth`.
 
 ### The cookie is not set (the browser stays signed out)
 
@@ -259,12 +259,12 @@ The check covers **all** `POST`, `PUT`, `PATCH` and `DELETE` in your app, not on
 
 ## Debugging techniques
 
-1. **Read the server log.** Each request is a JSON line with `status`, `path` and a `requestId`. The `requestId` is also in the error body and the `X-Request-Id` header.
-2. **Look at the response body.** The error `code` tells you the cause. Never match on `message`.
-3. **Use the browser's network tab.** Check the request headers (`X-SelfAuth-CSRF`, `Cookie`) and the `Set-Cookie` response header.
-4. **Reproduce with curl** and a cookie jar to separate frontend problems from API problems.
-5. **Run the checks:** `npx selfauth doctor`, `npx selfauth validate`, `npm run typecheck`, `npm test`.
-6. **Print the dev emails.** In development the verification and reset links appear in the server terminal.
+1. Read the server log. Each request is a JSON line with `status`, `path` and a `requestId`. The `requestId` is also in the error body and the `X-Request-Id` header.
+2. Look at the response body. The error `code` tells you the cause. Never match on `message`.
+3. Use the browser's network tab. Check the request headers (`X-SelfAuth-CSRF`, `Cookie`) and the `Set-Cookie` response header.
+4. Reproduce with curl and a cookie jar to separate frontend problems from API problems.
+5. Run the checks: `npx selfauth doctor`, `npx selfauth validate`, `npm run typecheck`, `npm test`.
+6. Print the dev emails. In development the verification and reset links appear in the server terminal.
 
 ## Still stuck?
 

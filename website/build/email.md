@@ -6,12 +6,12 @@ keywords: [email, mailer, smtp, createMailer, NewMailer, verification email, pas
 
 # Send real email
 
-SelfAuth sends email for you to **create** but not to **deliver**: it cannot know whether you use SMTP, Amazon SES, Resend or Postmark. You provide one small piece of code, the **mailer**.
+SelfAuth sends email for you to create but not to deliver: it cannot know whether you use SMTP, Amazon SES, Resend or Postmark. You provide one small piece of code, the mailer.
 
 | Environment | What happens |
 | --- | --- |
-| Development | Emails are **printed in the terminal**. The default `DevConsoleMailer` does this. |
-| Production | The server **refuses to start** until you replace the mailer. This is deliberate, so that verification and reset emails are never silently dropped. |
+| Development | Emails are printed in the terminal. The default `DevConsoleMailer` does this. |
+| Production | The server refuses to start until you replace the mailer. That's intentional, so verification and reset emails can't be silently dropped. |
 
 ## Where the mailer is
 
@@ -66,11 +66,11 @@ The five kinds:
 | `passwordChanged` | After a password change |
 | `passwordResetCompleted` | After a password reset finished |
 
-`text` already contains the finished sentence **and the link**, so the simplest mailer sends `subject` and `text` as they are.
+`text` already contains the finished sentence and the link, so the simplest mailer sends `subject` and `text` as they are.
 
 ## Example: SMTP in TypeScript
 
-This is **illustrative**: it uses the `nodemailer` package, which you install yourself (`npm install nodemailer` and `npm install -D @types/nodemailer`). Replace the whole file `src/email/mailer.ts`:
+This is illustrative: it uses the `nodemailer` package, which you install yourself (`npm install nodemailer` and `npm install -D @types/nodemailer`). Replace the whole file `src/email/mailer.ts`:
 
 ```ts
 import nodemailer from "nodemailer";
@@ -145,7 +145,7 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 
 ## Customize the wording
 
-Branch on `m.kind` to use your own subject and HTML template. Keep the link **exactly as given**: it carries the token in the URL fragment (after `#`), which keeps it out of server logs and `Referer` headers.
+Branch on `m.kind` to use your own subject and HTML template. Keep the link exactly as given: it carries the token in the URL fragment (after `#`), which keeps it out of server logs and `Referer` headers.
 
 ```ts
 const subject = m.kind === "verification" ? "Welcome! Please confirm your email" : m.subject;
@@ -153,15 +153,11 @@ const subject = m.kind === "verification" ? "Welcome! Please confirm your email"
 
 ## Rules
 
-- **Do not log** messages, links or tokens. SelfAuth's own logger redacts them, and your mailer must not undo that.
-- **Do not block** forever: set a timeout on your provider call. A slow provider slows registration.
-- Email links point at **frontend** pages built from `SELFAUTH_APP_BASE_URL`: `<app>/verify-email#token=…` and `<app>/reset-password#token=…`. Set that variable to your real `https://` address in production.
+- Do not log messages, links or tokens. SelfAuth's own logger redacts them, and your mailer must not undo that.
+- Do not block forever: set a timeout on your provider call. A slow provider slows registration.
+- Email links point at frontend pages built from `SELFAUTH_APP_BASE_URL`: `<app>/verify-email#token=…` and `<app>/reset-password#token=…`. Set that variable to your real `https://` address in production.
 - `accountExists` is how SelfAuth keeps the web response identical for known and unknown emails. Do not remove that email.
 
 ## Test your mailer
 
 Run the server with `NODE_ENV=production` (Gin: `APP_ENV=production`) in a staging environment, register with an address you control, and confirm the verification email arrives with a working link. `npx selfauth doctor` warns while the generated placeholder is still in place.
-
-## Next
-
-- [Write tests](./tests)

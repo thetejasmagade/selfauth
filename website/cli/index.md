@@ -6,7 +6,7 @@ keywords: [selfauth cli, npx selfauth, commands, selfauth --help, json output, e
 
 # CLI overview
 
-The `selfauth` CLI is a **development tool**. It writes files into your project, checks them and helps you update them. Nothing it generates calls it at runtime, so you can delete it from your machine and your app keeps working.
+The `selfauth` CLI is a development tool. It writes files into your project, checks them and helps you update them. Nothing it generates calls it at runtime, so you can delete it from your machine and your app keeps working.
 
 ## Running it
 
@@ -54,16 +54,16 @@ npx selfauth init --help
 
 ## Conventions
 
-- **`[dir]`** is the project folder. Leave it out to use the current folder.
-- **`--dry-run`** shows what would be written and writes nothing. Use it first whenever it exists.
-- **`-y`, `--yes`** answers "yes" to every question, so the command can run in scripts and CI.
-- **`--json`** (on `detect`, `list`, `doctor`, `validate`) prints machine-readable output, for scripts and coding agents.
-- **Exit codes:** `0` means success. A non-zero code means a problem was found or the command failed. `doctor` and `validate` return non-zero when they report errors, so they can fail a CI job.
-- **New files only:** `init`, `add` and `add-frontend` never overwrite a file that already exists.
+- `[dir]` is the project folder. Leave it out to use the current folder.
+- `--dry-run` shows what would be written and writes nothing. Use it first whenever it exists.
+- `-y`, `--yes` answers "yes" to every question, so the command can run in scripts and CI.
+- `--json` (on `detect`, `list`, `doctor`, `validate`) prints machine-readable output, for scripts and coding agents.
+- Exit codes: `0` means success. A non-zero code means a problem was found or the command failed. `doctor` and `validate` return non-zero when they report errors, so they can fail a CI job.
+- New files only: `init`, `add` and `add-frontend` never overwrite a file that already exists.
 
 ## In a full-stack project
 
-At the root of a project with `server/` and `client/`, `doctor`, `validate`, `diff` and `upgrade` cover **both** packages. `db` commands find `server/` themselves.
+At the root of a project with `server/` and `client/`, `doctor`, `validate`, `diff` and `upgrade` cover both packages. `db` commands find `server/` themselves.
 
 ## Using the CLI in CI
 
@@ -73,7 +73,3 @@ At the root of a project with `server/` and `client/`, `doctor`, `validate`, `di
 ```
 
 The first fails the build if the configuration is invalid or the schema and manifest disagree. The second reports production-readiness warnings.
-
-## Next
-
-- [`selfauth init`](./init)

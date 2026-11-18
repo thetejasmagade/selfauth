@@ -53,7 +53,7 @@ HTTP/1.1 202 Accepted
 
 ## 2. Read the verification email
 
-In development nothing is really sent. The email is **printed in the terminal where the server runs**:
+In development nothing is really sent. The email is printed in the terminal where the server runs:
 
 ```text
 [dev mail] to=me@example.com kind=verification
@@ -147,7 +147,7 @@ curl -s -b jar -H 'Content-Type: application/json' -X POST localhost:3000/auth/l
 {"error":{"code":"CSRF_FAILED","message":"Request origin could not be verified.","requestId":"9d32d091-fc1b-4c83-a135-51cebeb20fd5"}}
 ```
 
-A browser on another website could send your cookie but could not add that header. This protects **every** `POST`, `PUT`, `PATCH` and `DELETE` in your app, not only `/auth`.
+A browser on another website could send your cookie but could not add that header. This protects every `POST`, `PUT`, `PATCH` and `DELETE` in your app, not only `/auth`.
 
 ## 9. See the rate limit
 
@@ -185,7 +185,7 @@ curl -i "${H[@]}" -X POST localhost:3000/auth/logout
 
 ## Making an administrator
 
-Nobody can make themselves an administrator through the API. The first one is made by you, on the server, with a script, after that person has registered **and verified** their email:
+Nobody can make themselves an administrator through the API. The first one is made by you, on the server, with a script, after that person has registered and verified their email:
 
 ```bash
 npm run db:create-admin you@example.com        # TypeScript projects
@@ -202,7 +202,3 @@ The script needs a database. It is not available with the in-memory store, becau
 | Cookie + CSRF header | [Frontend deployment](/configuration/frontend-deployment) |
 | Rate limits | [Configuration](/configuration/config-file#rate-limits) |
 | Error codes | [Error codes](/api/errors) |
-
-## Next
-
-- [Next steps](./next-steps)

@@ -105,7 +105,7 @@ Builds the Express app in a fixed order. The order matters:
 3. `auth.middleware`: CORS, session lookup, CSRF check;
 4. `GET /health`;
 5. the authentication routes under `http.basePath` (default `/auth`);
-6. **your routes**, through `mount`;
+6. your routes, through `mount`;
 7. the 404 handler and the error handlers.
 
 Add routes through `src/routes/index.ts`, not here, so they come after the middleware and before the 404 handler. See [Add an API route](/build/add-api-route).
@@ -126,7 +126,7 @@ The only generated route. Replace it with yours.
 
 ### `src/config/selfauth.config.ts`
 
-All behavior settings as one object. See [The configuration file](/configuration/config-file). Out of the box `authorization.roles` is `{ user: [], admin: [] }`: declared permissions are **not** given to any role until you do it. See [Permissions and roles](/build/permissions-roles).
+All behavior settings as one object. See [The configuration file](/configuration/config-file). Out of the box `authorization.roles` is `{ user: [], admin: [] }`: declared permissions are not given to any role until you do it. See [Permissions and roles](/build/permissions-roles).
 
 ### `src/config/env.ts`
 
@@ -138,7 +138,7 @@ Chooses the store. With `DATABASE_URL` set it uses PostgreSQL. Without it, in de
 
 ### `src/email/mailer.ts`
 
-In development it prints emails to the terminal. In production it **throws on purpose** until you implement it. See [Send real email](/build/email).
+In development it prints emails to the terminal. In production it throws on purpose until you implement it. See [Send real email](/build/email).
 
 ### `src/scripts/`
 
@@ -160,8 +160,3 @@ In development it prints emails to the terminal. In production it **throws on pu
 | `npm run generate` | Generates the Prisma client (also runs after `npm install`) |
 
 `generate`, `prisma.config.ts` and the `prisma/` folder exist only for Prisma databases (PostgreSQL, MySQL, SQLite). With MongoDB, `db:migrate` runs `src/scripts/migrate.ts`, which creates indexes. With `--database memory` there are no `db:*` scripts.
-
-## Next
-
-- [Fastify API](./fastify) · [Gin (Go) API](./gin) · [Full stack](./full-stack)
-- [Add an API route](/build/add-api-route)

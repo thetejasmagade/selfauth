@@ -1,74 +1,48 @@
 ---
 title: What is SelfAuth?
-description: SelfAuth is an open-source development-time tool that generates authentication and authorization code inside your own application. Learn what it is, why it exists and what it does not do.
+description: SelfAuth is an open-source tool that writes login, sessions and permissions code into your own project. What it does, why it exists and what it doesn't do.
 keywords: [selfauth, what is, authentication generator, own your auth, code generator]
 ---
 
 # What is SelfAuth?
 
-SelfAuth is a **code generator for authentication and authorization**. You run one command, and it writes the files that let people register, verify their email, sign in, sign out, reset a password and be given roles and permissions. The files go **into your project**, in your repository.
+SelfAuth writes authentication code into your project. You run one command and get registration, email verification, login, logout, password reset, roles and permissions, as ordinary files in your repository.
 
-After that, SelfAuth is finished. It is not running next to your app, it is not a package your app imports, and it does not talk to any server.
+Once those files exist, SelfAuth is out of the picture. It doesn't run next to your app, your app doesn't import it, and nothing it generates talks to a SelfAuth server. If the CLI, npm or the project itself disappeared tomorrow, your login would keep working.
 
-> Generate it. Own it. Modify it. Deploy it.
+## Why bother
 
-## Why it exists
+If you need login for an app, you usually pick one of three routes, and each has a catch.
 
-Most teams pick one of three ways to get login:
+Writing it yourself gives you full control, but auth is easy to get subtly wrong. Password hashing, session theft, account enumeration and brute-force limits all have well-known ways to go badly.
 
-| Option | What you get | What you give up |
-| --- | --- | --- |
-| Write it yourself | Full control | It is easy to get wrong. Password hashing, session theft, account enumeration and rate limits are all places to make a security mistake. |
-| Use a hosted service (an identity provider) | Fast start | Your users live in someone else's database. You pay per user. If the service changes or disappears, your login breaks. |
-| Use an auth library | Less code to write | You depend on the library's choices, and upgrades can change behavior underneath you. |
+A hosted service is quick to start, but your users end up in someone else's database, you pay per user, and your login depends on their uptime and pricing.
 
-SelfAuth takes a fourth path: **a tested, secure implementation, copied into your project.** You get the speed of a ready-made solution and you still own every line.
+A library is less typing, but you're tied to its choices, and an upgrade can change how your login behaves without you touching your own code.
 
-## What problems it solves
-
-- You do not want your users' accounts in a third-party service.
-- You want the authentication code to be readable and changeable.
-- You want security decisions (hashing cost, session length, cookie flags) as plain configuration with safe defaults.
-- You want the same behavior on more than one framework or database.
+SelfAuth is a fourth option. You get an implementation someone has already tested hard, and then it becomes yours. You can read it, change it, and keep it.
 
 ## What you get
 
-- **Account lifecycle:** register, verify email, sign in, sign out, sign out everywhere, change password, reset password, delete account.
-- **Sessions:** a random token in an `HttpOnly` cookie. Only its hash is stored in your database. You can list and revoke sessions.
-- **Authorization:** roles and permissions (RBAC), route guards, and per-resource checks such as "only the owner of an order may read it".
-- **Administration:** suspend or disable accounts, assign roles, with a recent-password requirement.
-- **Protection:** Argon2id hashing, rate limits, CSRF defense, identical responses that do not reveal which emails exist, redacted logs, a security event log.
-- **Optional frontend:** Vue 3 or React pages for every account screen, a typed API client, route guards and a `<Can>` component.
-- **Database migrations** you can read, as plain SQL.
-- **Tests inside your project** that check the wiring.
+- Registration, email verification, sign in, sign out, sign out everywhere, password change, password reset and account deletion.
+- Sessions as a random token in an HttpOnly cookie. Only a hash of the token is stored in your database, and users can list and revoke their sessions.
+- Roles and permissions, route guards, and per-object checks like "only the owner can read this order".
+- Admin routes to suspend accounts and assign roles.
+- Argon2id password hashing, rate limits, CSRF protection, and error messages that don't reveal which emails have accounts.
+- Optional Vue or React pages for every account screen, with a typed API client.
+- Migrations as plain SQL you can read.
+- A few tests inside your project that check the wiring.
 
-## What it is not
+## What it doesn't do
 
-SelfAuth does **not** provide:
+It isn't a hosted login page, an identity provider or a single sign-on system. It doesn't do social login, magic links or multi-factor authentication yet. Only email and password works today. If something isn't in the list above, assume it isn't there, and check the [roadmap](https://github.com/thetejasmagade/selfauth/blob/main/ROADMAP.md) for what's planned.
 
-- a hosted login page or identity provider;
-- single sign-on across separately deployed apps;
-- social login (Google, GitHub) or magic links. Only email and password is implemented today;
-- multi-factor authentication. This is not implemented today;
-- a user dashboard;
-- billing.
+## Two parts
 
-Anything not listed under "What you get" should be treated as not implemented. See the [roadmap](https://github.com/thetejasmagade/selfauth/blob/main/ROADMAP.md) for what is planned.
+There's the CLI, `selfauth`, which runs on your computer while you develop. It writes files, checks them, helps you upgrade them and runs migrations. And there's the code it generates, which runs inside your app in production. You can stop using the CLI whenever you like. The app never needs it.
 
-## The two parts
+## Who it's for
 
-| Part | What it is | When it runs |
-| --- | --- | --- |
-| The **CLI** (`selfauth`) | Writes files, checks them, helps upgrade them and runs migrations | On your computer, during development |
-| The **generated code** | Your authentication, in your repository | Inside your app, in production |
+Anyone building an API with Express, Fastify or Gin (Go) who wants accounts they control. You don't need to have built auth before. The generated project runs on the first try, and these docs explain every file in it.
 
-The CLI is optional once the project exists. The app never needs it to run.
-
-## Who it is for
-
-SelfAuth fits you if you build an API with **Express, Fastify or Gin** (Go) and want accounts that you control. It is aimed at people who have never built authentication before, as much as at experienced developers: the generated project works on the first run, and the guides here explain every file.
-
-## Next
-
-- [How it works](./how-it-works)
-- [Quick start](/getting-started/quick-start)
+Ready to try it? The [quick start](/getting-started/quick-start) takes about ten minutes. If you'd like the big picture first, read [how it works](./how-it-works).

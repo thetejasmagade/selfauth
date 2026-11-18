@@ -6,7 +6,7 @@ keywords: [add route, new endpoint, express router, fastify route, gin route, ap
 
 # Add an API route
 
-Your routes live in **one place**, the file that the generated app already calls after it has set up authentication:
+Your routes live in one place, the file that the generated app already calls after it has set up authentication:
 
 | Backend | File | Function |
 | --- | --- | --- |
@@ -51,7 +51,7 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 
 What each part does:
 
-- `auth.requireAuth` / `a.RequireAuth()` is a **guard**. It runs before the handler and answers `401 UNAUTHENTICATED` when nobody is signed in.
+- `auth.requireAuth` / `a.RequireAuth()` is a guard. It runs before the handler and answers `401 UNAUTHENTICATED` when nobody is signed in.
 - `auth.context(...)` returns the signed-in user. It is computed on the server for every request and holds `userId`, `roles`, `permissions`, `user` and `session`.
 
 ## Step 2: Add a public route
@@ -134,11 +134,11 @@ Always validate what you read. Treat every body, parameter and query value as un
 
 ## Rules for your routes
 
-1. **Choose a prefix the frontend proxy forwards.** In a full-stack project the Vite dev server forwards only `/auth` and `/api`. Use `/api/...`, or add your prefix to the `proxy` in `client/vite.config.ts`.
-2. **Every `POST`, `PUT`, `PATCH` and `DELETE` needs the CSRF header** (`X-SelfAuth-CSRF: 1`). This applies to your routes too. The generated frontend client adds it for you when you use `client.api(...)`.
-3. **Guard every route that is not meant to be public.** For a safer default see [`protectedRoutes`](./protect-routes#deny-by-default-with-protectedroutes).
-4. **Errors:** throw or return a SelfAuth error to get the standard format. For your own errors, return JSON in the same shape: `{ "error": { "code": "...", "message": "...", "requestId": "..." } }`.
-5. **Do not log request bodies, cookies or tokens.**
+1. Choose a prefix the frontend proxy forwards. In a full-stack project the Vite dev server forwards only `/auth` and `/api`. Use `/api/...`, or add your prefix to the `proxy` in `client/vite.config.ts`.
+2. Every `POST`, `PUT`, `PATCH` and `DELETE` needs the CSRF header (`X-SelfAuth-CSRF: 1`). This applies to your routes too. The generated frontend client adds it for you when you use `client.api(...)`.
+3. Guard every route that is not meant to be public. For a safer default see [`protectedRoutes`](./protect-routes#deny-by-default-with-protectedroutes).
+4. Errors: throw or return a SelfAuth error to get the standard format. For your own errors, return JSON in the same shape: `{ "error": { "code": "...", "message": "...", "requestId": "..." } }`.
+5. Do not log request bodies, cookies or tokens.
 
 ## Organize growing code
 
@@ -152,7 +152,3 @@ import { orderRoutes } from "./orders.ts";
 ```
 
 Imports in TypeScript projects end in `.ts` (for example `./orders.ts`), which Node runs directly and the build rewrites to `.js`.
-
-## Next
-
-- [Protect routes](./protect-routes)

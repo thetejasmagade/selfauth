@@ -53,7 +53,7 @@ In production, `createAuth` throws unless the session cookie is `secure` and
 | `requireAuth` | Route guard. `401 UNAUTHENTICATED` without a valid session. |
 | `requirePermission(p)` | Route guard. `401` without a session, `403 FORBIDDEN` without permission `p`. Throws at startup if `p` isn't declared in the config (AUTHZ-PERM-004). |
 | `authorizeResource(p, req => ({ type, id }))` | Route guard that runs the policy registered for `type`. Denied resources answer `404 NOT_FOUND`, so their existence isn't revealed (AUTHZ-RES-004). A type with no registered policy gets `403 FORBIDDEN` (AUTHZ-RES-002). |
-| `protectedRoutes(router?)` | Wraps a router so each route is **denied unless a guard explicitly allowed it** (AUTHZ-CORE-001). Use `.get/.post/.put/.patch/.delete(path, guard, handler)`, then mount `.router`. |
+| `protectedRoutes(router?)` | Wraps a router so each route is denied unless a guard explicitly allowed it (AUTHZ-CORE-001). Use `.get/.post/.put/.patch/.delete(path, guard, handler)`, then mount `.router`. |
 | `policies` | `PolicyRegistry`: `policies.register(type, policy)` registers a resource policy. |
 | `service` | `AuthService`, the framework-neutral core behind the routes (register, login, sessions, tokens, admin operations). Use it for custom flows, such as an admin UI calling `service.setAccountState`. |
 | `hasher` | The configured Argon2id `PasswordHasher` (for example, to hash a seeded admin password). |
@@ -99,7 +99,7 @@ not-found handler; it is a complete example.
 | --- | --- |
 | `createAuth(options)` | Builds `Auth` (above). |
 | `syncRoles(store, config)` | Writes the roles and permissions from the config to storage. Run it as a seed step (`npm run db:seed`). The in-memory store runs it at startup. |
-| `ownershipPolicy(load)` | Policy helper: allows an action if the subject holds the permission **and** owns the resource, or holds the `*_any` variant (AUTHZ-RES-005). `load(id)` must read the resource from storage. |
+| `ownershipPolicy(load)` | Policy helper: allows an action if the subject holds the permission and owns the resource, or holds the `*_any` variant (AUTHZ-RES-005). `load(id)` must read the resource from storage. |
 | `ownerFilter(context, permission)` | For list queries: `{ ownerId }` to filter by, or `null` when the subject holds `*_any` (AUTHZ-RES-006). |
 | `MemoryAuthStore` | In-memory `AuthStore`. Refuses production via `store.ts`. |
 | `DevConsoleMailer` | Development mailer that prints messages and links to the console. Refuses to run in production. |

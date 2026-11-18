@@ -9,7 +9,7 @@ keywords: [gin, go, golang, directory structure, internal, cmd, pgx, migrations,
 `npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module that follows the common Go layout: programs in `cmd/`, private packages in `internal/`.
 
 ::: info What Gin supports
-Gin projects are **API only** (no generated frontend), work with **PostgreSQL or the in-memory store**, and are for **new projects**: `selfauth add` does not apply to Go. Go 1.26 or newer is required. `doctor`, `validate`, `diff` and `upgrade` do work.
+Gin projects are API only (no generated frontend), work with PostgreSQL or the in-memory store, and are for new projects: `selfauth add` does not apply to Go. Go 1.26 or newer is required. `doctor`, `validate`, `diff` and `upgrade` do work.
 :::
 
 ## The tree
@@ -81,8 +81,8 @@ flowchart LR
 
 | Topic | Gin project |
 | --- | --- |
-| Settings file | `selfauth.config.json` (JSON, not TypeScript). The server finds it in the **current directory**, or at the path in `SELFAUTH_CONFIG`. Run the server from the project root. |
-| Environment | The process environment. A `.env` file is **not** loaded by the server. Export the variables, or use a tool such as direnv. |
+| Settings file | `selfauth.config.json` (JSON, not TypeScript). The server finds it in the current directory, or at the path in `SELFAUTH_CONFIG`. Run the server from the project root. |
+| Environment | The process environment. A `.env` file is not loaded by the server. Export the variables, or use a tool such as direnv. |
 | Environment name | `APP_ENV` (`development`, `test`, `production`) instead of `NODE_ENV` |
 | Module path | The `--module` you passed. All imports use it, for example `github.com/you/my-api/internal/auth`. |
 | Migrations | `go run ./cmd/migrate status` and `up` (or `npx selfauth db status` and `migrate`). No ORM. |
@@ -115,8 +115,3 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 | `go run ./cmd/create-admin you@example.com` | Grants the admin role |
 | `go vet ./... && go test ./...` | Checks and tests |
 | `go build -o bin/server ./cmd/server` | Builds a binary |
-
-## Next
-
-- [Full stack: Vue or React](./full-stack)
-- [Add an API route](/build/add-api-route)
