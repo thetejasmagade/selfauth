@@ -24,6 +24,7 @@ The suite has 90 cases in total.
 | Store | Published level |
 | --- | --- |
 | memory | Authorization compliant |
+| mongodb | Authorization compliant |
 | mysql | Authorization compliant |
 | postgresql | Authorization compliant |
 | sqlite | Authorization compliant |
@@ -40,6 +41,7 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | database | `postgresql` | PostgreSQL via Prisma (store `postgresql`) |
 | database | `mysql` | MySQL 8 via Prisma (derived from the PostgreSQL reference; verified by scripts/dialect-conformance.mjs in CI) (store `mysql`) |
 | database | `sqlite` | SQLite via Prisma (derived from the PostgreSQL reference; verified by scripts/dialect-conformance.mjs in CI) (store `sqlite`) |
+| database | `mongodb` | MongoDB via Mongoose (its own store, tested by scripts/dialect-conformance.mjs against a real MongoDB in CI) (store `mongodb`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
 | frontend | `vue` | Vue 3 (generated and built with a Fastify API; browser-tested against Fastify) |
 | frontend | `react` | React (generated and built with a Fastify API; browser-tested against Fastify) |
@@ -85,8 +87,8 @@ Every mandatory requirement is covered by a case or by another check; the build 
 
 - SQLite is a single file on one host. It is claimed at authorization level, not production: the production profile expects a shared store for rate limits across instances (SEC-RATE-006), and SQLite does not give you that across machines.
 - MySQL is claimed at authorization level, not production, until its production profile has been reviewed (isolation level, deadlock handling and collation were chosen and tested, not audited).
+- MongoDB is claimed at authorization level, not production, until its production profile has been reviewed. Atomicity uses single-document writes, conditional updates and compare-and-swap, not transactions, so it works on a standalone server and a replica set; no multi-document transaction is relied on.
 - Express 5 and Fastify 5 are the only supported backends (Phase 10 continues).
-- MongoDB and Mongoose are in the configuration schema but not implemented; createAuth() refuses them.
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.

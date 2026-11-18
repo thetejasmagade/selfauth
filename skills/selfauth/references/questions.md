@@ -34,7 +34,7 @@ the generator is fetched from npm, once.
 ## What is supported
 
 **Which stacks are supported?** Express 5 or Fastify 5 + TypeScript (Node.js
-22.18 or newer), PostgreSQL, MySQL or SQLite through Prisma 7, or an in-memory store, and Vue or React frontends.
+22.18 or newer), PostgreSQL, MySQL or SQLite through Prisma 7, MongoDB through Mongoose, or an in-memory store, and Vue or React frontends.
 An existing Express or Fastify project can use `selfauth add`; a new one uses
 `selfauth init [--backend express|fastify]`. Run `selfauth list` for the
 authoritative list.

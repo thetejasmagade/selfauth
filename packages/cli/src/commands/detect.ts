@@ -104,7 +104,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
       reason: blockers.length
         ? `No generator for ${project.otherLanguages.join(", ")} backends.`
         : "No package.json: generate a new project.",
-      options: ["postgresql", "mysql", "sqlite", "memory"].map((db) => ({
+      options: ["postgresql", "mysql", "sqlite", "mongodb", "memory"].map((db) => ({
         command: `selfauth init <dir> --database ${db} --frontend none|vue|react`,
         available: !blockers.length,
         blockers,
@@ -180,7 +180,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
   }
 
   const options: CommandOption[] = [];
-  for (const database of ["memory", "postgresql", "mysql", "sqlite"] as const) {
+  for (const database of ["memory", "postgresql", "mysql", "sqlite", "mongodb"] as const) {
     const check = await preflightAdd(dir, {
       database,
       backend,

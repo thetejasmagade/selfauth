@@ -13,7 +13,7 @@ import {
   BACKENDS,
   DATABASE_INFO,
   DATABASES,
-  usesPrisma,
+  hasDatabase,
   frontendInfo,
   type Backend,
   type Database,
@@ -144,6 +144,7 @@ async function run(
           [
             { value: "postgresql", label: "PostgreSQL", hint: "via Prisma; for real use" },
             { value: "mysql", label: "MySQL", hint: "via Prisma; MySQL 8 or MariaDB" },
+            { value: "mongodb", label: "MongoDB", hint: "via Mongoose; MongoDB 6 or newer" },
             { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
             {
               value: "memory",
@@ -209,7 +210,7 @@ async function run(
   }
 
   say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${usesPrisma(database) ? `${DATABASE_INFO[database].label}/Prisma` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -254,10 +255,14 @@ async function run(
     say(ws ? "  npm install               # installs server/ and client/" : "  npm install");
   say(
     `  cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}` +
-      (usesPrisma(database) ? "   # set DATABASE_URL" : ""),
+      (hasDatabase(database) ? "   # set DATABASE_URL" : ""),
   );
-  if (usesPrisma(database)) {
-    say("  npx selfauth db plan      # review the migration first");
+  if (hasDatabase(database)) {
+    say(
+      database === "mongodb"
+        ? "  npx selfauth db plan      # show the indexes db:migrate would create"
+        : "  npx selfauth db plan      # review the migration first",
+    );
     say("  npm run db:migrate && npm run db:seed");
   }
   say(

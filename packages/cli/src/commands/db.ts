@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
 import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
 import { DATABASE_INFO, type Database } from "../templates.js";
@@ -19,6 +20,23 @@ function printPlan(plan: MigrationPlan) {
     fail("Blocked: objects already exist in the database. Nothing will be applied.");
 }
 
+/**
+ * MongoDB projects have no SQL migrations: `db migrate` runs the project's own script, which
+ * creates the indexes (and only creates), and `db plan` / `db status` list what it would create.
+ */
+function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): number {
+  const result = spawnSync(process.execPath, ["src/scripts/migrate.ts", ...args], {
+    cwd: dir,
+    env,
+    stdio: "inherit",
+  });
+  if (result.status !== 0) {
+    fail("The index script failed; the message above says why (is `npm install` done?).");
+    return 1;
+  }
+  return 0;
+}
+
 /** `selfauth db <command>` — orchestrates the project's native migration tool (Prisma Migrate). */
 export async function db(
   command: string,
@@ -30,9 +48,18 @@ export async function db(
     fail("not a SelfAuth project (selfauth.manifest.json not found)");
     return 1;
   }
-  if (manifest.database.orm !== "prisma") {
+  if (manifest.database.orm === "none") {
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);
     return 1;
+  }
+  const mongo = manifest.database.orm === "mongoose";
+  if (mongo && !["status", "plan", "migrate"].includes(command)) {
+    info(
+      command === "rollback"
+        ? "MongoDB has no migrations to roll back: `db:migrate` only creates indexes and never changes your data."
+        : `\`selfauth db ${command}\` is for SQL databases. MongoDB only needs its indexes: \`selfauth db migrate\`.`,
+    );
+    return command === "validate" || command === "rollback" ? 0 : 1;
   }
   // These commands connect to the database; the others (validate, rollback) read files only.
   let env: NodeJS.ProcessEnv | undefined;
@@ -54,6 +81,7 @@ export async function db(
     }
     // Hand the value to Prisma directly, so it does not depend on prisma.config.ts finding .env.
     env = { ...process.env, DATABASE_URL: found.url };
+    if (mongo) return runMongoScript(dir, command === "migrate" ? [] : ["--plan"], env);
   }
   const adapter = new PrismaMigrationAdapter({ cwd: dir, ...(env ? { env } : {}) });
   try {

@@ -22,6 +22,7 @@ import type { Backend } from "./templates.js";
 import {
   frontendAuthFiles,
   frontendInfo,
+  ormFor,
   registry,
   stackDependencies,
   stackFiles,
@@ -173,7 +174,7 @@ export function buildManifest(
     specVersion: SPEC_VERSION,
     database: {
       type: answers.database,
-      orm: usesPrisma(answers.database) ? "prisma" : "none",
+      orm: ormFor(answers.database),
     },
     ownedResources: owned,
     options: {
@@ -199,6 +200,10 @@ export async function ownedResources(
   source: TemplateSource,
   backend: Backend = "express",
 ): Promise<Manifest["ownedResources"]> {
+  // MongoDB: collections instead of tables; indexes, not migrations.
+  if (database === "mongodb") {
+    return { tables: [...registry.mongodb.collections], types: [], migrations: [] };
+  }
   const manifestSource = stackDependencies(database, backend).manifest;
   if (!manifestSource) return { tables: [], types: [], migrations: [] };
   const owned = (JSON.parse(await source.read(manifestSource)) as Manifest).ownedResources;

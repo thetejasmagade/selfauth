@@ -194,6 +194,12 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     say(`${step++}. Ignore the generated client: add "${root}/generated/" to .gitignore, then:`);
     say("     npx prisma generate && npx selfauth db plan && npx selfauth db migrate");
     say(`     node --env-file=.env ${root}/scripts/seed.ts`);
+  } else if (database === "mongodb") {
+    say(
+      `${step++}. Create the indexes (the unique email index keeps accounts unique), then seed the roles:`,
+    );
+    say("     npx selfauth db plan && npx selfauth db migrate");
+    say(`     node --env-file=.env ${root}/scripts/seed.ts`);
   }
   say(
     `${step}. Browsers must send "X-SelfAuth-CSRF: 1" on POST/PUT/PATCH/DELETE requests (CSRF protection covers the whole app).`,

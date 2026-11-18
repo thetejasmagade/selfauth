@@ -157,10 +157,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [sqlite, mysql]
+        database: [sqlite, mysql, mongodb]
         app: [playground, playground-fastify]
     env:
       MYSQL_TEST_URL: mysql://root:root@127.0.0.1:3306/selfauth_test
+      MONGODB_TEST_URL: mongodb://127.0.0.1:27017/selfauth_test
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -180,7 +181,17 @@ jobs:
         run: |
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS selfauth_test"
-      - name: Run every conformance case against the derived database
+      - name: Start MongoDB
+        if: matrix.database == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
+      - name: Run every conformance case against the database
         run: node scripts/dialect-conformance.mjs ${{ matrix.database }} ${{ matrix.app }}
 
   generated-project:
@@ -200,6 +211,9 @@ jobs:
           # MySQL (derived from the PostgreSQL reference), against a real MySQL 8.
           - { database: mysql, mode: none }
           - { backend: fastify, database: mysql, mode: vue }
+          # MongoDB (its own Mongoose store), against a real MongoDB 7.
+          - { database: mongodb, mode: none }
+          - { backend: fastify, database: mongodb, mode: vue }
           - { database: memory, mode: vue }
           - { database: postgresql, mode: react }
           - { database: memory, mode: add }
@@ -228,6 +242,7 @@ jobs:
     env:
       SMOKE_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/smoke
       SMOKE_MYSQL_URL: mysql://root:root@127.0.0.1:3306/smoke
+      SMOKE_MONGODB_URL: mongodb://127.0.0.1:27017/smoke
       SMOKE_BACKEND: ${{ matrix.backend || 'express' }}
     steps:
       - uses: actions/checkout@v7
@@ -248,5 +263,15 @@ jobs:
         run: |
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
+      - name: Start MongoDB
+        if: matrix.database == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
       - name: Generate, install, migrate, boot and exercise a project outside the monorepo
         run: scripts/smoke-generated.sh ${{ matrix.database }} ${{ matrix.mode }}

@@ -165,11 +165,16 @@ describe("startup safety", () => {
   });
 
   it("refuses configuration the adapter cannot honour (CONF-FILE-004)", () => {
+    // Every database the schema names is implemented now, so the refusal is shown with a name the
+    // schema does not know: a database added to the schema before an adapter supports it.
     const config = parseConfig({
       ...BASE,
-      adapter: { backend: "express", database: "mongodb", orm: "mongoose" },
+      adapter: { backend: "express", database: "postgresql", orm: "prisma" },
     });
-    expect(() => createAuth(options({ config }))).toThrow(/does not support database 'mongodb'/);
+    const unsupported = { ...config, adapter: { ...config.adapter, database: "cockroachdb" } };
+    expect(() => createAuth(options({ config: unsupported as never }))).toThrow(
+      /does not support database 'cockroachdb'/,
+    );
   });
 
   it("refuses token-mode CSRF without a strong secret (SEC-SECRET-003)", () => {

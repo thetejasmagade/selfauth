@@ -10,9 +10,7 @@ import { PasswordHasher } from "../../src/auth/core/password.ts";
 import type { AccountState } from "../../src/auth/core/store.ts";
 import { normalizeEmail } from "../../src/auth/core/email.ts";
 import type { Auth } from "../../src/auth/index.ts";
-import type { PrismaAuthStore } from "../../src/auth/stores/prisma.ts";
 import { buildTestApp, type StoreKind } from "../helpers.ts";
-import { readSecurityEvents } from "./events.ts";
 
 /** Hashing fixtures once per password keeps the suite fast. */
 const fixtureHashes = new Map<string, Promise<string>>();
@@ -21,46 +19,6 @@ interface FixtureResource {
   type: string;
   id: string;
   ownerId: string;
-}
-
-type Row = Record<string, unknown>;
-
-/** Logical entities (DATA_MODEL.md) read back from PostgreSQL for `inspectStorage`. */
-async function inspectPrisma(store: PrismaAuthStore, entity: string): Promise<Row[]> {
-  const db = store.db;
-  switch (entity) {
-    case "user": {
-      const users = await db.authUser.findMany({
-        include: { roles: { include: { role: true } } },
-        orderBy: { createdAt: "asc" },
-      });
-      return users.map(({ roles, ...u }) => ({ ...u, roles: roles.map((r) => r.role.name) }));
-    }
-    case "credential":
-      return db.authCredential.findMany({ orderBy: { createdAt: "asc" } });
-    case "session":
-      return db.authSession.findMany({ orderBy: { createdAt: "asc" } });
-    case "passwordResetToken":
-      return db.authPasswordResetToken.findMany({ orderBy: { createdAt: "asc" } });
-    case "emailVerificationToken":
-      return db.authEmailVerificationToken.findMany({ orderBy: { createdAt: "asc" } });
-    default:
-      throw new Error(`unknown entity '${entity}'`);
-  }
-}
-
-async function mutatePrisma(
-  store: PrismaAuthStore,
-  entity: string,
-  where: Row,
-  set: Row,
-): Promise<void> {
-  if (entity !== "user" && entity !== "session")
-    throw new Error(`mutateStorage: unsupported entity '${entity}'`);
-  // Test-only escape hatch: field names come from the case and are checked by Prisma at runtime.
-  if (entity === "user")
-    await store.db.authUser.updateMany({ where: where as never, data: set as never });
-  else await store.db.authSession.updateMany({ where: where as never, data: set as never });
 }
 
 /** Conformance driver for the Express reference implementation (CONFORMANCE.md). */
@@ -201,18 +159,18 @@ const createPlaygroundDriver = async (
     },
     async inspectStorage(entity) {
       if (t.memory) return t.memory.inspect(entity);
-      return inspectPrisma(t.prisma!, entity);
+      return t.database!.inspect(entity);
     },
     async mutateStorage(entity, where, set) {
       if (t.memory) {
         t.memory.mutate(entity, (r) => Object.entries(where).every(([k, v]) => r[k] === v), set);
       } else {
-        await mutatePrisma(t.prisma!, entity, where, set);
+        await t.database!.mutate(entity, where, set);
       }
     },
     async events() {
       if (t.memory) return t.memory.events as unknown as Record<string, unknown>[];
-      return readSecurityEvents(t.prisma!);
+      return t.database!.events();
     },
     close: t.close,
     async logs() {

@@ -49,7 +49,7 @@
     {
       "path": "src/auth/index.ts",
       "template": "fastify:apps/playground-fastify/src/auth/index.ts",
-      "sha256": "fbdf909b9efe83c146725508d664c62a8a5ea03196a480e91f104ff13554686b"
+      "sha256": "74be7b19cc7b159d545169d3d02048379b474880e38edeb1ddc31aeb80891dd6"
     },
     {
       "path": "src/auth/core/authorization.ts",

@@ -31,6 +31,26 @@ create the (empty) database first, then run `selfauth db migrate`. The rate-limi
 and row-locked, as on PostgreSQL. It is claimed at authorization level until its production profile
 is reviewed.
 
+**MongoDB** (`--database mongodb`, MongoDB 6 or newer, through Mongoose 9) is not derived from the
+SQL schema: it has its own store. The same logical model ([`DATA_MODEL.md`](../packages/spec/specs/DATA_MODEL.md))
+maps to collections:
+
+| Collection | Holds |
+| --- | --- |
+| `auth_users` | The account, with its password credential and its role links embedded in the document (so creating a user is one atomic write; the credential is never returned with the user) |
+| `auth_sessions` | **SHA-256 hashes** of session tokens, expiry, revocation, IP and user agent |
+| `auth_one_time_tokens` | Hashed email-verification and password-reset tokens (`kind` tells them apart), single use |
+| `auth_roles` | Role definitions with their permissions |
+| `auth_security_events` | The audit log |
+| `auth_rate_limits` | Rate-limit counters, shared across instances (compare-and-swap on a version number) |
+
+There are no migrations, only indexes. `npm run db:migrate` (or `selfauth db migrate`) creates the
+missing ones and never drops one; `selfauth db plan` lists what it would create. **The unique index
+on the normalized email is what keeps accounts unique**, so the server refuses to start without the
+indexes. Nothing uses multi-document transactions, so a standalone server works as well as a replica
+set. Run `npm run db:migrate && npm run db:seed` as deploy steps, like the SQL databases. Claimed at
+authorization level until its production profile is reviewed.
+
 ## Tables SelfAuth owns
 
 Every name has the `auth_` prefix, so it won't collide with your tables.

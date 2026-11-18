@@ -1,6 +1,8 @@
 import { parseConfig, PERMISSION_PATTERN, type SelfAuthConfig } from "@selfauth/spec";
 import {
   DATABASE_INFO,
+  hasDatabase,
+  ormFor,
   usesPrisma,
   type Backend,
   type Database,
@@ -69,7 +71,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
       backend: answers.backend ?? "express",
       frontend: answers.frontend,
       database: answers.database,
-      orm: usesPrisma(answers.database) ? "prisma" : "none",
+      orm: ormFor(answers.database),
     },
     authorization: {
       permissions,
@@ -122,6 +124,14 @@ export function renderPackageJson(
       postinstall: "prisma generate",
       "db:migrate": "prisma migrate deploy",
       "db:status": "prisma migrate status",
+      "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
+      "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts",
+    });
+  } else if (answers.database === "mongodb") {
+    // MongoDB has no SQL migrations: db:migrate creates the indexes (never drops one).
+    Object.assign(scripts, {
+      "db:migrate": "node --env-file-if-exists=.env src/scripts/migrate.ts",
+      "db:status": "node --env-file-if-exists=.env src/scripts/migrate.ts --plan",
       "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
       "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts",
     });
@@ -249,16 +259,17 @@ export function renderEnvExample(answers: InitAnswers): string {
       "# HOST=0.0.0.0",
     );
   }
-  if (usesPrisma(answers.database)) {
+  if (hasDatabase(answers.database)) {
     const info = DATABASE_INFO[answers.database];
-    lines.push(`# ${info.label} connection for Prisma.`, `DATABASE_URL=${info.urlExample}`);
+    const tool = answers.database === "mongodb" ? "Mongoose" : "Prisma";
+    lines.push(`# ${info.label} connection for ${tool}.`, `DATABASE_URL=${info.urlExample}`);
   }
   return `${lines.join("\n")}\n`;
 }
 
 /** Workspace root package.json: runs both packages (`concurrently` so it also works on Windows). */
 export function renderRootPackageJson(answers: InitAnswers): string {
-  const pg = usesPrisma(answers.database);
+  const pg = hasDatabase(answers.database);
   const scripts: Record<string, string> = {
     dev: 'concurrently -k -n server,client -c blue,green "npm run dev -w server" "npm run dev -w client"',
     "dev:server": "npm run dev -w server",
@@ -309,7 +320,7 @@ export function renderGitignore(options: { workspace?: boolean } = {}): string {
 type Row = [string, string];
 
 function serverRows(answers: InitAnswers): Row[] {
-  const pg = usesPrisma(answers.database);
+  const pg = hasDatabase(answers.database);
   return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
@@ -330,9 +341,20 @@ function serverRows(answers: InitAnswers): Row[] {
       "  auth/",
       `SelfAuth's generated authentication code (core/, ${answers.backend ?? "express"}/, stores/)`,
     ],
-    ...(pg ? ([["  scripts/", "seed (roles) and create-admin"]] as Row[]) : []),
+    ...(pg
+      ? ([
+          [
+            "  scripts/",
+            answers.database === "mongodb"
+              ? "migrate (indexes), seed (roles) and create-admin"
+              : "seed (roles) and create-admin",
+          ],
+        ] as Row[])
+      : []),
     ["test/", "smoke tests for the authentication wiring (npm test)"],
-    ...(pg ? ([["prisma/", "database schema and migrations"]] as Row[]) : []),
+    ...(usesPrisma(answers.database)
+      ? ([["prisma/", "database schema and migrations"]] as Row[])
+      : []),
   ];
 }
 
@@ -383,7 +405,7 @@ export function renderLayout(answers: InitAnswers): string {
 }
 
 export function renderReadme(answers: InitAnswers): string {
-  const pg = usesPrisma(answers.database);
+  const pg = hasDatabase(answers.database);
   const ws = isWorkspace(answers);
   const env = ws ? "server/.env" : ".env";
   const base = ws ? "server/" : "";
@@ -392,7 +414,9 @@ export function renderReadme(answers: InitAnswers): string {
     `cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}${pg ? "   # then set DATABASE_URL" : ""}`,
     ...(pg
       ? [
-          "npx selfauth db plan          # optional: review the migration for destructive changes",
+          answers.database === "mongodb"
+            ? "npx selfauth db plan          # optional: show the indexes db:migrate would create"
+            : "npx selfauth db plan          # optional: review the migration for destructive changes",
           "npm run db:migrate",
           `npm run db:seed               # roles from ${base}src/config/selfauth.config.ts`,
         ]
