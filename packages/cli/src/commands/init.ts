@@ -3,7 +3,12 @@ import { basename, relative, resolve } from "node:path";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
 import { createPrompter, PromptCancelled, type Prompter } from "../prompt.js";
-import { parsePermissions, permissionProblem, type InitAnswers } from "../render.js";
+import {
+  appBaseUrlProblem,
+  parsePermissions,
+  permissionProblem,
+  type InitAnswers,
+} from "../render.js";
 import {
   BACKENDS,
   frontendInfo,
@@ -44,17 +49,6 @@ async function folderProblem(answer: string): Promise<string | null> {
   return null;
 }
 
-function urlProblem(answer: string): string | null {
-  try {
-    const url = new URL(answer);
-    return url.protocol === "http:" || url.protocol === "https:"
-      ? null
-      : "Use an http:// or https:// address.";
-  } catch {
-    return "That is not a web address (for example http://localhost:5173).";
-  }
-}
-
 const permissionsProblem = (answer: string): string | null =>
   parsePermissions(answer).map(permissionProblem).find(Boolean) ?? null;
 
@@ -73,7 +67,9 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
       return 1;
     }
   }
-  const invalid = parsePermissions(options.permissions).map(permissionProblem).find(Boolean);
+  const invalid =
+    parsePermissions(options.permissions).map(permissionProblem).find(Boolean) ??
+    (options.appBaseUrl === undefined ? null : appBaseUrlProblem(options.appBaseUrl));
   if (invalid) {
     fail(invalid);
     return 1;
@@ -180,7 +176,7 @@ async function run(
     (frontend === "none" && prompter
       ? await prompter.text("Where will your frontend run? (used in email links)", {
           default: "http://localhost:5173",
-          validate: urlProblem,
+          validate: appBaseUrlProblem,
         })
       : `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`);
   const install =

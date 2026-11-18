@@ -98,5 +98,5 @@ instead of writing authentication code. Before it reports success, the agent
 must validate the result. See [`integrations/`](../../integrations/README.md).
 
 Generated code is the SelfAuth reference implementation — what passes the
-87-case conformance suite and the browser tests — copied byte for byte
+90-case conformance suite and the browser tests — copied byte for byte
 (ADR 0018).

@@ -13,11 +13,11 @@ sign-off with evidence (`conformance/adapters/fastify.json`).
 
 | Level | Needs | Cases |
 | --- | --- | --- |
-| Core compliant | all core cases pass; every automated check for core requirements (adapter, schema, migration tests) is signed off | 68 |
+| Core compliant | all core cases pass; every automated check for core requirements (adapter, schema, migration tests) is signed off | 71 |
 | Authorization compliant | core, plus the authorization cases and the authorization checks | 18 |
 | Production-profile compliant | all cases, plus every review, documentation and static-analysis item signed off | 1 |
 
-The suite has 87 cases in total.
+The suite has 90 cases in total.
 
 ## Result
 
@@ -60,18 +60,18 @@ Not supported yet: see [Known limitations](#known-limitations).
 | Area | Mandatory requirements | By cases | By other checks | Cases touching it |
 | --- | ---: | ---: | ---: | ---: |
 | Registration and identity | 29 | 26 | 3 | 21 |
-| Login and logout | 17 | 16 | 1 | 13 |
+| Login and logout | 17 | 16 | 1 | 15 |
 | Password storage | 10 | 8 | 2 | 5 |
 | Session expiration and revocation | 11 | 10 | 1 | 12 |
-| Password recovery and change | 21 | 20 | 1 | 19 |
+| Password recovery and change | 21 | 20 | 1 | 20 |
 | Email verification | 7 | 7 | 0 | 7 |
 | RBAC | 14 | 10 | 4 | 9 |
 | Permission enforcement | 7 | 7 | 0 | 5 |
 | Resource ownership | 5 | 5 | 0 | 5 |
 | CSRF and browser safety | 10 | 8 | 2 | 9 |
-| Rate limiting | 5 | 5 | 0 | 8 |
+| Rate limiting | 5 | 5 | 0 | 10 |
 | Secret and log redaction | 10 | 5 | 5 | 7 |
-| Errors and enumeration safety | 6 | 5 | 1 | 9 |
+| Errors and enumeration safety | 6 | 5 | 1 | 10 |
 | Migration safety | 4 | 2 | 2 | 3 |
 | Configuration | 5 | 0 | 5 | 0 |
 

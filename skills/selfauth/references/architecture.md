@@ -4,7 +4,7 @@
 
 A development-time generator. `selfauth init` / `selfauth add` copy SelfAuth's
 reference implementation into the project. It is the code that passes the
-87-case conformance suite and the browser tests, copied byte for byte. After
+90-case conformance suite and the browser tests, copied byte for byte. After
 that the code belongs to the project:
 
 - No SelfAuth package is a runtime dependency, and nothing phones home.

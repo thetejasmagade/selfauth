@@ -244,7 +244,16 @@ class Runner {
       case "concurrent": {
         const steps = (step.input?.["steps"] ?? []) as Step[];
         const results = await Promise.all(steps.map((s) => this.execute(s)));
-        return this.ok({ successCount: results.filter((r) => r.outcome === "success").length });
+        // `errorCodes` counts failures by code, so a case can assert how many attempts a limit let
+        // through (`"errorCodes.RATE_LIMITED": 7`).
+        const errorCodes: Record<string, number> = {};
+        for (const r of results) {
+          if (r.outcome === "error" && r.code) errorCodes[r.code] = (errorCodes[r.code] ?? 0) + 1;
+        }
+        return this.ok({
+          successCount: results.filter((r) => r.outcome === "success").length,
+          errorCodes,
+        });
       }
       case "rawRequest":
         return this.raw(step, input);

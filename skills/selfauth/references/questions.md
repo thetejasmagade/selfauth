@@ -50,7 +50,7 @@ specification lists some of these as optional capabilities that no adapter
 builds yet. → [framework-support](framework-support.md),
 [guides/conformance.md#known-limitations](guides/conformance.md#known-limitations)
 
-**How well tested is the Fastify backend?** All 87 conformance cases pass on it
+**How well tested is the Fastify backend?** All 90 conformance cases pass on it
 with both stores, and CI generates and exercises Fastify projects. It is
 published at the authorization level; production-profile is not claimed yet.
 → [guides/conformance-fastify.md](guides/conformance-fastify.md)

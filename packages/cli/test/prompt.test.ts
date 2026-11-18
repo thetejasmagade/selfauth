@@ -278,6 +278,16 @@ describe("selfauth init questions", () => {
     expect(asked).toEqual([]);
   });
 
+  it("an app base URL with a newline or spaces is refused (it is written into .env)", async () => {
+    for (const bad of ["http://a.test\nEVIL=1", "http://a.test b", "ftp://a.test", "not a url"]) {
+      const { prompter, asked } = scripted([]);
+      const { code, out } = await run(await empty(), { prompter, appBaseUrl: bad });
+      expect(code, bad).toBe(1);
+      expect(out, bad).toMatch(/address|web address|http/);
+      expect(asked).toEqual([]);
+    }
+  });
+
   it("a bad permission flag fails before asking, with the reason", async () => {
     const { prompter, asked } = scripted([]);
     const { code, out } = await run(await empty(), { prompter, permissions: "Orders View" });

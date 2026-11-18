@@ -42,6 +42,28 @@ None of the findings was an exploitable flaw in the authentication behaviour.
 Findings 1 and 4 to 6 close gaps between what the specification promises and
 what the build verified.
 
+## Second review: automated hostile review (2026-11-18)
+
+An AI agent that did not write the code was given the repository and told to
+attack it (commit `0aee070`, local only, both backends, memory and PostgreSQL).
+**It is still not an independent human audit**: one agent, one session, and it
+says so in its own report. It found one real weakness that the first review and
+the conformance suite had missed.
+
+| # | Finding | Severity | Resolution |
+| --- | --- | --- | --- |
+| F1 | The per-account login limit was checked read-only before the password hash and counted only after it, so concurrent requests could all pass the check: 20 of 20 parallel guesses were evaluated against a limit of 5, on both backends and both stores (SEC-RATE-001). | Medium | The attempt is counted atomically before the hash and cleared by a verified password. The same flaw in the password-change check (not in the report, found while fixing F1) is fixed the same way. Conformance cases `CT-RATE-006` and `CT-PWCHG-004` fire ten guesses at once and require exactly the limit to be evaluated; both failed before the fix. |
+| F6 | A malformed `:id` (for example `DELETE /auth/sessions/not-a-uuid`) returned 500 on the PostgreSQL store, 404 on the in-memory store. Any signed-in user could trigger it. No internals were exposed. | Low | The Prisma store treats an id that is not a UUID as not found. Conformance case `CT-SESS-006` covers it; it failed on PostgreSQL before the fix. |
+| F5 | `--app-base-url` was written into `.env` unescaped, so a newline would add a line. Only the developer generating their own project could supply it. | Informational | `init` and `add` refuse spaces, control characters and non-http(s) addresses; the wizard asks again. |
+| F3 | An oversized body with no `Content-Type` is `400` on Express and `413` on Fastify. Both reject it. | Informational | Left as is: no security effect. |
+| F4 | `pnpm audit` lists advisories in dev and build tooling only (test utilities, ESLint, `picomatch` via `vue-router`). None ships in a generated app's runtime. | Informational | Tracked. The `picomatch` advisory is ignored on purpose in `pnpm-workspace.yaml` until a patch exists. |
+| F2 | Release and CI workflows use floating action tags (`changesets/action@v1`, `gitleaks/gitleaks-action@v2`, and others). `release.yml` can publish to npm. | Low | **Open.** Pin third-party actions to full commit SHAs and keep them current with Dependabot. |
+
+The review also attacked and found sound: account enumeration, CSRF, session
+fixation and rotation, one-time token reuse under parallel requests, SQL and
+header injection, mass assignment, the admin authorization surface, open
+redirects, token handling in the frontends, and generator path traversal.
+
 ## Quality gates
 
 | Gate | How |
@@ -56,6 +78,7 @@ what the build verified.
 | Secret scanning | gitleaks over the full history, same schedule. |
 | Support level | `report.test.ts` fails if a store measures below its published level ([Conformance](conformance.md)). |
 | Security review | This document, plus an independent audit before 1.0. |
+| Concurrency | Conformance cases fire parallel requests at one-time tokens and at the login and password-change limits. |
 
 ## Residual risks and limits
 

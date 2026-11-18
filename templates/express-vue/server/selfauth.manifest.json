@@ -104,7 +104,7 @@
     {
       "path": "src/auth/core/service.ts",
       "template": "express:apps/playground/src/auth/core/service.ts",
-      "sha256": "d2f246d01ce16b7b0c63ca77af53e73dca767b69ff300910887328a6b7eb757f"
+      "sha256": "6480224b43d202b6cf756f8d16d5b8e4322326ca3813941bb8e2e720aadebae2"
     },
     {
       "path": "src/auth/core/store.ts",
@@ -174,7 +174,7 @@
     {
       "path": "src/auth/stores/prisma.ts",
       "template": "express:apps/playground/src/auth/stores/prisma.ts",
-      "sha256": "0507a56dd015c07d12fcf463940638955ab39c0862c43bc0bc58c4d6a994ceb9"
+      "sha256": "2366890b551f41a7d63c4176fc72ada5965a70ca77d957d3f7f1f0a496cd98e1"
     },
     {
       "path": "src/scripts/seed.ts",

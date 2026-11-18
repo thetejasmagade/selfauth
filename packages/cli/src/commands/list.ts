@@ -15,7 +15,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     kind: "backend",
     id: "express",
-    label: "Express 5 + TypeScript (reference implementation, 87/87 conformance cases)",
+    label: "Express 5 + TypeScript (reference implementation, 90/90 conformance cases)",
     production: true,
     add: true,
   },
@@ -23,7 +23,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "backend",
     id: "fastify",
     label:
-      "Fastify 5 + TypeScript (87/87 conformance cases, authorization level; `selfauth init --backend fastify`)",
+      "Fastify 5 + TypeScript (90/90 conformance cases, authorization level; `selfauth init --backend fastify`)",
     production: true,
     add: true,
   },

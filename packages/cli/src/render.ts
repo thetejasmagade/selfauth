@@ -13,6 +13,30 @@ export interface InitAnswers {
 }
 
 /** Resolved configuration written to src/config/selfauth.config.ts (validated by the spec schema). */
+/**
+ * A message when `value` is not a usable frontend address, otherwise null. It is written into
+ * `.env`, so spaces and control characters (a newline would add a line) are refused outright.
+ */
+export function appBaseUrlProblem(value: string): string | null {
+  // eslint-disable-next-line no-control-regex -- control characters are exactly what is refused
+  if (/[\u0000-\u001f\u007f\s]/.test(value))
+    return "The address must not contain spaces or control characters.";
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? null
+      : "Use an http:// or https:// address.";
+  } catch {
+    return "That is not a web address (for example http://localhost:5173).";
+  }
+}
+
+function checkedBaseUrl(value: string): string {
+  const problem = appBaseUrlProblem(value);
+  if (problem) throw new Error(`invalid app base URL: ${problem}`);
+  return value;
+}
+
 /** A message when `permission` is not a valid application permission, otherwise null. */
 export function permissionProblem(permission: string): string | null {
   return !PERMISSION_PATTERN.test(permission) || permission.startsWith("auth.")
@@ -208,7 +232,7 @@ export function renderEnvExample(answers: InitAnswers): string {
     "NODE_ENV=development",
     "PORT=3000",
     "# Absolute URL of your frontend: email links point here (AUTHN-VERIFY-009).",
-    `SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}`,
+    `SELFAUTH_APP_BASE_URL=${checkedBaseUrl(answers.appBaseUrl)}`,
     '# Only for http.csrf.mode "token": 32+ random bytes, base64url.',
     "# SELFAUTH_CSRF_SECRET=",
   ];

@@ -44,6 +44,9 @@ function isUniqueViolation(error: unknown, field: string): boolean {
 
 type Tx = Prisma.TransactionClient;
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (id: string): boolean => UUID.test(id);
+
 export class PrismaAuthStore implements AuthStore {
   readonly db: PrismaClient;
 
@@ -91,8 +94,10 @@ export class PrismaAuthStore implements AuthStore {
     }
   }
 
-  findUserById(id: string) {
-    return this.db.authUser.findUnique({ where: { id } });
+  async findUserById(id: string) {
+    // Ids are `uuid` columns and PostgreSQL raises an error for any other text. An id of another
+    // shape cannot exist, so it is "not found", the same as in the in-memory store.
+    return isUuid(id) ? this.db.authUser.findUnique({ where: { id } }) : null;
   }
 
   findUserByEmail(emailNormalized: string) {
@@ -132,8 +137,8 @@ export class PrismaAuthStore implements AuthStore {
     return this.db.authSession.findUnique({ where: { tokenHash } });
   }
 
-  findSessionById(id: string) {
-    return this.db.authSession.findUnique({ where: { id } });
+  async findSessionById(id: string) {
+    return isUuid(id) ? this.db.authSession.findUnique({ where: { id } }) : null;
   }
 
   async touchSession(id: string, lastSeenAt: Date, idleExpiresAt: Date) {

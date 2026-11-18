@@ -12,6 +12,7 @@ import {
   type Database,
 } from "../templates.js";
 import { detectProject } from "../detect.js";
+import { appBaseUrlProblem } from "../render.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface AddOptions {
@@ -51,6 +52,12 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     return 1;
   }
 
+  const urlProblem =
+    options.appBaseUrl === undefined ? null : appBaseUrlProblem(options.appBaseUrl);
+  if (urlProblem) {
+    fail(`--app-base-url: ${urlProblem}`);
+    return 1;
+  }
   const detected = await detectProject(dir);
   const requested = options.backend ?? detected.framework ?? undefined;
   if (requested !== undefined && !BACKENDS.includes(requested as Backend)) {

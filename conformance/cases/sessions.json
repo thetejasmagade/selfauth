@@ -303,6 +303,59 @@
           }
         }
       ]
+    },
+    {
+      "id": "CT-SESS-006",
+      "title": "An unknown or malformed session id is NOT_FOUND, not a server error",
+      "category": "sessions",
+      "level": "core",
+      "requirements": ["AUTHN-LOGOUT-007", "ERR-FORMAT-001"],
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "login",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          }
+        },
+        {
+          "op": "revokeSession",
+          "note": "not in any id format",
+          "input": {
+            "id": "not-a-valid-id"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "NOT_FOUND"
+          }
+        },
+        {
+          "op": "revokeSession",
+          "note": "UUID-shaped but unknown",
+          "input": {
+            "id": "00000000-0000-4000-8000-000000000000"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "NOT_FOUND"
+          }
+        },
+        {
+          "op": "getCurrentUser",
+          "note": "the session itself is untouched",
+          "expect": {
+            "outcome": "success"
+          }
+        }
+      ]
     }
   ]
 }
