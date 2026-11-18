@@ -1,5 +1,58 @@
 # selfauth
 
+## 0.11.0
+
+### Minor Changes
+
+- 664fcf7: Security fixes from an automated hostile review (see `docs/security-review.md`).
+  
+  - **Per-account login and password-change rate limits could be bypassed by concurrent requests.**
+    The limit was read before the password hash and counted after it, so parallel guesses all passed
+    the check (20 of 20 evaluated against a limit of 5). The attempt is now counted atomically before
+    the hash and cleared by a verified password. Regenerate or `selfauth upgrade` to get the fix in
+    `src/auth/core/service.ts`.
+  - On PostgreSQL, a request with a malformed `:id` (for example `DELETE /auth/sessions/not-a-uuid`)
+    returned 500; it is now `404 NOT_FOUND`, as with the in-memory store (`src/auth/stores/prisma.ts`).
+  - `init` and `add` refuse an app base URL with spaces, control characters or a non-http(s) scheme.
+  - The conformance suite grows from 87 to 90 cases: `CT-RATE-006` and `CT-PWCHG-004` (concurrent
+    guesses against the limits) and `CT-SESS-006` (malformed session id). The runner's `concurrent`
+    step now reports `errorCodes`, so a case can count how many attempts a limit let through.
+- eb0cd7c: `selfauth add` now works on existing Fastify projects, and the browser tests run against Fastify.
+  
+  - `add` and `detect` recognise Fastify (`--backend fastify` overrides when both frameworks are
+    dependencies), write the same `<src>/selfauth/` folder and a Fastify `setup.ts`, and print the
+    Fastify wiring: `Fastify({ ...selfAuthServerOptions() })`, `await setupSelfAuth(app)`,
+    `app.setErrorHandler(selfauth.errorHandler)`. `selfAuthServerOptions()` carries the body limit,
+    trusted-proxy setting and request-id rule, which Fastify only accepts when the app is created.
+  - The Playwright suite runs the Vue and React frontends against both the Express and the Fastify
+    backends (24 tests).
+- 2da4e04: `selfauth init` is now an interactive wizard when it runs in a terminal without `--yes`.
+  
+  - Arrow-key menus (or press a number) for backend, database and frontend, each with a one-line
+    hint, instead of typing a word and finding out about a typo later.
+  - It also asks for the project folder, your application permissions, where your frontend runs
+    (API-only projects) and whether to run `npm install`.
+  - A bad answer is explained and asked again at once; flag values are checked before anything is
+    asked; Ctrl-C cancels with exit code 130 and writes nothing.
+  - Flags still answer their question in advance. With `--yes`, or without a terminal, nothing is
+    asked, exactly as before.
+- 6a2bc93: Full-stack projects no longer ship the notes demo. `init --frontend vue|react` now generates the
+  five account screens, the account page and the guards, and the API has the same single protected
+  example route as an API-only project. The demo's permissions (`notes.*`) and the `support` role are
+  not added to `selfauth.config.ts`, and the nav bar has no demo link.
+  
+  The reference apps keep the notes example for the browser tests; generation removes it with exact
+  replacements and fails loudly if a reference file changes. Existing projects are not touched:
+  `selfauth upgrade` reports the notes files as removed from the template and leaves them alone.
+
+### Patch Changes
+
+- Updated dependencies [664fcf7]
+- Updated dependencies [eb0cd7c]
+- Updated dependencies [2da4e04]
+- Updated dependencies [6a2bc93]
+  - @selfauth/cli@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes
