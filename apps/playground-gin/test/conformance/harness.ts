@@ -26,7 +26,10 @@ export async function startHarness(): Promise<Harness> {
     rmSync(dir, { recursive: true, force: true });
     throw new Error(`go build failed:\n${build.stdout}${build.stderr}`);
   }
-  const child: ChildProcess = spawn(binary, [], { stdio: ["ignore", "pipe", "inherit"] });
+  const child: ChildProcess = spawn(binary, [], {
+    cwd: appDir,
+    stdio: ["ignore", "pipe", "inherit"],
+  });
   const port = await new Promise<number>((resolve, reject) => {
     const lines = createInterface({ input: child.stdout! });
     child.once("error", reject);

@@ -1,6 +1,6 @@
 # 0027: A Go port of the core behind a Gin adapter, held to the same conformance suite
 
-- Status: accepted (stage 1 of 3)
+- Status: accepted (stage 2 of 3)
 - Date: 2026-11-18
 
 ## Context
@@ -36,6 +36,26 @@ language-neutral specification and conformance suite (ADR 0007) exist for.
 - **Environment.** Go projects use `APP_ENV` instead of `NODE_ENV`.
 - **Claimed level.** None yet. The adapter record (stage 3) will claim at most authorization level,
   self-assessed, like the other adapters until the production profile is independently reviewed.
+
+## Stage 2: PostgreSQL with pgx
+
+- **Same schema, copied.** `db/migrations` holds the Prisma-generated SQL of the TypeScript apps. A
+  test requires it to stay byte-identical, so a database can move between implementations. The Go
+  store speaks to those tables directly with pgx; there is no ORM.
+- **Same guarantees, by the same means.** User creation is one transaction; token consumption,
+  session revocation and role grants are conditional updates; rate-limit updates lock their row
+  (`SELECT ... FOR UPDATE`), so several application instances share one limiter (SEC-RATE-006).
+- **A small migration runner instead of Prisma.** `cmd/migrate` applies the SQL files in order, one
+  transaction each, records a checksum (an applied migration that was edited afterwards is
+  refused) and takes an advisory lock so two deploys cannot race. It never runs at startup. It does
+  not detect destructive statements; the docs say to read every migration.
+- **A contract suite for stores** (`internal/store/storetest`) runs against memory and PostgreSQL:
+  atomic creation, one winner among concurrent registrations and token consumers, ids of another
+  shape being "not found", exact role synchronization. It already found a difference (the memory
+  store accepted an unknown role). The 90 conformance cases run against PostgreSQL as well, in
+  an isolated schema per case.
+- **Bounded columns.** The adapter truncates the user agent (512) and address (64) to their
+  column sizes, so an oversized header cannot become a database error.
 
 ## Consequences
 
