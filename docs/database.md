@@ -9,6 +9,20 @@ migration in every PostgreSQL template:
   reviewable SQL. If you don't use Prisma, you can also apply it with
   `psql` or your own migration tool.
 
+## Go (Gin)
+
+A Gin project keeps the same PostgreSQL migration SQL in `db/migrations/<name>/migration.sql`
+(byte-identical to the TypeScript apps, so a database can move between them) and has no ORM: the
+store talks to the tables with pgx. A small runner applies the files: `go run ./cmd/migrate status`
+lists applied and pending migrations and `go run ./cmd/migrate up` applies the pending ones, each
+in its own transaction. It records a checksum, refuses a migration that was edited after it was
+applied, and takes an advisory lock so two deploys cannot race. It never runs at application
+start-up. `selfauth db status|plan|migrate` call it for you. It does not analyze migrations for
+destructive statements the way `selfauth db plan` does for Prisma projects: read each new
+`migration.sql` before applying it, and take a backup in production. `go run ./cmd/seed`
+synchronizes roles and permissions; `go run ./cmd/create-admin you@example.com` grants the first
+administrator.
+
 ## Other databases
 
 **SQLite** (`--database sqlite`) uses the same logical model through Prisma. It is derived from the

@@ -239,6 +239,19 @@ func Run(t *testing.T, newStore func(t *testing.T) auth.Store) {
 		}
 	})
 
+	t.Run("synchronizing roles never prunes assignments (AUTHZ-RBAC-005)", func(t *testing.T) {
+		s := fresh(t)
+		u, _ := s.CreateUser(ctx, user("a@b.co"), "h", []string{"user"})
+		_ = s.SyncRoles(ctx, map[string][]string{"user": {"a.read"}, "editor": {"a.read"}, "admin": {"a.read"}})
+		_ = s.AddUserRole(ctx, u.ID, "editor", nil, now)
+		// "editor" disappears from the configuration: the user keeps the assignment.
+		_ = s.SyncRoles(ctx, map[string][]string{"user": {"a.read"}, "admin": {"a.read"}})
+		roles, _ := s.GetUserRoles(ctx, u.ID)
+		if len(roles) != 2 {
+			t.Fatalf("roles after a sync that dropped one from the configuration: %v", roles)
+		}
+	})
+
 	t.Run("events are kept in insertion order", func(t *testing.T) {
 		s := fresh(t)
 		for i := 0; i < 5; i++ {

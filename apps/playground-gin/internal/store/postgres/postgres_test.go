@@ -141,3 +141,51 @@ func TestConcurrentMigratorsApplyOnce(t *testing.T) {
 		t.Fatalf("%d migrations applied across 4 concurrent runs, want %d", total, len(migrations))
 	}
 }
+
+// DATA-MODEL-001: uniqueness is enforced by the database, not only by the application.
+func TestUniqueIndexesExist(t *testing.T) {
+	ctx := context.Background()
+	db := schema(t, true)
+	for _, want := range []string{
+		"auth_users_email_normalized_key", "auth_sessions_token_hash_key",
+		"auth_password_reset_tokens_token_hash_key", "auth_email_verification_tokens_token_hash_key",
+		"auth_credentials_user_id_type_key", "auth_roles_name_key", "auth_permissions_name_key",
+	} {
+		var unique bool
+		err := db.QueryRow(ctx, `SELECT i.indisunique FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
+			WHERE c.relname = $1 AND c.relnamespace = current_schema()::regnamespace`, want).Scan(&unique)
+		if err != nil || !unique {
+			t.Errorf("unique index %s: %v (unique=%v)", want, err, unique)
+		}
+	}
+}
+
+// DATA-MODEL-004: applying SelfAuth's migrations to a database that already holds application
+// tables and data adds SelfAuth's objects and touches nothing else.
+func TestMigrationsLeaveApplicationDataAlone(t *testing.T) {
+	ctx := context.Background()
+	db := schema(t, false)
+	if _, err := db.Exec(ctx, `CREATE TABLE orders (id serial PRIMARY KEY, total int NOT NULL);
+		INSERT INTO orders (total) VALUES (10), (20), (30)`); err != nil {
+		t.Fatal(err)
+	}
+	migrations, _ := postgres.LoadMigrations(migrationsDir)
+	if _, err := postgres.Migrate(ctx, db, migrations); err != nil {
+		t.Fatal(err)
+	}
+	var count, sum int
+	if err := db.QueryRow(ctx, `SELECT count(*), sum(total) FROM orders`).Scan(&count, &sum); err != nil || count != 3 || sum != 60 {
+		t.Fatalf("application data changed: %d rows, sum %d, %v", count, sum, err)
+	}
+	// Every table SelfAuth owns is prefixed, so none can collide with an application table.
+	rows, _ := db.Query(ctx, `SELECT table_name FROM information_schema.tables
+		WHERE table_schema = current_schema() AND table_name <> 'orders' AND table_name <> 'selfauth_migrations'`)
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		_ = rows.Scan(&name)
+		if !strings.HasPrefix(name, "auth_") {
+			t.Errorf("unexpected table %s", name)
+		}
+	}
+}

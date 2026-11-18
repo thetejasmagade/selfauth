@@ -1,6 +1,6 @@
 # 0027: A Go port of the core behind a Gin adapter, held to the same conformance suite
 
-- Status: accepted (stage 2 of 3)
+- Status: accepted
 - Date: 2026-11-18
 
 ## Context
@@ -56,6 +56,31 @@ language-neutral specification and conformance suite (ADR 0007) exist for.
   an isolated schema per case.
 - **Bounded columns.** The adapter truncates the user agent (512) and address (64) to their
   column sizes, so an oversized header cannot become a database error.
+
+## Stage 3: generation, documentation, adapter record
+
+- **`selfauth init --backend gin`.** The Go reference application is copied into the new project
+  (registry entries like the other stacks), with one change: the module path. The reference is
+  written with `example.com/app`; `go.mod` and every import of the application's own packages are
+  rewritten to the project's module (`--module`, default the project name), and the module is
+  recorded in the manifest so `upgrade` rewrites it the same way. A test compares every generated
+  file with the reference; the generated project is built, vetted and tested (and, with PostgreSQL,
+  migrated, seeded and exercised end to end) by `scripts/smoke-gin.sh` in CI.
+- **API only, two databases.** A Go project has no generated frontend, and supports PostgreSQL and
+  the in-memory store. `selfauth add` does not apply to Go. `adapter.backend` accepts `gin` in the
+  configuration schema, and then `orm` must be `none`.
+- **The configuration is validated in Go.** The server enforces the specification's bounds at
+  start-up (strict decoding plus the schema's ranges and cross-field rules), with tests that reject
+  each class, because the TypeScript schema never runs in a Go project.
+- **Tests that describe defaults read a copy.** A project edits its `selfauth.config.json`; the tests
+  that check secure defaults read `internal/config/testdata/default.json`, which a test keeps equal
+  to the reference configuration.
+- **Adapter record.** `conformance/adapters/gin.json` claims authorization level on both stores, with
+  a sign-off and evidence for every requirement a case does not prove. Where the Go evidence is
+  weaker than the TypeScript one, the finding says so (for example, no test fails on an unguarded
+  route in application code). Production-profile status is not claimed.
+- **Argon2id** is `golang.org/x/crypto/argon2`, the Go project's own maintained implementation;
+  verification compares in constant time.
 
 ## Consequences
 

@@ -1,0 +1,28 @@
+{
+  "toolkit": "selfauth",
+  "version": "0.0.0",
+  "specVersion": "0.1",
+  "database": { "type": "postgresql", "orm": "none" },
+  "ownedResources": {
+    "tables": [
+      "auth_users",
+      "auth_credentials",
+      "auth_sessions",
+      "auth_roles",
+      "auth_permissions",
+      "auth_user_roles",
+      "auth_role_permissions",
+      "auth_password_reset_tokens",
+      "auth_email_verification_tokens",
+      "auth_security_events",
+      "auth_rate_limits"
+    ],
+    "types": [
+      "auth_account_state",
+      "auth_credential_type",
+      "auth_session_revoked_reason",
+      "auth_event_outcome"
+    ],
+    "migrations": ["20261116085533_selfauth_init"]
+  }
+}

@@ -55,6 +55,14 @@ export const TEMPLATES = {
       database: "postgresql",
       frontend: "react",
     }),
+  gin: () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "gin",
+      database: "postgresql",
+      frontend: "none",
+    }),
   "existing-express": () =>
     planAdd({ ...base, name: "existing-app", database: "postgresql", frontend: "none" }),
 };

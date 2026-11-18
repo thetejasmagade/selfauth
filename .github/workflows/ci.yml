@@ -244,6 +244,52 @@ jobs:
       - name: Run every conformance case against the Go application
         run: pnpm --filter @selfauth/playground-gin conformance
 
+  generated-gin-project:
+    name: Generated Gin project (${{ matrix.database }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [memory, postgresql]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SMOKE_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/playground-gin/go.mod
+          cache-dependency-path: apps/playground-gin/go.sum
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Generate a Gin project outside the monorepo and exercise it
+        run: scripts/smoke-gin.sh ${{ matrix.database }}
+
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})
     needs: changes

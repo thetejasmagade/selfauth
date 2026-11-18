@@ -17,9 +17,15 @@ export const DATABASES: readonly Database[] = [
 export const usesPrisma = (database: Database): database is "postgresql" | "mysql" | "sqlite" =>
   database !== "memory" && database !== "mongodb";
 
-/** The ORM a database uses (the manifest's `database.orm`). */
-export const ormFor = (database: Database): "prisma" | "mongoose" | "none" =>
-  usesPrisma(database) ? "prisma" : database === "mongodb" ? "mongoose" : "none";
+/** The ORM a database uses (the manifest's `database.orm`). A Go backend uses none. */
+export const ormFor = (database: Database, backend?: Backend): "prisma" | "mongoose" | "none" =>
+  backend === "gin"
+    ? "none"
+    : usesPrisma(database)
+      ? "prisma"
+      : database === "mongodb"
+        ? "mongoose"
+        : "none";
 
 /** Whether the project keeps its data in a database (everything but the in-memory store). */
 export const hasDatabase = (database: Database): boolean => database !== "memory";
@@ -56,8 +62,31 @@ export const DATABASE_INFO: Record<
   memory: { label: "in-memory", urlExample: "", urlPrefixes: [], urlHint: "" },
 };
 export type Frontend = "none" | "vue" | "react";
-export type Backend = "express" | "fastify";
-export const BACKENDS: readonly Backend[] = ["express", "fastify"];
+export type Backend = "express" | "fastify" | "gin";
+export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin"];
+
+/** Databases each backend supports (Gin: PostgreSQL and the in-memory store). */
+export const BACKEND_DATABASES: Record<Backend, readonly Database[]> = {
+  express: DATABASES,
+  fastify: DATABASES,
+  gin: ["postgresql", "memory"],
+};
+
+/** Backends that are Go projects (no package.json, npm or Prisma). */
+export const isGo = (backend: Backend | undefined): boolean => backend === "gin";
+
+/** The module path the Go reference application is written with; generated projects replace it. */
+export const GO_REFERENCE_MODULE = "example.com/app";
+
+/** A Go module path this tool will write into go.mod and every import. */
+export const GO_MODULE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._~-]*(\/[A-Za-z0-9][A-Za-z0-9._~-]*)*$/;
+
+/** A message when `value` is not a usable Go module path, otherwise null. */
+export function goModuleProblem(value: string): string | null {
+  return GO_MODULE_PATTERN.test(value)
+    ? null
+    : "Use a Go module path such as my-app or github.com/you/my-app (letters, numbers, . _ ~ - and /).";
+}
 
 export interface Selection {
   /** The HTTP framework; Express when not given. */

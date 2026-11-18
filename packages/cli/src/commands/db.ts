@@ -37,6 +37,53 @@ function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): nu
   return 0;
 }
 
+/**
+ * Go projects have their own small migration runner (cmd/migrate): `status` and `migrate` run it,
+ * `plan` shows what it would apply. It is plain SQL files, so `validate`/`generate`/`rollback`
+ * have nothing to orchestrate and say so.
+ */
+async function goDb(dir: string, command: string): Promise<number> {
+  if (!["status", "plan", "migrate"].includes(command)) {
+    info(
+      command === "validate"
+        ? "Go projects keep plain SQL migrations in db/migrations; `selfauth validate` checks the generated files."
+        : command === "rollback"
+          ? "There is no automatic rollback: restore from a backup, or add a new migration that reverses the change."
+          : "Add a new directory under db/migrations/ with a migration.sql file, then run `selfauth db migrate`.",
+    );
+    return command === "validate" || command === "rollback" || command === "generate" ? 0 : 1;
+  }
+  const found = await readDatabaseEnv(dir);
+  if (!found.url) {
+    fail("DATABASE_URL is not set, so there is no database to connect to.");
+    say(`  environment variable:  ${found.environment}`);
+    info(
+      "Export DATABASE_URL (see .env.example) or put it in .env; the migration runner reads the environment.",
+    );
+    return 1;
+  }
+  const problems = databaseUrlProblems(found.url, "postgresql");
+  if (problems.length) {
+    fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
+    return 1;
+  }
+  const args = ["run", "./cmd/migrate", command === "migrate" ? "up" : "status"];
+  if (command === "migrate" && process.env["APP_ENV"] === "production")
+    warn("Production database: make sure a recent backup exists.");
+  const result = spawnSync("go", args, {
+    cwd: dir,
+    env: { ...process.env, DATABASE_URL: found.url },
+    stdio: "inherit",
+  });
+  if (result.error) {
+    fail("Could not run `go` (is Go installed and on your PATH?).");
+    return 1;
+  }
+  if (command === "plan")
+    info("Read each pending migration.sql in db/migrations/ before running `selfauth db migrate`.");
+  return result.status ?? 1;
+}
+
 /** `selfauth db <command>` — orchestrates the project's native migration tool (Prisma Migrate). */
 export async function db(
   command: string,
@@ -47,6 +94,9 @@ export async function db(
   if (!manifest) {
     fail("not a SelfAuth project (selfauth.manifest.json not found)");
     return 1;
+  }
+  if (manifest.options?.backend === "gin" && manifest.database.type !== "memory") {
+    return goDb(dir, command);
   }
   if (manifest.database.orm === "none") {
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);

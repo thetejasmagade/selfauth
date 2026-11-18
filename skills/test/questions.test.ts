@@ -324,6 +324,7 @@ describe("answers that quote the product stay true", () => {
       [
         "express",
         "fastify",
+        "gin",
         "memory",
         "mongodb",
         "mysql",

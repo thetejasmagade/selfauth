@@ -2,16 +2,23 @@
 package routes
 
 import (
+	"net/http"
+
 	"example.com/app/internal/ginauth"
 	"github.com/gin-gonic/gin"
 )
 
-// Register mounts application routes. Routes on a ProtectedRoutes group are
-// denied unless a guard explicitly allows them (AUTHZ-CORE-001):
+// Register mounts application routes. Examples of the guard styles:
 //
-//	api := a.ProtectedRoutes(r.Group("/api"))
-//	api.GET("/reports", a.RequirePermission("reports.view"), listReports)
+//   - a.RequireAuth(): any signed-in user;
+//   - a.RequirePermission("x.y"): a permission from selfauth.config.json (an unknown
+//     permission panics when the route is defined);
+//   - a.ProtectedRoutes(group): a group that denies every route lacking a guard.
 //
-// Declare the permission in selfauth.config.json first; an unknown permission
-// panics when the route is defined.
-func Register(r *gin.Engine, a *ginauth.Auth) {}
+// Route guards run on the server for every request (AUTHZ-CORE-002).
+func Register(r *gin.Engine, a *ginauth.Auth) {
+	api := r.Group("/api")
+	api.GET("/hello", a.RequireAuth(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"hello": a.Context(c).User.Email})
+	})
+}

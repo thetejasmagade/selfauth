@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"unicode/utf8"
 
 	"example.com/app/internal/config"
@@ -27,6 +28,8 @@ const (
 type PasswordHasher struct {
 	params config.Hashing
 	slots  chan struct{}
+	// computations counts Argon2 evaluations, so tests can show that every path costs the same.
+	computations atomic.Int64
 
 	dummyOnce sync.Once
 	dummy     string
@@ -46,8 +49,12 @@ func NormalizePassword(password string) string { return norm.NFKC.String(passwor
 func (h *PasswordHasher) derive(password string, salt []byte, memoryKiB, iterations uint32, parallelism uint8) []byte {
 	h.slots <- struct{}{}
 	defer func() { <-h.slots }()
+	h.computations.Add(1)
 	return argon2.IDKey([]byte(NormalizePassword(password)), salt, iterations, memoryKiB, parallelism, keyLength)
 }
+
+// Computations is the number of Argon2 evaluations so far (for tests).
+func (h *PasswordHasher) Computations() int64 { return h.computations.Load() }
 
 // Hash returns a PHC string for password.
 func (h *PasswordHasher) Hash(password string) string {
@@ -119,6 +126,7 @@ func (h *PasswordHasher) Verify(stored, password string) bool {
 	if len(key) != len(p.key) {
 		// Derive with the stored length so the comparison below is over equal lengths.
 		h.slots <- struct{}{}
+		h.computations.Add(1)
 		key = argon2.IDKey([]byte(NormalizePassword(password)), p.salt, p.iterations, p.memory, p.parallelism, uint32(len(p.key)))
 		<-h.slots
 	}

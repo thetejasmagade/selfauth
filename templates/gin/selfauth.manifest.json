@@ -1,0 +1,286 @@
+{
+  "toolkit": "selfauth",
+  "version": "0.14.0",
+  "templateVersion": "0.14.0",
+  "specVersion": "0.1",
+  "database": {
+    "type": "postgresql",
+    "orm": "none"
+  },
+  "ownedResources": {
+    "tables": [
+      "auth_users",
+      "auth_credentials",
+      "auth_sessions",
+      "auth_roles",
+      "auth_permissions",
+      "auth_user_roles",
+      "auth_role_permissions",
+      "auth_password_reset_tokens",
+      "auth_email_verification_tokens",
+      "auth_security_events",
+      "auth_rate_limits"
+    ],
+    "types": [
+      "auth_account_state",
+      "auth_credential_type",
+      "auth_session_revoked_reason",
+      "auth_event_outcome"
+    ],
+    "migrations": [
+      "20261116085533_selfauth_init"
+    ]
+  },
+  "options": {
+    "layout": "project",
+    "srcDir": "src",
+    "structure": 2,
+    "backend": "gin",
+    "module": "selfauth-app",
+    "frontend": "none",
+    "permissions": [],
+    "appBaseUrl": "http://localhost:5173"
+  },
+  "files": [
+    {
+      "path": "cmd/create-admin/main.go",
+      "template": "gin:apps/playground-gin/cmd/create-admin/main.go",
+      "sha256": "6aff7d4fffdfa99c9767f70fda0e176ab75fa3c059b19bdd80b21c0aad3515dc"
+    },
+    {
+      "path": "cmd/migrate/main.go",
+      "template": "gin:apps/playground-gin/cmd/migrate/main.go",
+      "sha256": "b467acfc7a83a549f832734fd7f2a018461352c606231b6a4e9a634bbc221922"
+    },
+    {
+      "path": "cmd/seed/main.go",
+      "template": "gin:apps/playground-gin/cmd/seed/main.go",
+      "sha256": "7faa00b0b705e12552d9a732224f841b020857d039e397af9e8085251774f1a9"
+    },
+    {
+      "path": "cmd/server/main.go",
+      "template": "gin:apps/playground-gin/cmd/server/main.go",
+      "sha256": "c410783be42c9f067f35cdea798097967de46f781e04a08aa14be2c2c9efaeb5"
+    },
+    {
+      "path": "go.mod",
+      "template": "gin:apps/playground-gin/go.mod",
+      "sha256": "5605a10bf38e4340cbd11a368a6a703ff05175f6e6a3cb92269ec352312c84be"
+    },
+    {
+      "path": "go.sum",
+      "template": "gin:apps/playground-gin/go.sum",
+      "sha256": "169ebd1355060bee6ceb83a06b61c65693ca6d9f7b6571b6f850625956e9373b"
+    },
+    {
+      "path": "internal/app/app.go",
+      "template": "gin:apps/playground-gin/internal/app/app.go",
+      "sha256": "382a200accda7bde5b9e708f95a1045c40cf52c89091c53ae2ee6ad29fbb134a"
+    },
+    {
+      "path": "internal/app/app_test.go",
+      "template": "gin:apps/playground-gin/internal/app/app_test.go",
+      "sha256": "0d2a5d8fe6ee518676f87c13f34cd91b6e17a6c42766b4a313b454d8e386d168"
+    },
+    {
+      "path": "internal/app/wire.go",
+      "template": "gin:apps/playground-gin/internal/app/wire.go",
+      "sha256": "cd0596d2e4af277d179e4036775a9f9bc4cf2e46217e5ab1428ae23120d2d850"
+    },
+    {
+      "path": "internal/auth/authz.go",
+      "template": "gin:apps/playground-gin/internal/auth/authz.go",
+      "sha256": "5a57625cc9d4afca0c2728158309c821c4535a6d10da04d2ebfa141a7119ea7a"
+    },
+    {
+      "path": "internal/auth/clock.go",
+      "template": "gin:apps/playground-gin/internal/auth/clock.go",
+      "sha256": "eafd1953ab7f959aad512d5b869b42213bc7de423788ffe9c8f397b8dc7add30"
+    },
+    {
+      "path": "internal/auth/common_passwords.go",
+      "template": "gin:apps/playground-gin/internal/auth/common_passwords.go",
+      "sha256": "804e1fab084b27a0265b676d504cfb333196ecb6c7d76f345d597fa94a66cf1e"
+    },
+    {
+      "path": "internal/auth/crypto.go",
+      "template": "gin:apps/playground-gin/internal/auth/crypto.go",
+      "sha256": "f958b59708c6fd39150027209b5f20bc7620a11fc024563d5e712ca13df0ec10"
+    },
+    {
+      "path": "internal/auth/email.go",
+      "template": "gin:apps/playground-gin/internal/auth/email.go",
+      "sha256": "c805298db637b8f57353ae5d25be832c32efad94e71fc9291470d42553ecaeff"
+    },
+    {
+      "path": "internal/auth/email_test.go",
+      "template": "gin:apps/playground-gin/internal/auth/email_test.go",
+      "sha256": "16c36e97aa980f1da4448b85975915028a73f1c4eaec6e18bbadd1c72bf01129"
+    },
+    {
+      "path": "internal/auth/errors.go",
+      "template": "gin:apps/playground-gin/internal/auth/errors.go",
+      "sha256": "ac5fd48e724671d08f95295147afafcb1df9010e3f7834c60c7a0e96c745bd31"
+    },
+    {
+      "path": "internal/auth/logger.go",
+      "template": "gin:apps/playground-gin/internal/auth/logger.go",
+      "sha256": "a08ffca8b6a4bc35d347720d5c4d1e8741c07915597678f16d460fbbfe1d2de2"
+    },
+    {
+      "path": "internal/auth/logger_test.go",
+      "template": "gin:apps/playground-gin/internal/auth/logger_test.go",
+      "sha256": "614deaab37e5c01c3a79444d5234c2b6243b4192aa98b75c0315e0be26fc5726"
+    },
+    {
+      "path": "internal/auth/mailer.go",
+      "template": "gin:apps/playground-gin/internal/auth/mailer.go",
+      "sha256": "83a9203030a6f7cd90ae8f3faf5ef7de75ed7bb003c5c918252305d310477af4"
+    },
+    {
+      "path": "internal/auth/password.go",
+      "template": "gin:apps/playground-gin/internal/auth/password.go",
+      "sha256": "d774a62a80c5b743a5bb39e172ecd08e400c192bada3cf88ba58c9fb53f8c20a"
+    },
+    {
+      "path": "internal/auth/password_test.go",
+      "template": "gin:apps/playground-gin/internal/auth/password_test.go",
+      "sha256": "c713bfb7583f9083d634c3de371b67d18fa26402dd823b16290cdae431b25207"
+    },
+    {
+      "path": "internal/auth/ratelimit.go",
+      "template": "gin:apps/playground-gin/internal/auth/ratelimit.go",
+      "sha256": "088549babac9a17902286d18de197cbcfb13391ea2eeebac92517107cd860c6e"
+    },
+    {
+      "path": "internal/auth/ratelimit_test.go",
+      "template": "gin:apps/playground-gin/internal/auth/ratelimit_test.go",
+      "sha256": "37444eddf137fc21c43cab137978832fa94c6c401073f94eb138f78ff3032fae"
+    },
+    {
+      "path": "internal/auth/service.go",
+      "template": "gin:apps/playground-gin/internal/auth/service.go",
+      "sha256": "30377bfbace952e1389b20c7281293f912ffe6b601dcf321400b2f2521f7673f"
+    },
+    {
+      "path": "internal/auth/store.go",
+      "template": "gin:apps/playground-gin/internal/auth/store.go",
+      "sha256": "e3bbc0bb148eb4a3072ce6c4f1461b1e6d287323a8423d40cec20cac5d580ea0"
+    },
+    {
+      "path": "internal/config/config.go",
+      "template": "gin:apps/playground-gin/internal/config/config.go",
+      "sha256": "68691163dc79eca463fc6ae07025855dcfbddc731cc60b12d0794771030511a6"
+    },
+    {
+      "path": "internal/config/config_test.go",
+      "template": "gin:apps/playground-gin/internal/config/config_test.go",
+      "sha256": "a77783b9d02d59ab6302c9a4f6a46bb6d2c88d591cec4ad9c45c4553386d14d6"
+    },
+    {
+      "path": "internal/config/env.go",
+      "template": "gin:apps/playground-gin/internal/config/env.go",
+      "sha256": "1500fb4bcf28d13a4c43ca4bf42db5341c47447254249b8fce028e2d059a32a0"
+    },
+    {
+      "path": "internal/email/mailer.go",
+      "template": "gin:apps/playground-gin/internal/email/mailer.go",
+      "sha256": "efc301c4b9b3a3333a76a02f3dbac5cfcc447d6d4b6839e1c193339c775fd771"
+    },
+    {
+      "path": "internal/ginauth/ginauth.go",
+      "template": "gin:apps/playground-gin/internal/ginauth/ginauth.go",
+      "sha256": "80bedee34a17c78f8f12f33e0b9c0b976d8b50f2d60388dbc1fc417de6de78c2"
+    },
+    {
+      "path": "internal/ginauth/routes.go",
+      "template": "gin:apps/playground-gin/internal/ginauth/routes.go",
+      "sha256": "5eba5a863d95dd5d924fb42a7e27eb4b705eb1b23cc2470d003ba58470155a67"
+    },
+    {
+      "path": "internal/httpx/httpx.go",
+      "template": "gin:apps/playground-gin/internal/httpx/httpx.go",
+      "sha256": "0c2545564688a840c6f91c5509dc7b09fc276622ca5ec2e5412e7489c45829ef"
+    },
+    {
+      "path": "internal/routes/routes.go",
+      "template": "gin:apps/playground-gin/internal/routes/routes.go",
+      "sha256": "0cd90108026670df8ad656c07480d3f4cbe8acdeddfbeec79109cbe3a72143cb"
+    },
+    {
+      "path": "internal/routes/routes_test.go",
+      "template": "gin:apps/playground-gin/internal/routes/routes_test.go",
+      "sha256": "305c1ab9dd28e1334bac68106942e969218d13bbc0b7b7ee9e7f433aac6c8cb3"
+    },
+    {
+      "path": "internal/store/memory/memory.go",
+      "template": "gin:apps/playground-gin/internal/store/memory/memory.go",
+      "sha256": "1674a51dd418494c845d5e22d22a04ed5d0c23b590c05b1eef6820bb3687e7e9"
+    },
+    {
+      "path": "internal/store/memory/memory_test.go",
+      "template": "gin:apps/playground-gin/internal/store/memory/memory_test.go",
+      "sha256": "b597ba86a0477a23b876d837c7d410fdae79ee4b4f693b1eab748dc4730a0bfc"
+    },
+    {
+      "path": "internal/store/postgres/migrate.go",
+      "template": "gin:apps/playground-gin/internal/store/postgres/migrate.go",
+      "sha256": "e710651b8bc8995326ac83a2682d16b3b35f70ae15e2167c772ab2136e517dd6"
+    },
+    {
+      "path": "internal/store/postgres/postgres.go",
+      "template": "gin:apps/playground-gin/internal/store/postgres/postgres.go",
+      "sha256": "6d2033b68ec1b1b345813165ee9de9262ac2e5bf2a83a8cecaa7965b964a3bfe"
+    },
+    {
+      "path": "internal/store/postgres/postgres_test.go",
+      "template": "gin:apps/playground-gin/internal/store/postgres/postgres_test.go",
+      "sha256": "7d245749a7c80eb41e7dae73353f456865b3aaab2665816e6bd1fd9e35852cbc"
+    },
+    {
+      "path": "internal/store/postgres/ratelimit.go",
+      "template": "gin:apps/playground-gin/internal/store/postgres/ratelimit.go",
+      "sha256": "1169dbc0fc27c026a8997d12562fb4b4a1f7b8fdf007409dfc13818de80b354b"
+    },
+    {
+      "path": "internal/store/store.go",
+      "template": "gin:apps/playground-gin/internal/store/store.go",
+      "sha256": "de037d465e0ea7fb3da22c027a1ec8b31b9b080d67fb82fa0a1f908758081fcb"
+    },
+    {
+      "path": "internal/store/storetest/storetest.go",
+      "template": "gin:apps/playground-gin/internal/store/storetest/storetest.go",
+      "sha256": "cc63eedd75e69f2ffc8c6b80dfe3a6b5f3d30cab24a73e84dcde745ee266b744"
+    },
+    {
+      "path": "db/migrations/20261116085533_selfauth_init/migration.sql",
+      "template": "gin:apps/playground-gin/db/migrations/20261116085533_selfauth_init/migration.sql",
+      "sha256": "4b96df56e14b423e4a4999ff93d0dcea17d7d8a91c6dddda0267d7bf416436d0"
+    },
+    {
+      "path": "internal/config/testdata/default.json",
+      "template": "gin:apps/playground-gin/internal/config/testdata/default.json",
+      "sha256": "29b3f55e03c6bf6a39cefa60848ed7937d4d8c5acc1354c4cf3aa965096a5aa3"
+    },
+    {
+      "path": ".gitignore",
+      "template": "rendered:gitignore",
+      "sha256": "e324328b3fdb15b81555e6d622c9b9cdb135b24d70fd6ac9f6b36c75c60f067d"
+    },
+    {
+      "path": ".env.example",
+      "template": "rendered:env-example",
+      "sha256": "b2350132a0aec1eec0c6e685d7647d5c643b477ef9f84675835e0c0d6628f633"
+    },
+    {
+      "path": "README.md",
+      "template": "rendered:readme",
+      "sha256": "cf632826697bbb4cdb2bb9f1b0f9d86c646a71bcf8725713a525c94a09a2575d"
+    },
+    {
+      "path": "selfauth.config.json",
+      "template": "rendered:config",
+      "sha256": "11d63465ab579a25f3091942cb07a18fb4b8c0674bf33bacaedc2de0d2a79c45"
+    }
+  ]
+}

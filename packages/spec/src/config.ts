@@ -79,7 +79,7 @@ export const selfAuthConfigSchema = z
       .regex(/^\d+\.\d+$/)
       .default(SPEC_VERSION),
     adapter: z.strictObject({
-      backend: z.enum(["express", "fastify"]),
+      backend: z.enum(["express", "fastify", "gin"]),
       frontend: z.enum(["vue", "react", "none"]).default("none"),
       database: z.enum(["postgresql", "mysql", "sqlite", "mongodb", "memory"]),
       orm: z.enum(["prisma", "mongoose", "none"]),
@@ -265,7 +265,9 @@ export const selfAuthConfigSchema = z
       .prefault({}),
   })
   .superRefine((c, ctx) => {
-    if (ADAPTER_PAIRS[c.adapter.database] !== c.adapter.orm) {
+    // A Go backend uses no ORM; every other backend pairs each database with its ORM.
+    const expectedOrm = c.adapter.backend === "gin" ? "none" : ADAPTER_PAIRS[c.adapter.database];
+    if (expectedOrm !== c.adapter.orm) {
       ctx.addIssue({
         code: "custom",
         message: `orm '${c.adapter.orm}' is not supported with database '${c.adapter.database}'`,

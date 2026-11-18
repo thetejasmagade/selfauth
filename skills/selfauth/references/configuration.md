@@ -33,10 +33,10 @@ and hashing cost, a ceiling on token lifetimes) that configuration cannot cross.
 | Key | Type | Default | Bounds / notes |
 | --- | --- | --- | --- |
 | `specVersion` | string `"MAJOR.MINOR"` | `"0.1"` | |
-| `adapter.backend` | `"express" \| "fastify"` | — (required) | |
+| `adapter.backend` | `"express" \| "fastify" \| "gin"` | — (required) | |
 | `adapter.frontend` | `"vue" \| "react" \| "none"` | `"none"` | |
 | `adapter.database` | `"postgresql" \| "mysql" \| "sqlite" \| "mongodb" \| "memory"` | — (required) | `memory` is for development and demos only (single process, not persistent) |
-| `adapter.orm` | `"prisma" \| "mongoose" \| "none"` | — (required) | postgresql, mysql and sqlite↔prisma, mongodb↔mongoose, memory↔none |
+| `adapter.orm` | `"prisma" \| "mongoose" \| "none"` | — (required) | postgresql, mysql and sqlite↔prisma, mongodb↔mongoose, memory↔none; the `gin` backend (Go) uses `none` |
 | `authentication.methods` | `["password"]` | `["password"]` | MVP supports only `password` |
 | `authentication.emailVerification.mode` | `"required" \| "optional" \| "off"` | `"required"` | `optional`/`off` activate accounts immediately; registration logs the user in only with `signInAfterRegistration` |
 | `authentication.emailVerification.tokenTtlMinutes` | int | `1440` (24 h) | 5 – 10080 (7 days) |

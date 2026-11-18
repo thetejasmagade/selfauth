@@ -95,14 +95,16 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
   }
 
   if (!project.hasPackageJson) {
-    const blockers = project.otherLanguages.map(
-      (l) => `this looks like a ${l} project; only Node.js with Express or Fastify is supported`,
+    const blockers = project.otherLanguages.map((l) =>
+      l === "go"
+        ? "this looks like a Go project; existing Go projects are not supported (a new Gin project: `selfauth init --backend gin`)"
+        : `this looks like a ${l} project; only Node.js with Express or Fastify is supported`,
     );
     return {
       ...base,
       recommendation: blockers.length ? "unsupported" : "init",
       reason: blockers.length
-        ? `No generator for ${project.otherLanguages.join(", ")} backends.`
+        ? `No generator for ${project.otherLanguages.join(", ")} projects that already exist.`
         : "No package.json: generate a new project.",
       options: ["postgresql", "mysql", "sqlite", "mongodb", "memory"].map((db) => ({
         command: `selfauth init <dir> --database ${db} --frontend none|vue|react`,

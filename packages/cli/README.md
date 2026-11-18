@@ -36,6 +36,17 @@ with `src/` at the root.
 project on Fastify 5: the same core, stores, tests and frontends, with a Fastify
 adapter in `src/auth/fastify/`. `add` works on an existing Fastify project too.
 
+## Gin (Go)
+
+`npx selfauth init my-app --backend gin --database postgresql --module github.com/you/my-app`
+makes a Go project: a port of the same core behind a Gin adapter, with a PostgreSQL store (pgx) or the
+in-memory store. It is API only (no generated frontend) and for new projects (`add` does not apply
+to Go). The files are plain Go source: `cmd/server`, `internal/auth` (the core), `internal/ginauth`
+(the adapter), `internal/store/{memory,postgres}`, your `internal/routes` and `internal/email`, and
+`selfauth.config.json`. Migrations are SQL files in `db/migrations`, applied with
+`go run ./cmd/migrate up` or `npx selfauth db migrate`. Go 1.26 or newer is needed. `doctor`,
+`validate`, `diff` and `upgrade` work as for the other backends.
+
 ## Existing Express or Fastify project
 
 ```bash
@@ -74,7 +85,7 @@ repository (`selfauth add-frontend` for Vue and React):
 
 | Command | What it does |
 | --- | --- |
-| `init [dir]` | New project: `--backend express\|fastify`, `--database postgresql\|mysql\|sqlite\|mongodb\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
+| `init [dir]` | New project: `--backend express\|fastify\|gin`, `--module <go module>` (Gin), `--database postgresql\|mysql\|sqlite\|mongodb\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
 | `add [dir]` | Existing Express project: same options plus `--src <folder>` and `--allow-existing-auth` |
 | `add-frontend [dir]` | Existing Vue or React app: adds the authentication module under `src/selfauth/` (`--frontend`, `--src`, `--dry-run`, `--yes`, `--install`); generates no pages |
 | `detect [dir]` | Read-only inspection: stack, source folder, monorepo packages, database, existing auth (packages and source), which command applies and what blocks it |

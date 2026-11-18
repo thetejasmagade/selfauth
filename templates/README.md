@@ -14,6 +14,7 @@ run it.
 | [`express-react/`](express-react/) | The same with React | Its `README.md` |
 | [`fastify/`](fastify/) | Fastify 5 + TypeScript API with PostgreSQL (Prisma): the same core and stores as `express/` behind a Fastify adapter | Its `README.md` |
 | [`fastify-vue/`](fastify-vue/), [`fastify-react/`](fastify-react/) | The Fastify API in `server/` with a Vue 3 or React app in `client/` | Its `README.md` |
+| [`gin/`](gin/) | Gin (Go) API with PostgreSQL (pgx): a Go port of the core, API only. Falls back to an in-memory store when `DATABASE_URL` is unset in development | Its `README.md` |
 | [`existing-express/`](existing-express/) | The files to **add** to an existing Express app: `src/selfauth/`, `prisma/` and `selfauth.manifest.json` | [Manual integration](../docs/manual-integration.md#existing-express-app) |
 
 These templates are offered under MIT **or** 0BSD, your choice (ADR 0013). You

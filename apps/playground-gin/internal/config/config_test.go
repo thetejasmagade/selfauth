@@ -6,8 +6,17 @@ import (
 	"testing"
 )
 
-func TestShippedConfigIsValid(t *testing.T) {
-	c, err := Load("../../selfauth.config.json")
+// The project's own configuration must stay valid when you edit it.
+func TestProjectConfigIsValid(t *testing.T) {
+	if _, err := Load("../../selfauth.config.json"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// testdata/default.json is the secure default configuration, independent of your edits to
+// selfauth.config.json, so these tests keep checking the defaults.
+func TestDefaultConfigIsSecure(t *testing.T) {
+	c, err := Load("testdata/default.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +30,7 @@ func TestShippedConfigIsValid(t *testing.T) {
 
 func shipped(t *testing.T) string {
 	t.Helper()
-	b, err := os.ReadFile("../../selfauth.config.json")
+	b, err := os.ReadFile("testdata/default.json")
 	if err != nil {
 		t.Fatal(err)
 	}

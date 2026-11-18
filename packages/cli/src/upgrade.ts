@@ -42,12 +42,16 @@ export interface UpgradePlan {
 
 export const PROPOSAL_SUFFIX = ".selfauth-new";
 
-function answersFrom(manifest: Manifest): Pick<InitAnswers, "database" | "frontend" | "backend"> {
+function answersFrom(
+  manifest: Manifest,
+): Pick<InitAnswers, "database" | "frontend" | "backend" | "module"> {
   const database = manifest.database.type;
+  const module = manifest.options?.module;
   return {
     database,
     frontend: manifest.options?.frontend ?? "none",
     backend: manifest.options?.backend ?? "express",
+    ...(module === undefined ? {} : { module }),
   };
 }
 

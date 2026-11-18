@@ -35,8 +35,9 @@ the generator is fetched from npm, once.
 
 **Which stacks are supported?** Express 5 or Fastify 5 + TypeScript (Node.js
 22.18 or newer), PostgreSQL, MySQL or SQLite through Prisma 7, MongoDB through Mongoose, or an in-memory store, and Vue or React frontends.
+A new Gin (Go) API project is supported too, with PostgreSQL (pgx) or the in-memory store and no frontend.
 An existing Express or Fastify project can use `selfauth add`; a new one uses
-`selfauth init [--backend express|fastify]`. Run `selfauth list` for the
+`selfauth init [--backend express|fastify|gin]`. Run `selfauth list` for the
 authoritative list.
 → [framework-support](framework-support.md)
 
@@ -55,6 +56,12 @@ with both stores, and CI generates and exercises Fastify projects. It is
 published at the authorization level; production-profile is not claimed yet.
 → [guides/conformance-fastify.md](guides/conformance-fastify.md)
 
+**How well tested is the Gin (Go) backend?** All 90 conformance cases pass on it with
+the in-memory store and PostgreSQL, and CI generates and exercises Gin projects. It is a
+separate Go implementation of the core, published at the authorization level; production-profile
+is not claimed. Existing Go projects are not supported (new projects only).
+→ [guides/conformance-gin.md](guides/conformance-gin.md)
+
 **Is the in-memory store OK in production?** No. It loses data on restart and
 keeps rate limits per process. The app refuses to start with it when
 `NODE_ENV=production`. It is capped at authorization level.
@@ -62,7 +69,7 @@ keeps rate limits per process. The app refuses to start with it when
 
 ## Using it
 
-**I'm starting a new project.** `selfauth init <dir> [--backend express|fastify] --database postgresql
+**I'm starting a new project.** `selfauth init <dir> [--backend express|fastify|gin] --database postgresql
 --frontend none|vue|react --permissions a.b,c.d`. Show the `--dry-run` first.
 → SKILL.md step 6
 
