@@ -118,6 +118,27 @@ function once(source: string, from: string | RegExp, to: string, what: string): 
   return out;
 }
 
+/**
+ * Removes every native-type attribute (`@db.Uuid`, `@db.Timestamptz(3)`, ...) from one line, with
+ * the spaces before it. Plain string scanning, no regular expression: linear on any input.
+ */
+function stripNativeTypes(line: string): string {
+  let out = line;
+  for (;;) {
+    const at = out.indexOf("@db.");
+    if (at < 0) return out;
+    let end = at + "@db.".length;
+    while (end < out.length && /[A-Za-z]/.test(out.charAt(end))) end++;
+    if (out.charAt(end) === "(") {
+      const close = out.indexOf(")", end);
+      end = close < 0 ? out.length : close + 1;
+    }
+    let start = at;
+    while (start > 0 && (out.charAt(start - 1) === " " || out.charAt(start - 1) === "\t")) start--;
+    out = out.slice(0, start) + out.slice(end);
+  }
+}
+
 /** `prisma/schema.prisma` for `dialect`. */
 export function adaptSchema(dialect: DerivedDialect, schema: string): string {
   let out = once(schema, 'provider = "postgresql"', `provider = "${dialect}"`, "schema.prisma");
@@ -127,21 +148,24 @@ export function adaptSchema(dialect: DerivedDialect, schema: string): string {
     `SelfAuth data model for ${LABEL[dialect]}`,
     "schema.prisma",
   );
-  // Native types (`@db.Uuid`, `@db.Timestamptz(3)`, ...) are PostgreSQL's.
-  out = out.replace(/[ \t]+@db\.[A-Za-z]+(\([^)]*\))?/g, "");
+  // Native types are PostgreSQL's.
+  let lines = out.split("\n").map(stripNativeTypes);
   if (dialect === "sqlite") {
-    // SQLite allows AUTOINCREMENT on the primary key only; `seq` was only an insertion-order aid.
     // SQLite cannot express a JSON default (Prisma writes `DEFAULT {}`, which is invalid SQL); the
     // store always supplies `metadata`.
-    out = once(out, /(Json\s+)@default\("\{\}"\)/, "$1", "schema.prisma");
-    out = once(
-      out,
-      / {2}\/\/\/ Insertion order; timestamps alone can tie\.\n {2}seq +BigInt +@unique @default\(autoincrement\(\)\)\n/,
-      "",
-      "schema.prisma",
+    const json = lines.findIndex((l) => l.includes("Json") && l.includes('@default("{}")'));
+    if (json < 0) throw new Error("schema.prisma changed: no Json default; update dialect.ts");
+    lines[json] = lines[json]!.replace('@default("{}")', "").trimEnd();
+    // SQLite allows AUTOINCREMENT on the primary key only; `seq` was only an insertion-order aid.
+    const seq = lines.findIndex(
+      (l) => l.trimStart().startsWith("seq ") && l.includes("autoincrement()"),
     );
+    if (seq < 1 || !lines[seq - 1]!.includes("Insertion order")) {
+      throw new Error("schema.prisma changed: no seq column; update dialect.ts");
+    }
+    lines = [...lines.slice(0, seq - 1), ...lines.slice(seq + 1)];
   }
-  return out;
+  return lines.join("\n");
 }
 
 /** `src/db/store.ts` for `dialect` (messages and the SQLite pragma). */
