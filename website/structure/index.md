@@ -6,7 +6,7 @@ keywords: [project structure, directory layout, folder structure, boilerplate, w
 
 # Project structure overview
 
-`selfauth init` creates one of four shapes. Pick the page for yours:
+`selfauth init` produces one of four shapes. Find yours:
 
 | You ran | Shape | Page |
 | --- | --- | --- |
@@ -15,11 +15,11 @@ keywords: [project structure, directory layout, folder structure, boilerplate, w
 | `init --backend gin` | One Go module | [Gin (Go) API](./gin) |
 | `init --frontend vue` or `react` | `server/` + `client/` in one workspace | [Full stack](./full-stack) |
 
-The database you choose adds or removes a few files: see [What each database changes](./databases).
+Your database choice adds or removes a few files too. [What each database changes](./databases) lists them.
 
 ## Ownership map
 
-All generated files are yours. You can edit any of them. But they fall into three groups, and knowing which is which tells you where to work.
+Every generated file is yours and you can edit any of them. In practice they fall into three groups, and knowing which is which tells you where to work.
 
 ```mermaid
 flowchart LR
@@ -47,7 +47,7 @@ flowchart LR
 | Configuration | `selfauth.config.ts` or `.json`, `.env`, `prisma/schema.prisma`, `db/migrations/`, `package.json` | Change values. Re-run the seed when roles change. |
 | Security core | `src/auth/core/`, `src/auth/stores/`, adapter folders, `internal/auth/`, `internal/ginauth/`, `internal/store/` | Do not edit unless you must. This code is covered by the conformance suite. |
 
-If you edit a security-core file, `selfauth validate` lists it as changed, and `selfauth upgrade` will write a `.selfauth-new` proposal next to it instead of replacing it. See [`diff` and `upgrade`](/cli/upgrade).
+If you do edit a security core file, `selfauth validate` will list it as changed, and `selfauth upgrade` will leave a `.selfauth-new` proposal next to it rather than overwriting your edit. See [`diff` and `upgrade`](/cli/upgrade).
 
 ## Where do I add...?
 

@@ -7,7 +7,7 @@ keywords: [authentication, authorization, express, fastify, gin, vue, react, pos
 hero:
   name: SelfAuth
   text: Authentication. Fully yours.
-  tagline: One command writes login, sessions, roles and permissions into your own project. You read it, change it and deploy it. Nothing calls home.
+  tagline: One command puts login, sessions, roles and permissions into your own project. You can read every line, change what you like, and deploy it anywhere. Nothing phones home.
   actions:
     - theme: brand
       text: Quick start
@@ -21,27 +21,27 @@ hero:
 
 features:
   - title: The code is yours
-    details: SelfAuth is a code generator, not a service or a library. The files land in your repository and keep working without SelfAuth.
+    details: SelfAuth is a code generator, not a service or a library. The files land in your repository, and they keep working even if SelfAuth goes away.
     link: /guide/what-is-selfauth
     linkText: Read the idea
-  - title: Secure by default
-    details: Argon2id password hashing, opaque server-side sessions, CSRF protection, rate limits and identical errors for unknown and known emails. 90 conformance cases prove it.
+  - title: Safe defaults
+    details: Argon2id hashing, server-side sessions, CSRF protection, rate limits, and the same error whether or not an email exists. A suite of 90 conformance cases backs it up.
     link: /advanced/security
     linkText: Security model
   - title: Your stack
-    details: Express, Fastify or Gin (Go). PostgreSQL, MySQL, SQLite, MongoDB or in-memory. Optional Vue or React frontend.
+    details: Express, Fastify or Gin (Go). PostgreSQL, MySQL, SQLite, MongoDB, or just memory. A Vue or React frontend if you want one.
     link: /getting-started/choose-your-stack
     linkText: Choose a stack
-  - title: Know where everything is
-    details: Every generated folder is explained, with a map of where to add your own routes, pages, permissions and tables.
+  - title: Know where things are
+    details: Every generated folder is explained, along with where your own routes, pages, permissions and tables go.
     link: /structure/
     linkText: Project structure
-  - title: Build on top of it
-    details: Step-by-step guides with tested code for adding API routes, permission checks, per-user data and frontend pages.
+  - title: Build on it
+    details: Walkthroughs with tested code for adding routes, permission checks, per-user data and frontend pages.
     link: /build/add-api-route
     linkText: Add a route
-  - title: Reference you can trust
-    details: Every CLI command, HTTP route, error code and configuration option, checked against the source by an automated test.
+  - title: Reference that stays accurate
+    details: Every CLI command, HTTP route, error code and config option, checked against the source by a test.
     link: /cli/
     linkText: CLI reference
 ---
@@ -58,5 +58,5 @@ features:
 | Fix an error message | [Troubleshooting](/troubleshooting) |
 
 ::: tip Pre-alpha software
-SelfAuth is `0.x`. Minor versions can change generated code, and every change is listed in the [changelog](/resources/changelog). Have the code independently reviewed before you put real users on it. See [Going to production](/advanced/production).
+SelfAuth is `0.x`, so minor versions can change the generated code. Every change is in the [changelog](/resources/changelog). Get the code reviewed by someone independent before real users depend on it, and read [Going to production](/advanced/production).
 :::

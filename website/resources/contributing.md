@@ -6,7 +6,7 @@ keywords: [contributing, pull request, development setup, pnpm, changeset, adr, 
 
 # Contributing
 
-SelfAuth generates security-sensitive code that other people run in production, so the bar for correctness is high and the process is deliberate. The full guide is [`CONTRIBUTING.md`](https://github.com/thetejasmagade/selfauth/blob/main/CONTRIBUTING.md); this is the short version.
+SelfAuth generates security-sensitive code that other people run in production, so contributions get a careful review. The full guide is [`CONTRIBUTING.md`](https://github.com/thetejasmagade/selfauth/blob/main/CONTRIBUTING.md). This is the short version.
 
 ## Before you start
 
@@ -16,7 +16,7 @@ SelfAuth generates security-sensitive code that other people run in production, 
 
 ## Development setup
 
-You need Node.js 22.18 or newer and pnpm 10. Go 1.26 is needed for the Gin app.
+You need Node.js 22.18 or newer and pnpm 10, plus Go 1.26 if you're touching the Gin app.
 
 ```bash
 git clone https://github.com/thetejasmagade/selfauth.git
@@ -27,11 +27,11 @@ pnpm check          # format check, lint, typecheck, tests
 pnpm build
 ```
 
-PostgreSQL tests run when `TEST_DATABASE_URL` is set (CI always runs them).
+PostgreSQL tests run when `TEST_DATABASE_URL` is set. CI always runs them.
 
 ## This documentation site
 
-The site is the `website/` package (VitePress). Pages are Markdown files in `website/`.
+The site is the `website/` package, built with VitePress. Pages are Markdown files in `website/`.
 
 ```bash
 pnpm docs:dev       # live-reloading preview at http://localhost:5173
@@ -44,18 +44,12 @@ pnpm docs:check     # checks the docs against the source code
 
 Import the repository in Vercel and set the Root Directory to `website`. `website/vercel.json` supplies the rest: the VitePress preset, `pnpm install --frozen-lockfile`, `pnpm docs:build` and the `.vitepress/dist` output. Leave "Include source files outside of the Root Directory" switched on, because the changelog page reads `packages/cli/CHANGELOG.md`. Canonical URLs and the sitemap use the production domain Vercel provides, or `DOCS_HOSTNAME` if you set it.
 
-See [Documentation coverage](./coverage) for how pages are kept in step with the code, and for how to add a page.
+[Documentation coverage](./coverage) explains how pages are kept in step with the code, and how to add one.
 
 ## Pull requests
 
 - Keep them small and focused, with acceptance criteria in the description.
-- Add tests, including negative security cases (wrong password, expired token, replayed token, missing permission).
-- Changing a requirement? Update the spec and the conformance cases.
-- Changing architecture? Add an ADR.
-- Changing a published package? Add a changeset with `pnpm changeset`.
-- Sign off your commits (`git commit -s`) to certify the Developer Certificate of Origin.
-- Contributions are licensed under MIT; template contributions under both MIT and 0BSD.
 
 ## Rules for AI coding agents working on the repository
 
-No mandatory runtime service; no custom cryptography; never overwrite application code without review; never run destructive migrations without approval; every security-sensitive feature needs tests; never claim completion without validation. The full list is in `CONTRIBUTING.md`.
+No mandatory runtime service, no custom cryptography, no overwriting application code without review, no destructive migrations without approval, tests for every security-sensitive feature, and no claiming something is finished without validating it. The full list is in `CONTRIBUTING.md`.

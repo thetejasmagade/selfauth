@@ -6,7 +6,7 @@ keywords: [documentation coverage, checklist, docs maintenance, add a page, docs
 
 # Documentation coverage
 
-This page maps every implemented feature to its documentation. Planned features are listed separately and are not documented as available.
+This page maps every implemented feature to the page that documents it. Planned features are listed separately, and they aren't documented as if they existed.
 
 ## Feature coverage
 
@@ -58,7 +58,7 @@ This page maps every implemented feature to its documentation. Planned features 
 
 ## Planned or not available
 
-These are not implemented and are not documented as usable:
+These aren't implemented, so the docs don't describe them as usable:
 
 - Social login, magic links, passkeys, multi-factor authentication and single sign-on.
 - Merging into an existing Prisma schema with `selfauth add`.
@@ -68,7 +68,7 @@ These are not implemented and are not documented as usable:
 
 ## How the documentation is kept in step with the code
 
-`pnpm docs:check` runs automatically in CI and fails when the documentation drifts:
+`pnpm docs:check` runs in CI and fails when the documentation drifts from the code:
 
 | Check | What it compares |
 | --- | --- |
@@ -98,4 +98,4 @@ These are not implemented and are not documented as usable:
 4. Run `pnpm docs:check` and `pnpm docs:build`. The build fails on a dead internal link.
 5. Mark output as real only if you copied it from a run of the current version.
 
-When you add a feature to the CLI, a route, an option or an error code, the check tells you which page is missing it.
+When you add a CLI option, a route or an error code, the check tells you which page is missing it.

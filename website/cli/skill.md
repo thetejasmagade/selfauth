@@ -6,7 +6,7 @@ keywords: [selfauth skill, claude code, codex, cursor, agent skill, ai agent, SK
 
 # `selfauth skill install`
 
-The skill teaches a coding agent to use the SelfAuth CLI instead of inventing authentication code. It is optional: the CLI and generated code work without any AI.
+The skill teaches a coding agent to use the SelfAuth CLI instead of inventing its own authentication code. It's optional. The CLI and the generated code work fine without any AI.
 
 ```text
 selfauth skill install [dir] [options]
@@ -30,6 +30,6 @@ selfauth skill install [dir] [options]
 npx selfauth skill install --agent claude
 ```
 
-Commit the folder so the whole team's agents use it. After upgrading the CLI, run `selfauth skill install --agent … --update` so the skill matches the new commands.
+Commit the folder so your whole team's agents use it. After upgrading the CLI, run `selfauth skill install --agent … --update` to keep the skill in step with the new commands.
 
-Read [Coding agents](/advanced/agents) for what the skill makes the agent do.
+[Coding agents](/advanced/agents) explains what the skill makes the agent do.

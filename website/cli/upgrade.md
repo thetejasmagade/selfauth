@@ -6,7 +6,7 @@ keywords: [selfauth upgrade, selfauth diff, update, .selfauth-new, manifest, reo
 
 # `selfauth diff` and `selfauth upgrade`
 
-Generated code is yours, so a new SelfAuth release never changes it silently. `diff` shows what a newer release would change; `upgrade` applies the safe part and leaves the rest for you to merge.
+Generated code is yours, so a new SelfAuth release never changes it behind your back. `diff` shows what a newer release would change, and `upgrade` applies the safe part and leaves the rest for you to merge.
 
 ## `selfauth diff`
 
@@ -14,9 +14,9 @@ Generated code is yours, so a new SelfAuth release never changes it silently. `d
 selfauth diff [dir]
 ```
 
-Compares your project with the templates of the CLI you are running, and prints a diff for each file. It writes nothing.
+Compares your project with the templates of the CLI you're running and prints a diff for each file. It writes nothing.
 
-**Output** when nothing needs doing:
+Output when there's nothing to do:
 
 ```text
 Templates 0.15.0 → 0.15.0
@@ -46,7 +46,7 @@ selfauth upgrade [dir] [options]
 
 ### What happens to each file
 
-SelfAuth compares each file with the fingerprint in `selfauth.manifest.json` taken when it was generated.
+SelfAuth compares each file with the fingerprint stored in `selfauth.manifest.json` when it was generated.
 
 | Your file | Did the template change? | Result |
 | --- | --- | --- |
@@ -60,14 +60,14 @@ SelfAuth compares each file with the fingerprint in `selfauth.manifest.json` tak
 
 1. Commit your work first, so you can review the changes with `git diff`.
 2. Run `npx @selfauth/cli@latest diff`, then `npx @selfauth/cli@latest upgrade`.
-3. Merge each `.selfauth-new` proposal. `git diff --no-index file file.selfauth-new` helps. Delete the proposal when done. `selfauth validate` lists what is left.
-4. Review and apply new migrations: `npx selfauth db plan`, then `npx selfauth db migrate`, then `npm run db:seed`. Never edit a migration that has been applied.
+3. Merge each `.selfauth-new` proposal. `git diff --no-index file file.selfauth-new` helps. Delete the proposal when you're done, and `selfauth validate` will tell you if any are left.
+4. Review and apply new migrations with `npx selfauth db plan`, then `npx selfauth db migrate`, then `npm run db:seed`. Never edit a migration that's been applied.
 5. Run your tests and `npx selfauth doctor`.
-6. Update the agent skill if you installed one: `npx selfauth skill install --agent claude --update`.
+6. If you installed the agent skill, update it with `npx selfauth skill install --agent claude --update`.
 
 ### Versioning
 
-SelfAuth is `0.x`. Minor versions may change generated code and behavior. Each change is listed in the [changelog](/resources/changelog) with the steps to take. Security fixes ship as patch releases: upgrade promptly, and use `diff` to see exactly which files a fix touches.
+SelfAuth is `0.x`, so minor versions can change generated code and behavior. Each change is in the [changelog](/resources/changelog) along with the steps to take. Security fixes ship as patch releases, so upgrade promptly and use `diff` to see exactly which files a fix touches.
 
 ## Moving old layouts
 
@@ -76,7 +76,7 @@ SelfAuth is `0.x`. Minor versions may change generated code and behavior. Each c
 | SelfAuth 0.3 or earlier | Files side by side in `src/` | `upgrade --reorganize` into the grouped layout (`config/`, `email/`, `db/`, `http/`, `routes/`) |
 | An earlier full-stack layout | API at the root, frontend in `web/` | `upgrade --reorganize` into `server/` and `client/` in one workspace |
 
-Both keep working until you move, but `upgrade` refuses to update the old flat layout because the new templates import each other from the new places.
+Both keep working until you move, but `upgrade` refuses to touch the old flat layout, because the new templates import each other from the new locations.
 
 ```bash
 git commit -am "before reorganizing"
@@ -85,8 +85,8 @@ npx selfauth upgrade --reorganize              # asks first; --yes to skip
 npm run typecheck && npm test
 ```
 
-Only paths and imports change; no file's logic is touched. It stops without changing anything if a target already exists.
+Only paths and imports change, never any file's logic. If a target file already exists, it stops without changing anything.
 
 ## Without the CLI
 
-If you installed by hand, compare your files with the new release's `templates/` folder (or two release tags: `git diff v0.14.0 v0.15.0 -- templates/express`), copy the changes you want, and copy the new `selfauth.manifest.json` so a later `diff` stays accurate. New migration folders are additive: copy them and apply them. Never edit one that was applied.
+If you installed by hand, compare your files with the new release's `templates/` folder (or two release tags, with `git diff v0.14.0 v0.15.0 -- templates/express`) and copy over the changes you want. Copy the new `selfauth.manifest.json` too, so a later `diff` stays accurate. New migration folders are additive: copy them and apply them, and never edit one that's already been applied.

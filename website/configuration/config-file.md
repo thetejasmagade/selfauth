@@ -6,22 +6,22 @@ keywords: [selfauth.config.ts, configuration, options, defaults, session timeout
 
 # The configuration file
 
-All behavior of the authentication code is configuration, not code you need to edit. Secrets are never stored here: they come from [environment variables](./environment).
+Everything about how the authentication code behaves is configuration, so you rarely need to edit the code itself. Secrets never go in this file. They come from [environment variables](./environment).
 
 | Backend | File | Format |
 | --- | --- | --- |
 | Express, Fastify | `src/config/selfauth.config.ts` (full stack: `server/src/...`) | A TypeScript object named `config` |
 | Gin | `selfauth.config.json` in the project root | JSON. The server finds it in the current directory, or at the path in `SELFAUTH_CONFIG` |
 
-## How it is checked
+## How it's checked
 
-The configuration is validated when the server starts:
+The configuration is validated when the server starts, and the rules are strict:
 
-- Unknown keys are rejected. A typo in a security setting cannot be silently ignored.
-- Values outside the allowed range are rejected, not clamped. A weak setting fails fast instead of shipping.
-- Cross-field rules are checked (for example the `__Host-` cookie prefix needs `secure: true`).
+- Unknown keys are rejected, so a typo in a security setting can't be silently ignored.
+- Values outside the allowed range are rejected, not quietly adjusted. A weak setting fails fast instead of shipping.
+- Cross-field rules apply too. A `__Host-` cookie name, for example, needs `secure: true`.
 
-You can check it any time without starting the server:
+You can check the file at any time without starting the server:
 
 ```bash
 npx selfauth validate
@@ -38,7 +38,7 @@ A bad value fails with a message that names the key (real output):
   ✗ config authentication.sessions.cookie: Unrecognized key: "bogus"
 ```
 
-Restart the server after every change: the file is read at startup only.
+Restart the server after every change. The file is only read at startup.
 
 ## Full example (the generated defaults)
 
@@ -83,11 +83,11 @@ export const config: SelfAuthConfig = {
 };
 ```
 
-(In the file the keys are quoted; the generated file is JSON-like.)
+(The keys are quoted in the real file, which is JSON-like.)
 
 ## `adapter`
 
-Describes the project. Set by `init`. Do not change it by hand: it must match the code that was generated.
+This describes the project and `init` sets it. Don't change it by hand, because it has to match the code that was generated.
 
 | Key | Values | Notes |
 | --- | --- | --- |
@@ -100,7 +100,7 @@ Describes the project. Set by `init`. Do not change it by hand: it must match th
 
 ### `authentication.methods`
 
-`["password"]`. Only email and password is implemented.
+It's `["password"]`, since email and password is the only method implemented.
 
 ### Email verification
 
@@ -133,11 +133,9 @@ Describes the project. Set by `init`. Do not change it by hand: it must match th
 | `password.hashing.iterations` | `2` | 1 – 10 | Argon2id time cost |
 | `password.hashing.parallelism` | `1` | 1 – 16 | Argon2id lanes |
 
-Hashing cost cannot go below the OWASP minimums. Raising it makes every login slower and uses more memory per login attempt, so test under load.
+Hashing cost can't go below the OWASP minimums. Raising it makes every login slower and uses more memory per attempt, so test under load.
 
-::: tip Changing the minimum length with a frontend
-The server decides, but the frontend forms carry a browser hint of the length. After raising `minLength`, update the `minlength` attribute on the register, reset-password and account pages. See [Add a frontend page](/build/frontend-pages#change-the-password-length-in-the-forms).
-:::
+The server is what enforces the length, but the frontend forms carry a browser hint. After raising `minLength`, update the `minlength` attribute on the register, reset password and account pages. See [Add a frontend page](/build/frontend-pages#change-the-password-length-in-the-forms).
 
 ### Sessions
 
@@ -151,13 +149,13 @@ The server decides, but the frontend forms carry a browser hint of the length. A
 | `sessions.cookie.sameSite` | `"lax"` | `lax`, `strict`, `none` | `none` requires `csrf.mode: "token"` and `secure: true` |
 | `sessions.cookie.secure` | `true` | | `false` only for localhost. Refused in production |
 
-In development the cookie is named `dev_session` and is not `Secure`: `localDevelopmentConfig` applies this when not in production, because browsers refuse `Secure` cookies on plain `http`.
+In development the cookie is called `dev_session` and isn't `Secure`. `localDevelopmentConfig` applies that outside production, because browsers refuse `Secure` cookies on plain `http`.
 
 ### Rate limits
 
 <a id="rate-limits"></a>
 
-Each operation is limited per account and per address in a window of seconds. Defaults (window 900 seconds = 15 minutes):
+Each operation is limited per account and per address, within a window measured in seconds. The defaults use a 900 second (15 minute) window:
 
 | Operation (`rateLimit.<op>`) | `perAccount` limit | `perAddress` limit |
 | --- | --- | --- |
@@ -167,7 +165,7 @@ Each operation is limited per account and per address in a window of seconds. De
 | `passwordResetRequest` | 3 | 20 |
 | `verificationResend` | 3 | 20 |
 
-Each of `perAccount` and `perAddress` is an object `{ limit, windowSeconds }` with `limit` at least 1 and `windowSeconds` between 1 and 86400. Example of a stricter login limit:
+Both `perAccount` and `perAddress` are objects shaped `{ limit, windowSeconds }`, where `limit` is at least 1 and `windowSeconds` is between 1 and 86400. A stricter login limit looks like this:
 
 ```ts
 rateLimit: {
@@ -179,10 +177,12 @@ rateLimit: {
 }
 ```
 
-When a limit is exceeded the response is `429 RATE_LIMITED` with a `Retry-After` header. The attempt is counted before the password is checked, so guesses cannot outrun the limit.
+When a limit is hit you get `429 RATE_LIMITED` with a `Retry-After` header. The attempt is counted before the password is checked, so guesses can't outrun the limit.
 
 ::: warning Behind a proxy
-Per-address limits use the client address. If your app is behind a reverse proxy or load balancer, set `http.trustProxy`, or every user will appear to come from the proxy and share one limit.
+
+Per-address limits use the client's address. Behind a reverse proxy or load balancer, set `http.trustProxy`, or every user appears to come from the proxy and they all share one limit.
+
 :::
 
 ## Authorization
@@ -195,7 +195,7 @@ Per-address limits use the client address. If your app is behind a reverse proxy
 | `authorization.defaultRoles` | `["user"]` | Roles new accounts receive. Must exist and must not include `admin` |
 | `authorization.reauthenticationWindowMinutes` | `15` (1 – 1440) | How recently an admin must have entered their password to use admin routes |
 
-See [Permissions and roles](/build/permissions-roles). Re-run the seed after changing roles.
+See [Permissions and roles](/build/permissions-roles), and re-run the seed after changing roles.
 
 ## HTTP
 
@@ -208,7 +208,7 @@ See [Permissions and roles](/build/permissions-roles). Re-run the seed after cha
 | `http.csrf.mode` | `"header"` | `header`, `token` | `header`: a fixed header. `token`: a signed token bound to the session, required for cross-site setups |
 | `http.csrf.headerName` | `"X-SelfAuth-CSRF"` | | Name of the CSRF header |
 
-Which topology needs which settings is explained in [Frontend deployment](./frontend-deployment).
+[Frontend deployment](./frontend-deployment) explains which setup needs which settings.
 
 ## Common recipes
 
@@ -233,7 +233,8 @@ password: { minLength: 12, maxLength: 128, rejectCommon: true,
             hashing: { memoryKiB: 19456, iterations: 2, parallelism: 1 } },
 ```
 
-Then update the frontend forms.
+Then update the frontend forms to match.
+
 :::
 
 ::: details Behind one reverse proxy

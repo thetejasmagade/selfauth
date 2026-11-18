@@ -8,7 +8,7 @@ keywords: [error codes, INVALID_CREDENTIALS, UNAUTHENTICATED, FORBIDDEN, CSRF_FA
 
 ## The envelope
 
-Every failed request returns JSON in this shape:
+Every failed request returns JSON shaped like this:
 
 ```json
 {
@@ -51,23 +51,23 @@ Errors are never more specific than the table allows: there is no "user not foun
 | `RATE_LIMITED` | 429 | A rate limit was exceeded. The `Retry-After` header says how many seconds to wait | Wait, then retry |
 | `INTERNAL_ERROR` | 500 | An unexpected failure. No internals are exposed | Retry later; look the `requestId` up in the server log |
 
-The frontend client adds two codes of its own: `NETWORK_ERROR` (the request did not complete) and `UNEXPECTED_RESPONSE` (the server's answer was not understood).
+The frontend client adds two codes of its own: `NETWORK_ERROR` when the request didn't complete, and `UNEXPECTED_RESPONSE` when the server's answer wasn't understood.
 
-## Which codes are enumeration-safe
+## Why some codes are vague
 
-An attacker must not be able to tell whether an email has an account. The codes that could leak that fact are therefore deliberately blunt:
+Nobody should be able to tell whether an email has an account. The codes that could give that away are intentionally vague:
 
 - `INVALID_CREDENTIALS` is the same for an unknown email, a deleted account and a wrong password.
-- `EMAIL_NOT_VERIFIED` and `ACCOUNT_UNAVAILABLE` are shown only after the password was verified, so they reveal nothing to someone who does not know it.
-- `EMAIL_TAKEN` exists only as an explicit opt-in trade-off.
-- Registration, password-reset requests and verification resends answer `202` whatever the email.
+- `EMAIL_NOT_VERIFIED` and `ACCOUNT_UNAVAILABLE` only appear after the password has been verified, so they tell someone who doesn't know the password nothing.
+- `EMAIL_TAKEN` exists only as an opt-in trade-off.
+- Registration, password reset requests and verification resends answer `202` whatever the email.
 
 ## Handling errors in your own routes
 
-Return your own errors in the same envelope so clients can treat them alike:
+Return your own errors in the same envelope so clients can treat them like SelfAuth's:
 
 ```json
 { "error": { "code": "VALIDATION_FAILED", "message": "item is required.", "requestId": "..." } }
 ```
 
-In Express, throw `new HttpError(status, code, message)` from `src/http/errors.ts`; the app's error handler formats it. Do not leak stack traces, SQL or file paths.
+In Express, throw `new HttpError(status, code, message)` from `src/http/errors.ts` and the app's error handler formats it. Don't leak stack traces, SQL or file paths.

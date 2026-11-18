@@ -6,15 +6,13 @@ keywords: [custom store, AuthStore, RateLimitStore, conformance, new database, e
 
 # Custom database store
 
-SelfAuth ships stores for PostgreSQL, MySQL, SQLite, MongoDB and memory. If you use something else (DynamoDB, CockroachDB, a legacy schema), you can write your own store without touching the security core, because the core talks to storage only through an interface.
+SelfAuth ships stores for PostgreSQL, MySQL, SQLite, MongoDB and memory. If you use something else (DynamoDB, CockroachDB, a legacy schema), you can write your own store without touching the security core, because the core only talks to storage through an interface.
 
-::: warning Be careful
-The store carries security guarantees: single-use tokens, atomic rate limits, unique emails. A wrong store breaks them silently. Prove yours with the conformance suite before relying on it.
-:::
+A store carries real security guarantees: single-use tokens, atomic rate limits, unique emails. A wrong one breaks them silently, so prove yours with the conformance suite before you rely on it.
 
 ## The interfaces (TypeScript)
 
-`src/auth/core/store.ts` defines `AuthStore`. In groups:
+`src/auth/core/store.ts` defines `AuthStore`. Its methods fall into groups:
 
 | Group | Methods |
 | --- | --- |
@@ -25,9 +23,9 @@ The store carries security guarantees: single-use tokens, atomic rate limits, un
 | Roles | `syncRoles`, `getUserRoles`, `getRolePermissions`, `roleExists`, `addUserRole`, `removeUserRole`, `countActiveUsersWithRole` |
 | Audit | `recordEvent` |
 
-`RateLimitStore` (in `core/rate-limit.ts`) has two methods: `update(key, fn)` and `delete(key)`.
+`RateLimitStore` (in `core/rate-limit.ts`) has two methods, `update(key, fn)` and `delete(key)`.
 
-In Go the equivalents are `auth.Store` and `auth.RateLimitStore` in `internal/auth/store.go`, and `internal/store/storetest` holds shared tests every store must pass.
+In Go the equivalents are `auth.Store` and `auth.RateLimitStore` in `internal/auth/store.go`, and `internal/store/storetest` holds the shared tests every store has to pass.
 
 ## The guarantees you must keep
 
@@ -42,10 +40,10 @@ In Go the equivalents are `auth.Store` and `auth.RateLimitStore` in `internal/au
 
 ## Steps
 
-1. Read `src/auth/stores/memory.ts`: the smallest complete implementation.
-2. Create `src/auth/stores/mystore.ts` implementing `AuthStore` (and, for several instances, `RateLimitStore`).
+1. Read `src/auth/stores/memory.ts`. It's the smallest complete implementation.
+2. Create `src/auth/stores/mystore.ts` implementing `AuthStore` (and `RateLimitStore` too if you'll run several instances).
 3. Select it in `src/db/store.ts`.
-4. `createAuth` in `src/auth/index.ts` checks `adapter.database` against a list of databases it knows (`SUPPORTED_DATABASES`) and refuses anything else at startup. Extend that list in your copy, and keep your configuration's `adapter.database` and `adapter.orm` values valid for the schema check (`npx selfauth validate`).
-5. Run the conformance suite against your app: the `@selfauth/conformance` package in the SelfAuth repository defines a driver contract. The reference apps (`apps/playground`) show how a driver starts an isolated instance of your app for each of the 90 cases.
+4. `createAuth` in `src/auth/index.ts` checks `adapter.database` against a list of databases it knows (`SUPPORTED_DATABASES`) and refuses anything else at startup. Extend that list in your copy, and keep your configuration's `adapter.database` and `adapter.orm` valid for the schema check (`npx selfauth validate`).
+5. Run the conformance suite against your app. The `@selfauth/conformance` package in the SelfAuth repository defines a driver contract, and the reference apps (`apps/playground`) show how a driver starts an isolated instance of your app for each of the 90 cases.
 
-The suite is how every shipped store is proven. See [Conformance and support](./conformance).
+That suite is how every shipped store was proven. See [Conformance and support](./conformance).

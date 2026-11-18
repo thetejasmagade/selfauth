@@ -6,7 +6,7 @@ keywords: [email, mailer, smtp, createMailer, NewMailer, verification email, pas
 
 # Send real email
 
-SelfAuth sends email for you to create but not to deliver: it cannot know whether you use SMTP, Amazon SES, Resend or Postmark. You provide one small piece of code, the mailer.
+SelfAuth writes the emails but doesn't send them. It has no way of knowing whether you use SMTP, Amazon SES, Resend or Postmark, so you supply one small piece of code, the mailer.
 
 | Environment | What happens |
 | --- | --- |
@@ -22,7 +22,7 @@ SelfAuth sends email for you to create but not to deliver: it cannot know whethe
 
 ## The interface
 
-A mailer has one method that sends one message.
+A mailer has a single method that sends a single message.
 
 ::: code-group
 
@@ -66,11 +66,11 @@ The five kinds:
 | `passwordChanged` | After a password change |
 | `passwordResetCompleted` | After a password reset finished |
 
-`text` already contains the finished sentence and the link, so the simplest mailer sends `subject` and `text` as they are.
+`text` already holds the finished sentence including the link, so the simplest mailer just sends `subject` and `text` as they are.
 
 ## Example: SMTP in TypeScript
 
-This is illustrative: it uses the `nodemailer` package, which you install yourself (`npm install nodemailer` and `npm install -D @types/nodemailer`). Replace the whole file `src/email/mailer.ts`:
+This is illustrative. It uses the `nodemailer` package, which you install yourself (`npm install nodemailer` and `npm install -D @types/nodemailer`). Replace the whole of `src/email/mailer.ts` with:
 
 ```ts
 import nodemailer from "nodemailer";
@@ -99,11 +99,11 @@ export function createMailer(env: Env): Mailer {
 }
 ```
 
-Add the `SMTP_*` variables to your production environment, never to the repository.
+Put the `SMTP_*` variables in your production environment, never in the repository.
 
 ## Example: SMTP in Go
 
-This version compiles with the generated Go project (replace the import path with your module). It uses only the standard library:
+This one compiles with the generated Go project (use your own module path in the imports) and only needs the standard library:
 
 ```go
 package email
@@ -145,7 +145,7 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 
 ## Customize the wording
 
-Branch on `m.kind` to use your own subject and HTML template. Keep the link exactly as given: it carries the token in the URL fragment (after `#`), which keeps it out of server logs and `Referer` headers.
+Branch on `m.kind` if you want your own subjects or an HTML template. Leave the link exactly as given: it carries the token in the URL fragment (after the `#`), which keeps it out of server logs and `Referer` headers.
 
 ```ts
 const subject = m.kind === "verification" ? "Welcome! Please confirm your email" : m.subject;
@@ -153,11 +153,11 @@ const subject = m.kind === "verification" ? "Welcome! Please confirm your email"
 
 ## Rules
 
-- Do not log messages, links or tokens. SelfAuth's own logger redacts them, and your mailer must not undo that.
-- Do not block forever: set a timeout on your provider call. A slow provider slows registration.
-- Email links point at frontend pages built from `SELFAUTH_APP_BASE_URL`: `<app>/verify-email#token=…` and `<app>/reset-password#token=…`. Set that variable to your real `https://` address in production.
-- `accountExists` is how SelfAuth keeps the web response identical for known and unknown emails. Do not remove that email.
+- Don't log messages, links or tokens. SelfAuth's logger redacts them, so make sure your mailer doesn't undo that.
+- Put a timeout on your provider call. A slow provider will otherwise slow down registration.
+- The links point at frontend pages built from `SELFAUTH_APP_BASE_URL`: `<app>/verify-email#token=…` and `<app>/reset-password#token=…`. Set it to your real `https://` address in production.
+- The `accountExists` email is how SelfAuth keeps the web response identical for known and unknown addresses. Don't drop it.
 
 ## Test your mailer
 
-Run the server with `NODE_ENV=production` (Gin: `APP_ENV=production`) in a staging environment, register with an address you control, and confirm the verification email arrives with a working link. `npx selfauth doctor` warns while the generated placeholder is still in place.
+In a staging environment, run the server with `NODE_ENV=production` (`APP_ENV=production` for Gin), register with an address you control, and check that the verification email arrives with a working link. `npx selfauth doctor` keeps warning until the placeholder is replaced.

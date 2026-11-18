@@ -6,13 +6,13 @@ keywords: [selfauth db, migrate, prisma migrate, db plan, db status, approve-des
 
 # `selfauth db`
 
-Wraps your project's native migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite; the index script for MongoDB; the Go runner for Gin) and adds a safety review. SelfAuth never migrates when the server starts.
+Wraps your project's native migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite, the index script for MongoDB, the Go runner for Gin) and adds a safety review on top. SelfAuth never migrates when the server starts.
 
 ```text
 selfauth db <command> [--dir <dir>]
 ```
 
-`--dir` is the project directory (default: the current folder). The commands read `DATABASE_URL` from the environment or from the project's `.env` (full stack: `server/.env`).
+`--dir` is the project directory and defaults to the current folder. The commands read `DATABASE_URL` from the environment or from the project's `.env` (`server/.env` in a full-stack project).
 
 ## Commands
 
@@ -81,11 +81,11 @@ npx selfauth db rollback
 | Gin (Go) | Runs `go run ./cmd/migrate status` | Not analysed: read each `migration.sql` yourself | Runs `go run ./cmd/migrate up` | not applicable: write SQL by hand |
 | In-memory | – | – | – | – |
 
-An in-memory project answers: `✗ database commands need a database: this project uses 'memory'.`
+An in-memory project just says: `✗ database commands need a database: this project uses 'memory'.`
 
 ## The safety review
 
-`db plan` and `db migrate` read the SQL of every pending migration. The review is deliberately conservative: unless you add `--approve-destructive`, `migrate` refuses when a statement could lose data, rewrite a table or touch something SelfAuth does not own. It looks for:
+`db plan` and `db migrate` read the SQL of every pending migration. The review errs on the side of caution: unless you add `--approve-destructive`, `migrate` refuses when a statement could lose data, rewrite a table or touch something SelfAuth does not own. It looks for:
 
 | Finding | Example |
 | --- | --- |
@@ -96,15 +96,15 @@ An in-memory project answers: `✗ database commands need a database: this proje
 | Touching an object that is not owned by SelfAuth | any statement on a table not listed in `selfauth.manifest.json` under `ownedResources` |
 | Creating an object that already exists in the database | a baseline problem |
 
-This protects you when a teammate's migration, an upgrade or an ORM-generated change would damage data.
+That's what stops a teammate's migration, an upgrade or an ORM-generated change from quietly damaging data.
 
 ## Rules
 
-- Review before applying. Open the SQL. Take a backup before migrating production.
-- Run migrations as a deploy step, not at application start.
-- No down migrations. Restore a backup or write a new forward migration.
-- Existing databases that were not created with Prisma fail with `P3005`. Baseline them with `prisma migrate resolve --applied <migration>`, and only for migrations whose objects really exist.
+- Read the SQL before you apply it, and back up before migrating production.
+- Run migrations as a deploy step, not when the app starts.
+- There are no down migrations. Restore a backup or write a new forward migration.
+- A database that wasn't created with Prisma fails with `P3005`. Baseline it with `prisma migrate resolve --applied <migration>`, and only for migrations whose objects really exist.
 
 ## Troubleshooting
 
-See [Troubleshooting](/troubleshooting#database-url-is-not-set) for `DATABASE_URL is not set`, special characters in passwords and pooled databases such as Supabase.
+[Troubleshooting](/troubleshooting#database-url-is-not-set) covers `DATABASE_URL is not set`, special characters in passwords, and pooled databases such as Supabase.

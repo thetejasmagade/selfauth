@@ -6,7 +6,7 @@ keywords: [express vs fastify, gin, postgresql, sqlite, mysql, mongodb, vue, rea
 
 # Choose your stack
 
-`selfauth init` asks three questions: which backend, which database, which frontend. You can change your mind later by generating another project, but not by flipping a switch, so choose now.
+`selfauth init` asks for three things: a backend, a database and a frontend. There's no switch to flip later, so it's worth a minute to think about them now. If you do change your mind, generate a fresh project and move your own files across.
 
 ## 1. Backend
 
@@ -16,7 +16,7 @@ keywords: [express vs fastify, gin, postgresql, sqlite, mysql, mongodb, vue, rea
 | Fastify 5 | TypeScript | You prefer Fastify | Same core and behavior as Express, with a Fastify adapter. |
 | Gin | Go 1.26+ | Your team writes Go | A Go port of the same core. API only, new projects only, PostgreSQL or in-memory. |
 
-All three pass the same 90 conformance cases.
+All three backends pass the same 90 conformance cases.
 
 ## 2. Database
 
@@ -49,7 +49,7 @@ flowchart TD
 | `vue` | A Vue 3 + Vite app in `client/` with every account screen. |
 | `react` | A React + Vite app in `client/` with every account screen. |
 
-Gin has no generated frontend. You can still use a Vue or React app with it: see [Frontend deployment](/configuration/frontend-deployment).
+Gin doesn't generate a frontend, but a Vue or React app from `init --frontend` or `add-frontend` works fine against it. See [Frontend deployment](/configuration/frontend-deployment).
 
 ## A sensible first choice
 
@@ -57,4 +57,4 @@ Gin has no generated frontend. You can still use a Vue or React app with it: see
 npx selfauth init my-app --backend express --database memory --frontend vue
 ```
 
-Express, memory, Vue: no database to install, a complete app with screens. Move to PostgreSQL when you are ready: see [Change the database](/build/database-changes).
+That gives you Express, no database to install, and a complete app with screens. When you're ready for a real database, [Change the database](/build/database-changes) shows how.

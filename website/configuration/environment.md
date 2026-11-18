@@ -6,7 +6,7 @@ keywords: [environment variables, .env, SELFAUTH_APP_BASE_URL, DATABASE_URL, NOD
 
 # Environment variables
 
-Environment variables hold secrets and addresses, which differ between your computer and production. Behavior settings live in the [configuration file](./config-file).
+Environment variables hold the things that differ between your laptop and production: secrets and addresses. How the code behaves is set in the [configuration file](./config-file) instead.
 
 ## The variables
 
@@ -23,7 +23,7 @@ Environment variables hold secrets and addresses, which differ between your comp
 | `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin | Path to the configuration file |
 | `SELFAUTH_API_TARGET` | no | `http://localhost:3000` | Vite dev server | Where the dev server forwards `/auth` and `/api` |
 
-An invalid value stops the server at startup with a message listing every problem:
+If a value is invalid the server stops at startup and lists every problem:
 
 ```text
 Invalid environment:
@@ -32,7 +32,7 @@ Invalid environment:
 
 ### `SELFAUTH_APP_BASE_URL`
 
-Must be an absolute `http` or `https` address with no spaces or control characters. In production it must be `https`. With a generated frontend the development value is `http://localhost:5173`. Verification and reset links are built from it (`<url>/verify-email#token=…`), and its origin is trusted for CSRF and CORS.
+It must be an absolute `http` or `https` address with no spaces or control characters, and in production it has to be `https`. With a generated frontend the development value is `http://localhost:5173`. Verification and reset links are built from it (`<url>/verify-email#token=…`), and its origin is trusted for CSRF and CORS.
 
 ### `DATABASE_URL`
 
@@ -43,17 +43,17 @@ Must be an absolute `http` or `https` address with no spaces or control characte
 | SQLite | `file:./app.db` |
 | MongoDB | `mongodb://host:27017/dbname` |
 
-URL-encode special characters in the password (`@` → `%40`, `#` → `%23`, `/` → `%2F`).
+URL-encode special characters in the password: `@` becomes `%40`, `#` becomes `%23` and `/` becomes `%2F`.
 
 ### CSRF secret
 
-Only needed for [cross-site setups](./frontend-deployment#_3-cross-site-different-registrable-domains). Generate one:
+You only need this for [cross-site setups](./frontend-deployment#_3-cross-site-different-registrable-domains). To generate one:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
-To rotate it, set the new value as `SELFAUTH_CSRF_SECRET` and move the old one to `SELFAUTH_CSRF_SECRET_PREVIOUS` for a while, then remove it.
+To rotate it, set the new value as `SELFAUTH_CSRF_SECRET`, move the old one to `SELFAUTH_CSRF_SECRET_PREVIOUS` for a while, and remove it once old tokens have expired.
 
 ## Where to set them
 
@@ -76,11 +76,11 @@ export DATABASE_URL=postgresql://user:password@localhost:5432/app
 $env:SELFAUTH_APP_BASE_URL = "http://localhost:5173"
 ```
 
-`.env` is ignored by git. `.env.example` holds placeholders only and is committed. Never commit real secrets.
+`.env` is ignored by git. `.env.example` only has placeholders and is committed. Never commit real secrets.
 
 ### Production
 
-Set variables in your hosting platform (container environment, service settings, a secrets manager). Production checklist:
+Set variables in your hosting platform, whether that's container environment settings, a service dashboard or a secrets manager. A typical production set:
 
 ```ini
 NODE_ENV=production            # Gin: APP_ENV=production
@@ -88,11 +88,11 @@ SELFAUTH_APP_BASE_URL=https://app.example.com
 DATABASE_URL=...               # required
 ```
 
-If you use `csrf.mode: "token"`, also set `SELFAUTH_CSRF_SECRET`. See [Going to production](/advanced/production).
+If you use `csrf.mode: "token"`, set `SELFAUTH_CSRF_SECRET` as well. See [Going to production](/advanced/production).
 
 ## Add your own variable
 
-Read it in the same place as the others so that a missing value fails at startup:
+Read it in the same place as the others, so a missing value stops the server at startup:
 
 ::: code-group
 
@@ -109,4 +109,4 @@ if env.Production() && get("SMTP_HOST", "") == "" {
 
 :::
 
-Then add it to the `Env` type and `.env.example`.
+Then add it to the `Env` type and to `.env.example`.

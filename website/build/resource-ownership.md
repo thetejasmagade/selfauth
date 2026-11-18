@@ -6,15 +6,15 @@ keywords: [ownership, resource policy, authorizeResource, ownershipPolicy, owner
 
 # Resources and ownership
 
-A permission such as `orders.view` says "this user may view orders". It does not say whose orders. If you stop there, any user can read everybody's orders by guessing ids.
+A permission like `orders.view` says a user may view orders. It doesn't say whose. Stop there and any user can read everyone's orders just by guessing ids.
 
-This guide adds the second half: an ownership policy, so that
+This guide adds the missing half, an ownership policy, so that:
 
-- a user sees and opens only their own orders;
-- a user holding the extra permission `orders.view_any` (for example support staff) can see all of them;
-- other people's orders look like they do not exist (`404`, not `403`), so ids cannot be probed.
+- A user sees and opens only their own orders.
+- A user with the extra permission `orders.view_any` (support staff, say) can see everyone's.
+- Other people's orders look like they don't exist. You get a `404` rather than a `403`, so nobody can probe for ids.
 
-## The idea in three pieces
+## How it fits together
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,9 @@ flowchart LR
 | `ownerFilter` | For list routes. It tells you which owner to filter the query by, so you never fetch other people's rows. |
 
 ::: warning Always load from the database
-`load` must read the object from your storage, never from the request body or query. If an attacker could say who the owner is, the check would be pointless.
+
+`load` has to read the object from your own storage, never from the request body or query. If an attacker could say who owns something, the check would mean nothing.
+
 :::
 
 ## Step 1: Declare permissions and give them to roles
@@ -49,11 +51,11 @@ In your configuration:
 },
 ```
 
-Run the seed and restart: see [Permissions and roles](./permissions-roles). The `_any` suffix is the naming convention the helpers look for: `ownershipPolicy` allows `orders.view` for the owner, or for anyone who holds `orders.view_any`. A holder of `orders.view_any` who does not also hold `orders.view` can open single orders but must also pass the route's own guard, so give support both permissions if they need the list.
+Run the seed and restart, as in [Permissions and roles](./permissions-roles). The `_any` suffix is the convention the helpers look for: `ownershipPolicy` allows `orders.view` for the owner, or for anyone holding `orders.view_any`. Someone with only `orders.view_any` can open single orders, but the list route has its own `orders.view` guard, so give support staff both if they need the list.
 
 ## Step 2: Write the routes
 
-The example keeps orders in an array so it runs without a database. Replace the array with your queries (see [Change the database](./database-changes)).
+The example keeps orders in an array so it runs without a database. Swap the array for real queries when you're ready (see [Change the database](./database-changes)).
 
 ::: code-group
 
@@ -245,7 +247,7 @@ func registerOrders(r *gin.Engine, a *ginauth.Auth) {
 
 :::
 
-Replace `github.com/you/my-api` with your module path (the first line of `go.mod`).
+Replace `github.com/you/my-api` with your module path, the first line of `go.mod`.
 
 ## Step 3: Mount the routes
 
@@ -280,7 +282,7 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 
 ## Step 4: Try it
 
-Register two users, Alice and Bob, verify them and sign them in with separate cookie files (`ja.jar`, `jb.jar`), as in [Try the authentication flow](/getting-started/first-flow). Then:
+Register two users, Alice and Bob, verify them and sign each in with their own cookie file (`ja.jar` and `jb.jar`), as in [Try the authentication flow](/getting-started/first-flow). Then:
 
 ```bash
 curl "${H[@]}" -b ja.jar localhost:3000/api/orders -d '{"item":"coffee"}'   # Alice creates an order
@@ -291,7 +293,7 @@ curl "${H[@]}" -b jb.jar localhost:3000/api/orders/ORDER_ID                  # B
 curl "${H[@]}" localhost:3000/api/orders                                     # nobody signed in
 ```
 
-**Output** (real, from the Express version):
+Output (real, from the Express version):
 
 ```text
 {"id":"2c5384b7-3f36-4932-8ded-7518b2cd47a2","ownerId":"f9108568-995f-4605-a6a7-bbb8c02b5036","item":"coffee"}
@@ -302,7 +304,7 @@ curl "${H[@]}" localhost:3000/api/orders                                     # n
 {"error":{"code":"UNAUTHENTICATED","message":"Authentication required.","requestId":"c2791f7f-f840-4df9-b50b-f38427546867"}}
 ```
 
-Bob's list is empty and Bob's attempt to open Alice's order is `404`: the same answer as for an order that does not exist. The Fastify and Gin versions give the same results.
+Bob's list is empty, and when he tries to open Alice's order he gets `404`, the same answer as for an order that doesn't exist. The Fastify and Gin versions behave identically.
 
 ## How the helpers decide
 
@@ -314,7 +316,7 @@ Bob's list is empty and Bob's attempt to open Alice's order is `404`: the same a
 
 ## Other kinds of rules
 
-Ownership is only one rule. For tenants, status checks or sharing, write your own policy instead of `ownershipPolicy`:
+Ownership is just one rule. For tenants, status checks or sharing, write your own policy instead of using `ownershipPolicy`:
 
 ```ts
 auth.policies.register("document", {
@@ -325,11 +327,11 @@ auth.policies.register("document", {
 });
 ```
 
-A policy has two functions: `load(id)` returns the resource (or `null`), and `authorize(subject, action, resource)` returns `true` or `false`. The subject is `{ userId, roles, permissions }`.
+A policy is two functions. `load(id)` returns the resource, or `null` if it doesn't exist, and `authorize(subject, action, resource)` returns `true` or `false`. The subject is `{ userId, roles, permissions }`.
 
 ## Checklist
 
-- [ ] The list route filters in the query with `ownerFilter`, not after fetching everything.
-- [ ] The create route takes the owner from the session, not from the body.
+- [ ] The list route filters in the query with `ownerFilter`, rather than fetching everything and hiding rows afterwards.
+- [ ] The create route takes the owner from the session, not the request body.
 - [ ] `load` reads from your database.
-- [ ] Update and delete routes use `authorizeResource` with their own permission (for example `orders.update`).
+- [ ] Update and delete routes use `authorizeResource` with their own permission, such as `orders.update`.

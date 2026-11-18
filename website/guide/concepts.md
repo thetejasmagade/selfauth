@@ -40,7 +40,7 @@ You don't need to know any of this before you start. Come back when a word trips
 | Term | Meaning |
 | --- | --- |
 | Hash | A one-way scramble of a password. Nobody, including you, can turn it back into the password. |
-| Argon2id | The hashing method used. It is deliberately slow and memory-hungry, which makes guessing expensive. |
+| Argon2id | The hashing method used. It's slow and memory-hungry on purpose, which makes guessing expensive. |
 | PHC string | The standard text format of the stored hash, for example `$argon2id$v=19$m=19456,t=2,p=1$…`. |
 
 ## Roles and permissions (RBAC)

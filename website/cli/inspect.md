@@ -6,7 +6,7 @@ keywords: [selfauth doctor, selfauth validate, selfauth detect, selfauth list, h
 
 # `detect`, `list`, `doctor`, `validate`
 
-These commands only read. Run them as often as you like.
+These commands only read, so run them as often as you like.
 
 ## `selfauth detect`
 
@@ -14,9 +14,9 @@ These commands only read. Run them as often as you like.
 selfauth detect [dir] [--json]
 ```
 
-Inspects a folder and tells you which SelfAuth command applies: the framework, TypeScript and ESM, the package manager, the database client, existing authentication (packages and source code), the folder where files would go, and monorepo packages.
+Looks at a folder and tells you which SelfAuth command applies. It reports the framework, TypeScript and ESM, the package manager, the database client, any existing authentication (packages and source code), where files would go, and monorepo packages.
 
-**Output** (in a project that already uses SelfAuth):
+Output in a project that already uses SelfAuth:
 
 ```text
 SelfAuth detect → /home/you/my-app
@@ -29,7 +29,7 @@ Recommendation: upgrade — SelfAuth is already installed (selfauth.manifest.jso
   ✓ selfauth diff
 ```
 
-`--json` prints the same information for scripts and coding agents (fields such as `project.framework`, `project.existingAuth` and `authSignals`).
+`--json` prints the same information for scripts and coding agents, with fields like `project.framework`, `project.existingAuth` and `authSignals`.
 
 ## `selfauth list`
 
@@ -37,7 +37,7 @@ Recommendation: upgrade — SelfAuth is already installed (selfauth.manifest.jso
 selfauth list [--json]
 ```
 
-Lists the supported backends, databases and frontends, with their status. The real output of this version:
+Lists the supported backends, databases and frontends and their status. This is the real output of this version:
 
 ```text
 Supported integrations (selfauth init):
@@ -61,9 +61,9 @@ Supported integrations (selfauth init):
 selfauth doctor [dir] [--json]
 ```
 
-Checks the configuration and production readiness of a SelfAuth project. It does not change anything.
+Checks the configuration and production readiness of a SelfAuth project, and changes nothing.
 
-**Output** (a fresh project on the in-memory store):
+Output for a fresh project on the in-memory store:
 
 ```text
 SelfAuth doctor → /home/you/my-app
@@ -74,9 +74,9 @@ SelfAuth doctor → /home/you/my-app
 0 error(s), 2 warning(s).
 ```
 
-Symbols: `✗` error (exit code non-zero), `⚠` warning, `•` note.
+`✗` is an error (and a non-zero exit code), `⚠` is a warning and `•` is a note.
 
-What it checks:
+It checks:
 
 | Level | Check |
 | --- | --- |
@@ -103,9 +103,9 @@ Run it before every deployment. See [Going to production](/advanced/production).
 selfauth validate [dir] [--json]
 ```
 
-Checks that the project is internally consistent: the configuration schema, which generated files you changed, and (for Prisma projects) that the Prisma schema matches the ownership manifest.
+Checks that the project hangs together: the configuration schema, which generated files you've changed, and, for Prisma projects, that the Prisma schema matches the ownership manifest.
 
-**Output:**
+Output:
 
 ```text
 SelfAuth validate → /home/you/my-app
@@ -122,10 +122,10 @@ A configuration problem names the key:
   ✗ config authentication.password.minLength: Too small: expected number to be >=8
 ```
 
-If Prisma is not installed yet, validate says so instead of guessing:
+If Prisma isn't installed yet, it says so rather than guessing:
 
 ```text
   ✗ server: Prisma is not installed, so the database schema was not validated (run `npm install`)
 ```
 
-Use it in CI: it exits non-zero when it finds a problem.
+It's a good fit for CI, because it exits non-zero when it finds a problem.

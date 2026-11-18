@@ -6,9 +6,7 @@ keywords: [createAuthClient, AuthApiError, useAuth, RequireAuth, Can, installAut
 
 # Client API (Vue and React)
 
-The code in `client/src/auth/` of projects generated with `--frontend vue|react` (or `src/selfauth/` after `add-frontend`). A
-framework-neutral client plus a thin Vue or React layer. It is your code, with
-no SelfAuth package at runtime .
+This is the code in `client/src/auth/` of projects generated with `--frontend vue|react`, or `src/selfauth/` after `add-frontend`. It's a framework-neutral client with a thin Vue or React layer on top. It's your code, and there's no SelfAuth package at runtime.
 
 ## `createAuthClient(options)`
 
@@ -35,13 +33,9 @@ const client = createAuthClient({
 | `deleteAccount(currentPassword)` | `POST /auth/account/delete` |
 | `api(method, path, body?)` | Any route of your own app, with the same cookie, CSRF and error handling. |
 
-Failures throw `AuthApiError` with `code` (a spec error code, or
-`NETWORK_ERROR`/`UNEXPECTED_RESPONSE`). `describeError(error)` turns it into a
-user-facing message (`messages.ts`; edit it to localize).
+Failures throw `AuthApiError` with a `code`, which is either a spec error code or `NETWORK_ERROR` / `UNEXPECTED_RESPONSE`. `describeError(error)` turns it into a message for the user. The texts are in `messages.ts`, so edit them to localize.
 
-Helpers: `safeRedirect(target, fallback)` accepts only same-site relative
-paths, which blocks open redirects (SEC-REDIRECT-001). `takeTokenFromFragment()`
-reads `#token=` and removes it from the address bar.
+Two helpers are worth knowing. `safeRedirect(target, fallback)` only accepts same-site relative paths, which blocks open redirects (SEC-REDIRECT-001). `takeTokenFromFragment()` reads `#token=` and removes it from the address bar.
 
 ## Vue (`vue.ts`)
 
@@ -62,5 +56,4 @@ reads `#token=` and removes it from the address bar.
 | `<GuestOnly home?>` | For login and register pages |
 | `<Can permission? role? fallback?>` | Permission-aware rendering |
 
-All frontend checks are UX only: the server enforces every permission
-(AUTHZ-CORE-004).
+Every frontend check is for the user's benefit only. The server enforces each permission (AUTHZ-CORE-004).

@@ -6,7 +6,7 @@ keywords: [cors, cookies, samesite, csrf, same origin, subdomain, cross-site, pr
 
 # Frontend deployment: cookies, CORS and CSRF
 
-SelfAuth sessions are `HttpOnly` cookies. Where you serve the frontend, relative to the API, decides the cookie, CORS and CSRF settings. Choose the first topology that fits.
+SelfAuth sessions are HttpOnly cookies, so where you serve the frontend relative to the API decides your cookie, CORS and CSRF settings. Use the first setup below that fits.
 
 ```mermaid
 flowchart TD
@@ -19,7 +19,7 @@ flowchart TD
 
 ## 1. Same origin (recommended)
 
-The browser talks to one address, for example `https://app.example.com`. The frontend is served from it, and `/auth` and `/api` are proxied to the backend. This is exactly what the development setup does: Vite proxies to the API.
+The browser talks to one address, say `https://app.example.com`. The frontend is served from there, and `/auth` and `/api` are proxied to the backend. Local development already works this way, with Vite doing the proxying.
 
 | Setting | Value |
 | --- | --- |
@@ -30,7 +30,7 @@ The browser talks to one address, for example `https://app.example.com`. The fro
 | `SELFAUTH_APP_BASE_URL` | `https://app.example.com` |
 | Client | `createAuthClient({})` (same origin, the default) |
 
-Example nginx fragment:
+An nginx fragment would look like this:
 
 ```nginx
 location /auth { proxy_pass http://127.0.0.1:3000; proxy_set_header X-Forwarded-For $remote_addr; }
@@ -38,11 +38,11 @@ location /api  { proxy_pass http://127.0.0.1:3000; proxy_set_header X-Forwarded-
 location /     { root /var/www/app; try_files $uri /index.html; }
 ```
 
-Because the API now sits behind a proxy, set `http.trustProxy: 1` so rate limits see real client addresses.
+The API now sits behind a proxy, so set `http.trustProxy: 1`. Otherwise rate limits see the proxy's address instead of the real client's.
 
 ## 2. Same site, different subdomains
 
-The frontend on `https://app.example.com`, the API on `https://api.example.com`.
+The frontend is on `https://app.example.com` and the API on `https://api.example.com`.
 
 | Setting | Value |
 | --- | --- |
@@ -53,11 +53,11 @@ The frontend on `https://app.example.com`, the API on `https://api.example.com`.
 | `SELFAUTH_APP_BASE_URL` | `https://app.example.com` |
 | Client | `createAuthClient({ baseUrl: "https://api.example.com" })` |
 
-Do not set a `Domain` on the cookie unless you must: it shares the cookie with every subdomain, including ones you do not control.
+Avoid setting a `Domain` on the cookie unless you have to. It shares the cookie with every subdomain, including ones you may not control.
 
 ## 3. Cross-site (different registrable domains)
 
-The frontend on `https://myapp.dev`, the API on `https://api.other.io`. Browsers only send the cookie with `SameSite=None`, which removes the browser's own CSRF protection. So token mode is mandatory.
+Here the frontend is on `https://myapp.dev` and the API on `https://api.other.io`. Browsers only send the cookie with `SameSite=None`, which switches off the browser's own CSRF protection, so token mode is mandatory.
 
 | Setting | Value |
 | --- | --- |
@@ -67,20 +67,20 @@ The frontend on `https://myapp.dev`, the API on `https://api.other.io`. Browsers
 | `http.trustedOrigins` | `["https://myapp.dev"]` |
 | Client | `createAuthClient({ baseUrl: "https://api.other.io", csrf: { mode: "token" } })` |
 
-In token mode the header carries a token bound to the session (returned by `login`, `me` and `password/change`), not the fixed value `1`. The client keeps it in memory and refreshes it from `GET /auth/me` after a reload. Some browsers block third-party cookies entirely: if that matters, use topology 1 or 2.
+In token mode the header carries a token tied to the session (returned by `login`, `me` and `password/change`) instead of the fixed value `1`. The client keeps it in memory and refreshes it from `GET /auth/me` after a reload. Some browsers block third-party cookies altogether, and if that's a problem for you, use setup 1 or 2.
 
 ## Rules for every topology
 
-- Never store session or CSRF tokens in `localStorage` or `sessionStorage`.
-- Route guards and `<Can>` are convenience. The API authorizes every request.
-- Email links land on frontend pages (`/verify-email`, `/reset-password`) with the token in the URL fragment. Those pages must send `Referrer-Policy: no-referrer` (set it on your static host and keep the `<meta name="referrer">` tag) and remove the fragment at once. The generated pages already do.
-- Post-login redirects must go through `safeRedirect`.
-- Serve everything over HTTPS in production. The server refuses to start in production when `SELFAUTH_APP_BASE_URL` is not `https://`, and the cookie is `Secure`. Add HSTS at your proxy once every subdomain serves HTTPS, for example `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+- Never keep session or CSRF tokens in `localStorage` or `sessionStorage`.
+- Route guards and `<Can>` are conveniences. The API authorizes every request.
+- Email links land on frontend pages (`/verify-email`, `/reset-password`) with the token in the URL fragment. Those pages must send `Referrer-Policy: no-referrer` (set it on your static host and keep the `<meta name="referrer">` tag) and remove the fragment immediately. The generated pages already do both.
+- Send post-login redirects through `safeRedirect`.
+- Use HTTPS everywhere in production. The server refuses to start in production unless `SELFAUTH_APP_BASE_URL` is `https://`, and the cookie is `Secure`. Once every subdomain serves HTTPS, add HSTS at your proxy, for example `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
 
 ## Using Gin with a Vue or React app
 
-Gin has no generated frontend, but the Vue and React apps from `init --frontend` or `selfauth add-frontend` work against it: point the dev proxy (`SELFAUTH_API_TARGET`) at the Go server and use one of the topologies above.
+Gin has no generated frontend, but the Vue and React apps from `init --frontend` or `selfauth add-frontend` work against it. Point the dev proxy (`SELFAUTH_API_TARGET`) at the Go server and use one of the setups above.
 
 ## Troubleshooting
 
-`403 CSRF_FAILED` on every POST usually means the frontend origin is not trusted or the header is missing. See [Troubleshooting](/troubleshooting#403-csrf_failed).
+A `403 CSRF_FAILED` on every POST usually means the frontend's origin isn't trusted or the header is missing. See [Troubleshooting](/troubleshooting#403-csrf_failed).

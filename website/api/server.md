@@ -6,17 +6,11 @@ keywords: [createAuth, requireAuth, requirePermission, authorizeResource, protec
 
 # Server API (TypeScript)
 
-This is the TypeScript API of the code SelfAuth puts in your project: `src/auth/`
-for `init`, `src/selfauth/auth/` for `add`. It is your code, so you call it
-directly; there is no SelfAuth runtime package. A test in the SelfAuth repository checks that every
-export and every `Auth` member, in both adapters, is documented here. The
-examples use Express; [Fastify](#fastify) is the same API with the differences
-listed below.
+This is the TypeScript API of the code SelfAuth puts in your project, in `src/auth/` after `init` and `src/selfauth/auth/` after `add`. It's your code, so you call it directly. There's no SelfAuth runtime package. A test in the SelfAuth repository checks that every export and every `Auth` member, in both adapters, is documented here. The examples use Express, and [Fastify](#fastify) is the same API with the differences listed below.
 
 ## Setup
 
-`src/server.ts` (init) or `src/selfauth/setup.ts` (`setupSelfAuth(app)`, add)
-already does this:
+`src/server.ts` (after `init`) or `src/selfauth/setup.ts` (`setupSelfAuth(app)`, after `add`) already does this:
 
 ```ts
 import { createAuth } from "./auth/index.ts";
@@ -39,8 +33,7 @@ app.use(config.http.basePath, auth.router);  // the /auth routes
 app.use(auth.errorHandler);                  // after your routes
 ```
 
-In production, `createAuth` throws unless the session cookie is `secure` and
-`appBaseUrl` uses https.
+In production, `createAuth` throws unless the session cookie is `secure` and `appBaseUrl` uses https.
 
 ## `Auth`
 
@@ -60,12 +53,7 @@ In production, `createAuth` throws unless the session cookie is `secure` and
 
 ## Fastify
 
-`selfauth init --backend fastify` writes `src/auth/fastify/` instead of
-`src/auth/express/`. The core (`auth/core/`), the stores, the configuration, the
-routes' behaviour and every guard's meaning are identical; only the HTTP glue
-differs, and the same conformance suite passes against it. `createAuth` takes
-`requestId: (req) => string` (Fastify's request id), and the `Auth` object has
-these members in place of `middleware`, `router` and `errorHandler`:
+`selfauth init --backend fastify` writes `src/auth/fastify/` instead of `src/auth/express/`. The core (`auth/core/`), the stores, the configuration, the behavior of the routes and the meaning of every guard are identical. Only the HTTP glue differs, and the same conformance suite passes against it. `createAuth` takes `requestId: (req) => string` (Fastify's request id), and the `Auth` object has these members instead of `middleware`, `router` and `errorHandler`:
 
 | Member | What it does |
 | --- | --- |
@@ -89,9 +77,7 @@ app.setErrorHandler(async (error, req, reply) => {
 });
 ```
 
-The generated `src/app.ts` also sets the JSON body parser (an empty body is
-fine, a malformed one is `400 VALIDATION_FAILED`), the body limit and the
-not-found handler; it is a complete example.
+The generated `src/app.ts` also sets up the JSON body parser (an empty body is fine, a malformed one is `400 VALIDATION_FAILED`), the body limit and the not-found handler, so it makes a complete example.
 
 ## Exports of `auth/index.ts`
 
@@ -106,8 +92,7 @@ not-found handler; it is a complete example.
 | `MemoryMailer` | Collects messages in memory, for tests. |
 | `systemClock`, `ManualClock` | Time sources. `ManualClock` lets tests move time forward (expiry, rate limits). |
 
-Types: `Auth`, `CreateAuthOptions`, `Resource`, `Subject`, `Clock`, `Mailer`
-(and, in `core/`, `AuthStore`, `RateLimitStore`, `EmailMessage`).
+Types: `Auth`, `CreateAuthOptions`, `Resource`, `Subject`, `Clock`, `Mailer` and, in `core/`, `AuthStore`, `RateLimitStore` and `EmailMessage`.
 
 ## Example: an owned resource
 
@@ -135,4 +120,4 @@ routes.get(
 app.use("/api/orders", routes.router);
 ```
 
-A complete, runnable version of this pattern, tested on Express, Fastify and Gin, is in [Resources and ownership](/build/resource-ownership).
+[Resources and ownership](/build/resource-ownership) has a complete, runnable version of this pattern, tested on Express, Fastify and Gin.

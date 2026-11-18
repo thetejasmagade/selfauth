@@ -6,17 +6,17 @@ keywords: [selfauth cli, npx selfauth, commands, selfauth --help, json output, e
 
 # CLI overview
 
-The `selfauth` CLI is a development tool. It writes files into your project, checks them and helps you update them. Nothing it generates calls it at runtime, so you can delete it from your machine and your app keeps working.
+The `selfauth` CLI is a development tool. It writes files into your project, checks them, and helps you update them later. Nothing it generates calls it at runtime, so you could delete it from your machine and the app would carry on working.
 
 ## Running it
 
-You do not have to install anything:
+There's nothing to install:
 
 ```bash
 npx selfauth <command>
 ```
 
-Or add it to a project as a development dependency, so everyone on the team uses the same version:
+Or add it to a project as a dev dependency, so the whole team uses the same version:
 
 ```bash
 npm install -D @selfauth/cli
@@ -27,7 +27,7 @@ npx selfauth --version
 0.15.0
 ```
 
-The packages `selfauth` and `@selfauth/cli` are the same tool. Node.js 22.18 or newer is required.
+`selfauth` and `@selfauth/cli` are the same tool. It needs Node.js 22.18 or newer.
 
 ## All commands
 
@@ -45,7 +45,7 @@ The packages `selfauth` and `@selfauth/cli` are the same tool. Node.js 22.18 or 
 | [`db status\|plan\|migrate\|validate\|rollback\|generate`](./db) | Review and apply database migrations | database |
 | [`skill install [dir]`](./skill) | Install the agent skill for Claude Code, Codex or Cursor | yes |
 
-Get help for any command:
+Ask any command for help:
 
 ```bash
 npx selfauth --help
@@ -54,16 +54,16 @@ npx selfauth init --help
 
 ## Conventions
 
-- `[dir]` is the project folder. Leave it out to use the current folder.
-- `--dry-run` shows what would be written and writes nothing. Use it first whenever it exists.
-- `-y`, `--yes` answers "yes" to every question, so the command can run in scripts and CI.
-- `--json` (on `detect`, `list`, `doctor`, `validate`) prints machine-readable output, for scripts and coding agents.
-- Exit codes: `0` means success. A non-zero code means a problem was found or the command failed. `doctor` and `validate` return non-zero when they report errors, so they can fail a CI job.
-- New files only: `init`, `add` and `add-frontend` never overwrite a file that already exists.
+- `[dir]` is the project folder. Leave it out to use the current one.
+- `--dry-run` shows what would be written and writes nothing. Use it first wherever it exists.
+- `-y` or `--yes` answers "yes" to every question, so commands can run in scripts and CI.
+- `--json` (on `detect`, `list`, `doctor` and `validate`) prints machine-readable output for scripts and coding agents.
+- Exit code `0` means success. Anything else means a problem was found or the command failed. `doctor` and `validate` exit non-zero when they report errors, so they can fail a CI job.
+- `init`, `add` and `add-frontend` only create files. They never overwrite one that exists.
 
 ## In a full-stack project
 
-At the root of a project with `server/` and `client/`, `doctor`, `validate`, `diff` and `upgrade` cover both packages. `db` commands find `server/` themselves.
+At the root of a project with `server/` and `client/`, `doctor`, `validate`, `diff` and `upgrade` cover both packages. The `db` commands find `server/` on their own.
 
 ## Using the CLI in CI
 
@@ -72,4 +72,4 @@ At the root of a project with `server/` and `client/`, `doctor`, `validate`, `di
 - run: npx selfauth doctor
 ```
 
-The first fails the build if the configuration is invalid or the schema and manifest disagree. The second reports production-readiness warnings.
+The first fails the build if the configuration is invalid or the schema and manifest disagree. The second reports production readiness warnings.

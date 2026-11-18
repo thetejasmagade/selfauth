@@ -6,14 +6,14 @@ keywords: [vue router, react router, add page, requiresAuth, permission, Can com
 
 # Add a frontend page
 
-This guide adds an Orders page that
+We'll add an Orders page that:
 
 - lives at `/orders`;
-- can only be opened by users holding the `orders.view` permission;
-- loads its data from the `/api/orders` route from [Resources and ownership](./resource-ownership);
-- shows a form only to users holding `orders.create`.
+- only opens for users with the `orders.view` permission;
+- loads its data from the `/api/orders` route in [Resources and ownership](./resource-ownership);
+- shows a form only to users with `orders.create`.
 
-It applies to projects made with `--frontend vue` or `--frontend react`. Both versions were type-checked in generated projects.
+This applies to projects made with `--frontend vue` or `--frontend react`. I type-checked both versions in generated projects.
 
 ## Where things are
 
@@ -145,11 +145,11 @@ export function OrdersPage() {
 
 :::
 
-Important parts:
+A few things to point out:
 
-- `client.api(method, path, body?)` calls your own API with the same cookie, CSRF header and error handling as the auth calls. You do not set any header yourself. It resolves to the parsed JSON, and the type argument (`<Order[]>`) is only a hint for TypeScript.
-- Failures throw an `AuthApiError` with a `code`. `describeError(e)` turns it into text you can show.
-- The path starts with `/api`, so the dev-server proxy forwards it.
+- `client.api(method, path, body?)` calls your own API with the same cookie, CSRF header and error handling as the auth calls, so you never set a header yourself. It resolves to the parsed JSON, and the type argument (`<Order[]>`) is only a hint for TypeScript.
+- Failures throw an `AuthApiError` with a `code`, and `describeError(e)` turns that into text you can show.
+- The path starts with `/api`, so the dev server proxy forwards it.
 
 ## Step 2: Register the route
 
@@ -189,7 +189,7 @@ import { OrdersPage } from "./pages/OrdersPage.tsx";
 | Signed in, no `orders.view` | Redirected to `/forbidden` | Redirected to `/forbidden` |
 | Allowed | The page opens | The page opens |
 
-The meta keys in Vue are:
+In Vue, route `meta` accepts these keys:
 
 | Key | Meaning |
 | --- | --- |
@@ -197,7 +197,7 @@ The meta keys in Vue are:
 | `permission: "x.y"` | Needs that permission (implies signed in) |
 | `guestOnly: true` | Only for signed-out users (login and register use it) |
 
-After sign-in the user goes back to where they were headed. The redirect target passes through `safeRedirect`, which accepts only relative paths on your own site.
+After signing in, the user goes back to where they were heading. That redirect target goes through `safeRedirect`, which only accepts relative paths on your own site.
 
 ## Step 3: Add a link in the navigation
 
@@ -213,7 +213,7 @@ After sign-in the user goes back to where they were headed. The redirect target 
 
 :::
 
-Put it next to the existing `Account` link, inside the signed-in part of the header.
+Put it next to the existing `Account` link, inside the part of the header that's for signed-in users.
 
 ## Step 4: Run it
 
@@ -223,13 +223,13 @@ npm run dev
 
 Open `http://localhost:5173/orders`:
 
-1. Signed out: you land on the sign-in page.
-2. Sign in as a user whose role holds `orders.view` (see [Permissions and roles](./permissions-roles)). The page opens and shows the list.
-3. Sign in as a user without it: you land on "Not allowed" (`/forbidden`).
+1. Signed out, you land on the sign-in page.
+2. Signed in as a user whose role has `orders.view` (see [Permissions and roles](./permissions-roles)), the page opens and shows the list.
+3. Signed in as a user without it, you land on "Not allowed" (`/forbidden`).
 
 ## Hide parts of a page with `Can`
 
-`<Can>` renders its content only when the user holds a permission (or a role):
+`<Can>` only renders its content when the user has a permission or a role:
 
 ::: code-group
 
@@ -247,13 +247,11 @@ Open `http://localhost:5173/orders`:
 
 You can also check in code: `auth.can("orders.view")` and `auth.hasRole("admin")`.
 
-::: danger The browser is not a security boundary
-Route protection and `<Can>` improve the experience only. The API enforces every permission, so even if someone edits the page in their browser, `/api/orders` still answers `403`. Never rely on the frontend alone.
-:::
+Route protection and `<Can>` only improve the experience. The API enforces every permission, so even if someone edits the page in their browser, `/api/orders` still answers `403`. Never rely on the frontend alone.
 
 ## Add a page that does not need sign-in
 
-Skip `meta` (Vue) or `<RequireAuth>` (React):
+Leave out `meta` (Vue) or `<RequireAuth>` (React):
 
 ::: code-group
 
@@ -273,4 +271,4 @@ The generated pages are plain HTML on purpose. Add your own CSS file and import 
 
 ## Change the password length in the forms
 
-The forms carry a browser hint of the minimum length. If you raise `authentication.password.minLength` on the server, update the `minlength` / `minLength` attribute on the register, reset-password and account pages. See [Password](/configuration/config-file#password).
+The forms carry a browser hint of the minimum length. If you raise `authentication.password.minLength` on the server, update the `minlength` or `minLength` attribute on the register, reset password and account pages. See [Password](/configuration/config-file#password).

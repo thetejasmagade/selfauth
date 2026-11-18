@@ -6,7 +6,7 @@ keywords: [production, deploy, checklist, https, hsts, build, NODE_ENV productio
 
 # Going to production
 
-Use this page as a checklist. Production mode adds strict startup checks. The server would rather refuse to start than run in an unsafe state.
+Treat this page as a checklist. Production mode adds strict startup checks, and the server would rather refuse to start than run in an unsafe state.
 
 ## 1. Run the checks
 
@@ -15,7 +15,7 @@ npx selfauth validate
 npx selfauth doctor
 ```
 
-Fix every error and read every warning. The warnings that matter most are listed below.
+Fix every error and read every warning. The ones that matter most are in the checklist below.
 
 ## 2. Checklist
 
@@ -47,9 +47,9 @@ npm run db:seed        # deploy step
 NODE_ENV=production npm start
 ```
 
-`npm start` runs `node dist/server.js`. In a full-stack project, `npm run build` also builds the client into `client/dist/`: serve those static files from your web server or CDN, and proxy `/auth` and `/api` to the API ([same origin](/configuration/frontend-deployment)).
+`npm start` runs `node dist/server.js`. In a full-stack project, `npm run build` also builds the client into `client/dist/`. Serve those static files from your web server or a CDN and proxy `/auth` and `/api` to the API ([same origin](/configuration/frontend-deployment)).
 
-The `postinstall` script runs `prisma generate`, so install with scripts enabled (the default). The generated client is not committed.
+The `postinstall` script runs `prisma generate`, so install with scripts enabled, which is the default. The generated client isn't committed.
 
 ### Gin
 
@@ -60,11 +60,11 @@ go run ./cmd/seed
 APP_ENV=production ./bin/server
 ```
 
-The server must run in the folder that holds `selfauth.config.json`, or you set `SELFAUTH_CONFIG` to its path. Copy that file into your deployment.
+Run the server from the folder that holds `selfauth.config.json`, or set `SELFAUTH_CONFIG` to its path. Remember to copy that file into your deployment.
 
 ### A container
 
-A minimal Node example (adapt it to your platform; this is illustrative and was not run):
+A minimal Node example. Adapt it to your platform, since I haven't run this one:
 
 ```dockerfile
 FROM node:22-alpine
@@ -77,7 +77,7 @@ ENV NODE_ENV=production
 CMD ["npm", "start"]
 ```
 
-Run migrations and the seed as a separate release step, not in `CMD`.
+Run migrations and the seed as a separate release step, not inside `CMD`.
 
 ## 4. Verify the deployment
 
@@ -86,7 +86,7 @@ curl -i https://app.example.com/health          # 200 {"status":"ok"}
 curl -i https://app.example.com/api/hello       # 401 UNAUTHENTICATED
 ```
 
-Then register with a real address, check that the verification email arrives, sign in, and check that the cookie shows `Secure` and `HttpOnly` in the browser's developer tools.
+Then register with a real address, check that the verification email arrives, sign in, and confirm in the browser's developer tools that the cookie is `Secure` and `HttpOnly`.
 
 ## Startup errors you may meet
 
@@ -100,7 +100,7 @@ Then register with a real address, check that the verification email arrives, si
 
 ## Operations
 
-- Logs are JSON lines with a `requestId`. Forward them to your log system; they contain no secrets.
-- Security events are in `auth_security_events`: forward or query them for monitoring. Plan their [retention](./data-retention).
-- Upgrades: follow [`diff` and `upgrade`](/cli/upgrade). Subscribe to security advisories for the repository.
-- Scaling: use PostgreSQL (or MySQL or MongoDB) when running several instances, so rate limits are shared. SQLite and the in-memory store are single-process.
+- Logs are JSON lines with a `requestId`. Send them to your log system. They contain no secrets.
+- Security events are in `auth_security_events`. Forward or query them for monitoring, and decide how long to keep them ([retention](./data-retention)).
+- For upgrades, follow [`diff` and `upgrade`](/cli/upgrade), and subscribe to security advisories for the repository.
+- To run several instances, use PostgreSQL (or MySQL or MongoDB) so rate limits are shared. SQLite and the in-memory store are single process.

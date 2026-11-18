@@ -6,11 +6,9 @@ keywords: [gin, go, golang, directory structure, internal, cmd, pgx, migrations,
 
 # Gin (Go) project structure
 
-`npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module that follows the common Go layout: programs in `cmd/`, private packages in `internal/`.
+`npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module in the usual Go layout: programs in `cmd/`, private packages in `internal/`.
 
-::: info What Gin supports
-Gin projects are API only (no generated frontend), work with PostgreSQL or the in-memory store, and are for new projects: `selfauth add` does not apply to Go. Go 1.26 or newer is required. `doctor`, `validate`, `diff` and `upgrade` do work.
-:::
+Gin projects are API only, with no generated frontend. They work with PostgreSQL or the in-memory store, and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work.
 
 ## The tree
 
@@ -65,7 +63,7 @@ my-api/
 
 ## How it starts
 
-`cmd/server/main.go` does these steps in order. If any fails, the program prints the problem and exits with code 1.
+`cmd/server/main.go` runs these steps in order. If one fails, it prints the problem and exits with code 1.
 
 ```mermaid
 flowchart LR
@@ -91,7 +89,7 @@ flowchart LR
 
 ## Your routes
 
-`internal/routes/routes.go`:
+`internal/routes/routes.go` looks like this:
 
 ```go
 func Register(r *gin.Engine, a *ginauth.Auth) {
@@ -102,7 +100,7 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 }
 ```
 
-`a.RequireAuth()` is the guard. `a.Context(c)` returns the signed-in user. See [Add an API route](/build/add-api-route) and the [Go API reference](/api/go).
+`a.RequireAuth()` is the guard, and `a.Context(c)` returns the signed-in user. See [Add an API route](/build/add-api-route) and the [Go API reference](/api/go).
 
 ## Commands
 

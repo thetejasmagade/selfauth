@@ -6,7 +6,7 @@ keywords: [architecture, request lifecycle, sessions, csrf, middleware, how it w
 
 # How SelfAuth works
 
-Two things are going on here, and they never overlap. The generator runs once on your computer. The generated app runs in production.
+There are really two separate things here. The generator runs once, on your machine, while you set up the project. The app it produces is what runs in production, and it never needs the generator again.
 
 ## The generator
 
@@ -18,16 +18,16 @@ flowchart TB
   cli -- "init / add" --> app["Your project<br/>(you own these files)"]
 ```
 
-1. A specification describes what authentication must do and what it must never do.
-2. Reference apps implement the specification for each framework. A conformance suite of 90 test cases runs against every one of them.
-3. The templates the CLI copies are exactly those tested apps.
-4. `selfauth init` writes a template into your folder and records what it wrote in `selfauth.manifest.json`.
+1. A written specification says what authentication has to do and what it must never do.
+2. Reference apps implement that spec for each framework, and a suite of 90 conformance cases runs against every one.
+3. The templates the CLI copies are those same tested apps, unchanged.
+4. `selfauth init` copies a template into your folder and records what it wrote in `selfauth.manifest.json`.
 
-The template is the tested app, so there's no separate "generated version" that could behave differently.
+Since the template is the tested app, there's no second "generated" flavor that could drift from what was tested.
 
 ## The generated app
 
-A generated backend is built in four layers.
+Every generated backend has the same four pieces.
 
 ```mermaid
 flowchart TB
@@ -40,14 +40,14 @@ flowchart TB
   core --> mail
 ```
 
-- The core holds all the rules and no web code. It's the same logic in every framework.
-- The adapter turns HTTP requests into core calls and core results into HTTP responses.
-- The store saves data. You can swap it.
-- The mailer is yours, because SelfAuth can't know which email provider you use.
+- The core holds the rules (registration, login, tokens, sessions, roles) and knows nothing about HTTP. It's identical across frameworks.
+- The adapter translates between the web framework and the core: requests in, responses out.
+- The store is where data lands. You can swap it for another database.
+- The mailer is yours. SelfAuth has no idea which email provider you use, so it hands you the message and you send it.
 
 ## One request, step by step
 
-This is what happens when the browser calls a protected route such as `GET /api/orders`.
+Here's what happens when a browser asks for a protected route like `GET /api/orders`.
 
 ```mermaid
 sequenceDiagram
@@ -72,11 +72,11 @@ sequenceDiagram
   end
 ```
 
-Three things worth noticing:
+A few things to take from that:
 
-- The cookie holds a random token, not data. Your server looks the session up on every request, so a revoked session stops working immediately.
-- Permissions are read from the database on the server for each request. The browser cannot grant itself anything.
-- Hiding a button in the browser is just polish. The server makes the call.
+- The cookie holds a random token, not any data about the user. Your server looks the session up on every request, which is why a revoked session stops working straight away.
+- Permissions come from the database on each request, so the browser can't give itself any.
+- Hiding a button in the UI is polish. The server is what actually says yes or no.
 
 ## The sign-in flow
 
@@ -98,7 +98,7 @@ sequenceDiagram
   end
 ```
 
-The attempt is counted before the password is checked. An unknown email still goes through a dummy hash check, so the response time doesn't give away whether an account exists.
+The login attempt is counted before the password is checked. And when the email doesn't exist, the server still runs a dummy hash check, so a fast "no such user" response doesn't leak that fact.
 
 ## Where the pieces live
 
@@ -110,4 +110,4 @@ The attempt is counted before the password is checked. An unknown email still go
 | Your routes | `src/routes/` | `internal/routes/` |
 | Settings | `src/config/selfauth.config.ts` | `selfauth.config.json` |
 
-See [Project structure](/structure/) for every file.
+Every file in those folders is described on the [project structure](/structure/) pages.

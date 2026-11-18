@@ -6,7 +6,7 @@ keywords: [requireAuth, requirePermission, authorizeResource, protectedRoutes, g
 
 # Protect routes
 
-A guard is a function that runs before your handler and either lets the request through or stops it with an error. SelfAuth gives you three guards, and one helper that makes guards mandatory.
+A guard is a function that runs before your handler and either lets the request through or stops it with an error. SelfAuth gives you three of them, plus a helper that makes guards mandatory.
 
 ## The three guards
 
@@ -20,7 +20,7 @@ In the code: Express `auth.requireAuth`, Fastify `auth.requireAuth`, Gin `a.Requ
 
 ## Require a permission
 
-First, the permission must be declared and given to a role (see [Permissions and roles](./permissions-roles)). Then:
+The permission has to be declared and given to a role first (see [Permissions and roles](./permissions-roles)). Then:
 
 ::: code-group
 
@@ -44,7 +44,7 @@ api.GET("/reports", a.RequirePermission("reports.view"), func(c *gin.Context) {
 
 :::
 
-What you will see. For a user without the permission:
+A user without the permission sees:
 
 ```text
 HTTP/1.1 403 Forbidden
@@ -52,11 +52,11 @@ HTTP/1.1 403 Forbidden
 {"error":{"code":"FORBIDDEN","message":"...","requestId":"..."}}
 ```
 
-Typos are caught at startup. `requirePermission("reprots.view")` throws when the route is defined, because that permission is not in your configuration. In Gin it panics at startup. You find the mistake when you start the server, not when a user hits the route.
+Typos get caught at startup. `requirePermission("reprots.view")` throws as soon as the route is defined, because that permission isn't in your configuration (in Gin it panics). You find out when you start the server, not when a user hits the route.
 
 ## Several guards
 
-Express accepts several handlers; Fastify accepts an array of `preHandler`s; in Gin put them one after the other.
+In Express you can pass several handlers. Fastify takes an array of `preHandler`s, and in Gin you list them one after another.
 
 ::: code-group
 
@@ -76,7 +76,7 @@ api.POST("/reports", a.RequirePermission("reports.create"), validate, handler)
 
 ## Deny by default with `protectedRoutes`
 
-The risk of guards is forgetting one. `protectedRoutes` flips the default: a route is refused unless a guard explicitly allowed it.
+The trouble with guards is forgetting one. `protectedRoutes` flips that: a route is refused unless a guard explicitly allowed it.
 
 ::: code-group
 
@@ -101,17 +101,19 @@ routes.GET("/oops", handler)                       // always 403
 
 :::
 
-The methods are `get`, `post`, `put`, `patch` and `delete` (Gin: `GET`, `POST`, ...).
+The methods are `get`, `post`, `put`, `patch` and `delete` (`GET`, `POST` and so on in Gin).
 
-What happens inside, in order:
+For each request it goes through these steps:
 
-1. sign-in is required (`401` if not);
-2. your guards run;
-3. a final check refuses the request with `403 FORBIDDEN` unless a guard marked it as authorized;
-4. your handler runs.
+1. Sign-in is required, so `401` if there's no session.
+2. Your guards run.
+3. A final check returns `403 FORBIDDEN` unless one of the guards marked the request as authorized.
+4. Your handler runs.
 
 ::: warning `requireAuth` alone does not count
-Only `requirePermission` and `authorizeResource` mark a request as authorized. A route inside `protectedRoutes` that has only `requireAuth` is refused with `403`. This is deliberate: "signed in" is not an authorization decision. If you want any signed-in user to pass, make a permission that every default role holds, or keep that route on a normal router with `requireAuth`.
+
+Only `requirePermission` and `authorizeResource` mark a request as authorized, so a route inside `protectedRoutes` with just `requireAuth` gets `403`. That's on purpose: being signed in isn't an authorization decision. If you want every signed-in user through, either create a permission all default roles hold, or keep that route on a normal router with `requireAuth`.
+
 :::
 
 ## The decision table
@@ -127,8 +129,5 @@ Only `requirePermission` and `authorizeResource` mark a request as authorized. A
 
 ## Admin-only routes
 
-The built-in administrator permissions (`auth.users.manage`, `auth.roles.assign`, and so on) are for SelfAuth's own admin routes. For your own admin features, define your own permission, such as `reports.manage`, and give it to the `admin` role (or any role) in the configuration.
+The built-in administrator permissions (`auth.users.manage`, `auth.roles.assign` and the rest) belong to SelfAuth's own admin routes. For admin features of your own, define a permission such as `reports.manage` and give it to the `admin` role, or any other role, in the configuration.
 
-::: tip The server decides, always
-Hiding a button in the browser is a convenience. A user can call your API directly, so every route needs its own guard on the server.
-:::

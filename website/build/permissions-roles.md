@@ -6,11 +6,11 @@ keywords: [permissions, roles, rbac, seed, defaultRoles, admin role, create-admi
 
 # Permissions and roles
 
-SelfAuth uses RBAC (role-based access control):
+SelfAuth uses role-based access control, usually shortened to RBAC. The idea is simple:
 
-- a permission is one thing someone may do, such as `orders.view`;
-- a role is a named set of permissions, such as `user` or `support`;
-- a user has roles, and holds all the permissions of those roles.
+- A permission is one thing someone may do, like `orders.view`.
+- A role is a named set of permissions, like `user` or `support`.
+- A user has roles and ends up with every permission those roles carry.
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ flowchart LR
 
 ## Step 1: Declare permissions
 
-In the configuration file (`src/config/selfauth.config.ts`, or `selfauth.config.json` for Gin) find `authorization`:
+Open the configuration file (`src/config/selfauth.config.ts`, or `selfauth.config.json` for Gin) and find `authorization`:
 
 ```ts
 "authorization": {
@@ -35,23 +35,25 @@ In the configuration file (`src/config/selfauth.config.ts`, or `selfauth.config.
 }
 ```
 
-If you ran `init --permissions orders.view,orders.create`, the `permissions` list already holds them. Otherwise add them:
+If you ran `init --permissions orders.view,orders.create`, the list already has those two. If not, add them:
 
 ```ts
 "permissions": ["orders.view", "orders.create", "orders.view_any"],
 ```
 
-Naming rules (checked at startup and by `selfauth validate`):
+Names have to follow a few rules, which are checked at startup and by `selfauth validate`:
 
-- two or more segments separated by dots: `orders.view`, `billing.invoices.refund`;
-- each segment is lowercase letters, digits and underscores, starting with a letter;
-- no wildcards (`orders.*` does not exist) and no "deny" permissions;
-- the prefix `auth.` is reserved for SelfAuth's system permissions.
+- Two or more segments separated by dots, like `orders.view` or `billing.invoices.refund`.
+- Each segment is lowercase letters, digits and underscores, and starts with a letter.
+- No wildcards (there's no `orders.*`) and no "deny" permissions.
+- The `auth.` prefix is reserved for SelfAuth's system permissions.
 
 ## Step 2: Give them to roles
 
 ::: warning Declared is not granted
-Declaring a permission does not give it to anyone. A new project has `"user": []`: no permissions at all. Add each permission to the roles that should hold it.
+
+Declaring a permission doesn't give it to anyone. A new project has `"user": []`, which means no permissions at all. Add each permission to whichever roles should have it.
+
 :::
 
 ```ts
@@ -71,7 +73,7 @@ Declaring a permission does not give it to anyone. A new project has `"user": []
 
 ## Step 3: Write the roles to the database
 
-The roles live in your database. The server never writes them for you in production. Run the seed after each change:
+Roles live in your database, and in production the server never writes them for you. Run the seed after each change:
 
 ::: code-group
 
@@ -85,13 +87,13 @@ go run ./cmd/seed
 
 :::
 
-With the in-memory store there is nothing to run: the server writes the roles at every start.
+With the in-memory store there's nothing to run, because the server writes the roles at every start.
 
-Then restart the server, because the configuration is read at startup. Users who are already signed in get their new permissions on their next request, since permissions are read from the database each time.
+Then restart the server, since the configuration is only read at startup. People who are already signed in pick up their new permissions on their next request, because permissions are read from the database every time.
 
 ## Step 4: Check the result
 
-Register and sign in a user, then call `/auth/me`. The `permissions` array lists what that user holds. This is real output after the change above:
+Register and sign in a user, then call `/auth/me`. The `permissions` array shows what they hold. This is real output after the change above:
 
 ```text
 {"user":{"id":"f9108568-995f-4605-a6a7-bbb8c02b5036","email":"alice@example.com","emailVerified":true,"state":"active","roles":["user"],"permissions":["orders.create","orders.view"]}}
@@ -99,7 +101,7 @@ Register and sign in a user, then call `/auth/me`. The `permissions` array lists
 
 ## The first administrator
 
-Nobody becomes an administrator through the API, on purpose. After the person has registered and verified their email, you run on the server:
+Nobody becomes an administrator through the API, and that's intentional. Once the person has registered and verified their email, you run this on the server:
 
 ::: code-group
 
@@ -115,13 +117,13 @@ go run ./cmd/create-admin admin@example.com
 
 :::
 
-Expected output: `admin@example.com is now an administrator.` If the account is missing or not verified, it says "No active account with that email. Register and verify it first." and exits with code 1.
+You should see `admin@example.com is now an administrator.` If the account doesn't exist or isn't verified, you get "No active account with that email. Register and verify it first." and exit code 1.
 
-An administrator can then use the [administration routes](/api/http#administration) to suspend accounts and assign roles. Those routes also require a recent password entry: if the admin signed in more than 15 minutes ago (`reauthenticationWindowMinutes`), the call returns `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
+The admin can then use the [administration routes](/api/http#administration) to suspend accounts and assign roles. Those routes also ask for a recent password entry. If the admin signed in more than 15 minutes ago (`reauthenticationWindowMinutes`), the call returns `REAUTHENTICATION_REQUIRED` and they need to sign in again.
 
 ## System permissions
 
-Used by SelfAuth's own administration routes. You do not declare them.
+SelfAuth's own administration routes use these. You don't declare them yourself.
 
 | Permission | Allows |
 | --- | --- |
@@ -132,9 +134,9 @@ Used by SelfAuth's own administration routes. You do not declare them.
 | `auth.roles.manage` | Create and change roles and their permissions |
 | `auth.audit.read` | Read security events |
 
-Rules enforced for you: you cannot grant a permission you do not hold yourself, and the last administrator cannot be removed or deleted.
+A couple of rules are enforced for you: you can't grant a permission you don't hold, and the last administrator can't be removed or deleted.
 
-## Use the permission in your code
+## Using a permission in your code
 
 - Server: [`requirePermission("orders.view")`](./protect-routes)
 - Frontend: [`<Can permission="orders.view">`](./frontend-pages#hide-parts-of-a-page-with-can) and route `meta: { permission: "orders.view" }`

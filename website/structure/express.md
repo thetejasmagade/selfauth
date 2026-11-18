@@ -6,7 +6,7 @@ keywords: [express, directory structure, src/auth, routes, config, prisma, boile
 
 # Express API project structure
 
-This is what `npx selfauth init my-app` creates (Express, PostgreSQL, no frontend). With `--database memory`, the `prisma/` folder, `prisma.config.ts`, the Prisma store and the `src/scripts/` folder are left out.
+This is what `npx selfauth init my-app` gives you for Express with PostgreSQL and no frontend. Use `--database memory` and you won't get the `prisma/` folder, `prisma.config.ts`, the Prisma store or `src/scripts/`.
 
 ## The tree
 
@@ -69,7 +69,7 @@ my-app/
 └── selfauth.manifest.json
 ```
 
-★ marks the files you will touch most. ⚠ marks the part to leave alone.
+★ marks the files you'll touch most. ⚠ marks the part you should leave alone.
 
 ## How the pieces connect
 
@@ -88,27 +88,27 @@ flowchart TB
   core --> stores
 ```
 
-Read `src/server.ts` first. It is short, and it shows the whole startup: environment, configuration, stores, mailer, `createAuth`, then `createApp`.
+Start with `src/server.ts`. It's short and shows the whole startup in order: environment, configuration, stores, mailer, `createAuth`, then `createApp`.
 
 ## Important files in detail
 
 ### `src/server.ts`
 
-Starts everything. If the environment is invalid, it prints the problems and exits with code 1 instead of starting half-configured.
+This starts everything. If the environment is invalid it prints every problem and exits with code 1, rather than starting half configured.
 
 ### `src/app.ts`
 
-Builds the Express app in a fixed order. The order matters:
+`createApp` wires things up in a fixed order, and the order matters:
 
-1. request id and request logging (path only, never bodies or query strings);
-2. JSON body parser with the size limit from your configuration;
-3. `auth.middleware`: CORS, session lookup, CSRF check;
-4. `GET /health`;
-5. the authentication routes under `http.basePath` (default `/auth`);
-6. your routes, through `mount`;
-7. the 404 handler and the error handlers.
+1. Request id and request logging (the path only, never bodies or query strings).
+2. The JSON body parser, with the size limit from your configuration.
+3. `auth.middleware`, which does CORS, session lookup and the CSRF check.
+4. `GET /health`.
+5. The authentication routes under `http.basePath`, `/auth` by default.
+6. Your routes, through `mount`.
+7. The 404 handler and the error handlers.
 
-Add routes through `src/routes/index.ts`, not here, so they come after the middleware and before the 404 handler. See [Add an API route](/build/add-api-route).
+Don't add routes here. Put them in `src/routes/index.ts`, which runs after the middleware and before the 404 handler. See [Add an API route](/build/add-api-route).
 
 ### `src/routes/index.ts`
 
@@ -122,27 +122,27 @@ export function mountRoutes(app: express.Express, auth: Auth): void {
 }
 ```
 
-The only generated route. Replace it with yours.
+That's the only route that comes with the project. Replace it with your own.
 
 ### `src/config/selfauth.config.ts`
 
-All behavior settings as one object. See [The configuration file](/configuration/config-file). Out of the box `authorization.roles` is `{ user: [], admin: [] }`: declared permissions are not given to any role until you do it. See [Permissions and roles](/build/permissions-roles).
+Every behavior setting lives in this one object. See [The configuration file](/configuration/config-file). One thing that catches people out: `authorization.roles` starts as `{ user: [], admin: [] }`, so permissions you declare aren't given to any role until you do it yourself. [Permissions and roles](/build/permissions-roles) shows how.
 
 ### `src/config/env.ts`
 
-Reads `NODE_ENV`, `PORT`, `SELFAUTH_APP_BASE_URL`, `SELFAUTH_CSRF_SECRET` and `SELFAUTH_CSRF_SECRET_PREVIOUS`, and validates them. Add your own variables here so a missing one fails at startup.
+Reads and validates `NODE_ENV`, `PORT`, `SELFAUTH_APP_BASE_URL`, `SELFAUTH_CSRF_SECRET` and `SELFAUTH_CSRF_SECRET_PREVIOUS`. If you add your own variables, read them here so a missing one stops the server at startup.
 
 ### `src/db/store.ts`
 
-Chooses the store. With `DATABASE_URL` set it uses PostgreSQL. Without it, in development, it uses memory. In production without `DATABASE_URL` it refuses to start.
+Picks the store. With `DATABASE_URL` set you get PostgreSQL. Without it, development falls back to memory, and production refuses to start.
 
 ### `src/email/mailer.ts`
 
-In development it prints emails to the terminal. In production it throws on purpose until you implement it. See [Send real email](/build/email).
+In development it prints emails to the terminal. In production it throws until you implement it, so you can't forget. See [Send real email](/build/email).
 
 ### `src/scripts/`
 
-`seed.ts` writes the roles from your configuration into the database. Run it after every change to roles or permissions. `create-admin.ts` gives the admin role to an existing, verified account.
+`seed.ts` writes the roles from your configuration into the database, so run it after every change to roles or permissions. `create-admin.ts` gives the admin role to an account that already exists and is verified.
 
 ## `package.json` scripts
 
@@ -159,4 +159,4 @@ In development it prints emails to the terminal. In production it throws on purp
 | `npm run db:create-admin you@example.com` | Grants the admin role |
 | `npm run generate` | Generates the Prisma client (also runs after `npm install`) |
 
-`generate`, `prisma.config.ts` and the `prisma/` folder exist only for Prisma databases (PostgreSQL, MySQL, SQLite). With MongoDB, `db:migrate` runs `src/scripts/migrate.ts`, which creates indexes. With `--database memory` there are no `db:*` scripts.
+`generate`, `prisma.config.ts` and the `prisma/` folder only exist for Prisma databases (PostgreSQL, MySQL and SQLite). With MongoDB, `db:migrate` runs `src/scripts/migrate.ts`, which creates indexes. With `--database memory` there are no `db:*` scripts at all.

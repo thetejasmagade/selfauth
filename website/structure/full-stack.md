@@ -8,10 +8,10 @@ keywords: [vue, react, vite, client, server, workspace, pages, router, frontend 
 
 `npx selfauth init my-app --frontend vue` (or `react`) creates two packages in one npm workspace:
 
-- `server/` is the API. Its contents are exactly the [Express](./express) (or [Fastify](./fastify)) project.
+- `server/` is the API. It's exactly the [Express](./express) (or [Fastify](./fastify)) project.
 - `client/` is the frontend, built with Vite.
 
-One `npm install` at the root installs both, and `npm run dev` starts both.
+A single `npm install` at the root installs both, and `npm run dev` starts both.
 
 ## The tree
 
@@ -58,7 +58,7 @@ my-app/
                 └── ResetPasswordPage.vue
 ```
 
-The pages are plain, unstyled HTML: they work, and are ready for your own design.
+The pages are plain unstyled HTML. They work, and they're ready for your own design.
 
 ## Root scripts
 
@@ -74,9 +74,9 @@ The pages are plain, unstyled HTML: they work, and are ready for your own design
 
 ## How the browser reaches the API
 
-The dev server proxies `/auth` and `/api` to the API, so the browser sees one origin (`http://localhost:5173`). This is the simplest and recommended setup: cookies and CSRF work with no extra configuration.
+In development, the Vite dev server forwards `/auth` and `/api` to the API, so the browser only ever sees one origin, `http://localhost:5173`. That's the simplest setup and the one I'd recommend: cookies and CSRF just work.
 
-`client/vite.config.ts`:
+The proxy lives in `client/vite.config.ts`:
 
 ```ts
 const target = process.env["SELFAUTH_API_TARGET"] ?? "http://localhost:3000";
@@ -86,12 +86,12 @@ const proxy = {
 };
 ```
 
-Two consequences:
+Two things follow from that:
 
-- Your own API routes must start with `/api` to be proxied. A route at `/orders` is not reachable from the browser in development unless you add it to `proxy`.
-- If the API runs elsewhere, set `SELFAUTH_API_TARGET`.
+- Your own API routes need to start with `/api` to get forwarded. A route at `/orders` won't be reachable from the browser in development unless you add it to `proxy`.
+- If the API runs somewhere else, set `SELFAUTH_API_TARGET`.
 
-The backend only trusts the frontend address in `server/.env`: `SELFAUTH_APP_BASE_URL=http://localhost:5173`. If you serve the frontend from another address, update it. See [Frontend deployment](/configuration/frontend-deployment).
+The backend only trusts the frontend address in `server/.env`, `SELFAUTH_APP_BASE_URL=http://localhost:5173`. Serve the frontend from another address and you need to update it. See [Frontend deployment](/configuration/frontend-deployment).
 
 ## The account pages and their routes
 
@@ -107,12 +107,12 @@ The backend only trusts the frontend address in `server/.env`: `SELFAUTH_APP_BAS
 | Forbidden | `/forbidden` | Where users are sent when a permission is missing |
 | Not found | anything else | |
 
-The verify and reset routes must keep these exact paths: the server builds the email links from them.
+Don't rename the verify and reset routes. The server builds the links in its emails from those exact paths.
 
 ## Where your pages go
 
 1. Create the page in `client/src/pages/`.
-2. Register its route: Vue in `client/src/router.ts`, React in the `<Routes>` of `client/src/App.tsx`.
+2. Register the route: in `client/src/router.ts` for Vue, or in the `<Routes>` of `client/src/App.tsx` for React.
 3. Protect it with route meta (Vue) or `<RequireAuth>` (React).
 
-The full walkthrough is in [Add a frontend page](/build/frontend-pages).
+[Add a frontend page](/build/frontend-pages) walks through a full example.

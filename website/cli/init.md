@@ -6,7 +6,7 @@ keywords: [selfauth init, create project, --backend, --database, --frontend, --p
 
 # `selfauth init`
 
-Creates a new project in a folder. The folder may be empty or not exist yet. It must not already contain a `package.json`, a `go.mod` or a SelfAuth manifest: for an existing project use [`add`](./add).
+Creates a new project in a folder. The folder can be empty or not exist yet, but it can't already contain a `package.json`, a `go.mod` or a SelfAuth manifest. For an existing project, use [`add`](./add).
 
 ```text
 selfauth init [dir] [options]
@@ -14,9 +14,9 @@ selfauth init [dir] [options]
 
 ## Interactive or not
 
-Run it with no options in a terminal and it asks each question: the folder, backend, database, frontend (not for Gin), your permissions, the address of your frontend (for API-only projects), the Go module path (for Gin), and whether to run `npm install`. Move with the arrow keys or type a number. A bad answer is explained and asked again. Ctrl-C cancels and writes nothing. Before writing, it shows the list of files and asks for confirmation.
+Run it with no options in a terminal and it asks you everything: the folder, backend, database, frontend (not for Gin), permissions, the address of your frontend (API-only projects), the Go module path (Gin), and whether to run `npm install`. Use the arrow keys or type a number. If an answer is bad it tells you why and asks again. Ctrl-C cancels and writes nothing. Before writing anything it shows the list of files and asks you to confirm.
 
-Every option below answers its question in advance, so you only see the questions you left out. With `--yes`, or when there is no terminal (CI, scripts, agents), nothing is asked and the defaults are used for whatever you did not give.
+Each option below answers its question in advance, so you only get asked about what you left out. With `--yes`, or when there's no terminal (CI, scripts, agents), nothing is asked and the defaults fill in whatever you didn't give.
 
 ## Options
 
@@ -33,17 +33,17 @@ Every option below answers its question in advance, so you only see the question
 | `--dry-run` | – | – | Print the plan and write nothing |
 | `--install` | – | asked (default yes) in the wizard; no with `--yes` | Run `npm install` afterwards. Not used for Gin |
 
-Permission names must follow the [naming rules](/build/permissions-roles#step-1-declare-permissions). A bad name is refused.
+Permission names have to follow the [naming rules](/build/permissions-roles#step-1-declare-permissions), and a bad one is refused.
 
 ## Examples
 
-Try SelfAuth with no database:
+To try SelfAuth with no database:
 
 ```bash
 npx selfauth init my-app --database memory -y
 ```
 
-A production-style API on PostgreSQL:
+An API on PostgreSQL:
 
 ```bash
 npx selfauth init my-api --database postgresql --permissions orders.view,orders.create -y
@@ -61,7 +61,7 @@ A Go project:
 npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api -y
 ```
 
-See the plan first:
+To see the plan first:
 
 ```bash
 npx selfauth init my-app --dry-run -y
@@ -69,7 +69,7 @@ npx selfauth init my-app --dry-run -y
 
 ## Expected output
 
-An API-only Express project on the in-memory store (real output; the file list is shortened):
+An API-only Express project on the in-memory store (real output, with the file list trimmed):
 
 ```text
 SelfAuth init → /home/you/my-app
@@ -116,7 +116,7 @@ Next steps:
 Before production: implement NewMailer in internal/email/mailer.go, then run `npx selfauth doctor`.
 ```
 
-The file counts depend on the options you chose.
+The number of files depends on the options you chose.
 
 ## What gets created
 

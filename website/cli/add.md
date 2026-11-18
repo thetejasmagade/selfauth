@@ -6,13 +6,13 @@ keywords: [selfauth add, add-frontend, existing project, --src, --allow-existing
 
 # `selfauth add` and `selfauth add-frontend`
 
-These commands put SelfAuth into a project you already have. They create new files only. Your own files are never edited: the commands print the few edits you make yourself.
+These commands put SelfAuth into a project you already have. They only create new files and never edit yours. Instead, they print the few edits you need to make yourself.
 
-Run `npx selfauth detect` first: it tells you which command applies. For the step-by-step walkthrough with layouts and monorepos see [Existing projects](/advanced/existing-projects).
+Run `npx selfauth detect` first to see which command applies. [Existing projects](/advanced/existing-projects) has a step-by-step walkthrough, including different layouts and monorepos.
 
 ## `selfauth add`
 
-Adds the backend to an existing Express 5 or Fastify 5 + TypeScript project (ESM, TypeScript 5.7 or newer).
+Adds the backend to an existing Express 5 or Fastify 5 project that uses TypeScript (ESM, TypeScript 5.7 or newer).
 
 ```text
 selfauth add [dir] [options]
@@ -39,13 +39,13 @@ selfauth add [dir] [options]
 | `backend/src/` | `backend/src/selfauth/` | `selfauth add --src backend/src` |
 | the project root | `selfauth/` | `selfauth add --src .` |
 
-You usually do not need `--src`: `add` finds the file that creates your app and writes beside it, and tells you what it chose.
+You usually don't need `--src`. `add` finds the file that creates your app, writes beside it, and tells you what it picked.
 
 ### What you must do yourself
 
-`add` prints these steps at the end. In short:
+`add` prints these steps when it finishes. In short:
 
-1. Compiler options. Add `allowImportingTsExtensions` and `rewriteRelativeImportExtensions` to `tsconfig.json`. `add` first checks that your `tsconfig.json` covers the new folder and stops if it does not.
+1. Compiler options. Add `allowImportingTsExtensions` and `rewriteRelativeImportExtensions` to `tsconfig.json`. `add` checks first that your `tsconfig.json` covers the new folder, and stops if it doesn't.
 2. Wire it in (Express):
 
    ```ts
@@ -55,18 +55,18 @@ You usually do not need `--src`: `add` finds the file that creates your app and 
 
 3. Set the environment: `SELFAUTH_APP_BASE_URL` and, for a database, `DATABASE_URL`.
 4. Guard your routes with `selfauth.auth.requireAuth` and friends.
-5. Your frontend must send `X-SelfAuth-CSRF: 1` on state-changing requests. This protects your whole app, not only `/auth`.
+5. Make your frontend send `X-SelfAuth-CSRF: 1` on state-changing requests. That protects your whole app, not just `/auth`.
 6. For Prisma databases, add `<src>/selfauth/generated/` to `.gitignore`.
 
 ### Limits
 
-- Not for Go projects.
-- Merging into an existing Prisma schema is not supported. Use `--database memory` to try it, or copy the models by hand as a reviewed migration.
-- Several Express apps in one package: `add` uses the first entry file and lists the others; pass `--src` for another.
+- It doesn't work on Go projects.
+- Merging into an existing Prisma schema isn't supported. Use `--database memory` to try it, or copy the models by hand as a reviewed migration.
+- With several Express apps in one package, `add` uses the first entry file and lists the others. Pass `--src` to pick another.
 
 ## `selfauth add-frontend`
 
-Adds the authentication module to an existing Vue or React app: the API client, session state, route guard (Vue) or `<RequireAuth>` (React), `<Can>`, and the redirect and URL-token helpers. It generates no pages: you build your own sign-in and sign-up screens with the client.
+Adds the authentication module to an existing Vue or React app: the API client, session state, a route guard (Vue) or `<RequireAuth>` (React), `<Can>`, and the redirect and URL token helpers. It doesn't generate any pages, so you build your own sign-in and sign-up screens with the client.
 
 ```text
 selfauth add-frontend [dir] [options]
@@ -80,7 +80,7 @@ selfauth add-frontend [dir] [options]
 | `--dry-run` | – | – | Show the plan only |
 | `--install` | – | – | Install missing packages |
 
-The module needs `vue` and `vue-router` (or `react` and `react-router`). If one is missing, the command says which and prints the install command.
+The module needs `vue` and `vue-router`, or `react` and `react-router`. If one is missing, the command says which and prints the install command.
 
 It prints the wiring for your entry file. For Vue:
 
@@ -92,7 +92,7 @@ installAuthGuard(router, store, { login: "/login", forbidden: "/forbidden", home
 createApp(App).use(createAuthPlugin(store)).use(router).mount("#app");
 ```
 
-How the browser reaches the API is your decision and `add-frontend` does not make it: see [Frontend deployment](/configuration/frontend-deployment).
+How the browser reaches the API is your call, and `add-frontend` doesn't make it for you. See [Frontend deployment](/configuration/frontend-deployment).
 
 ## Monorepos
 

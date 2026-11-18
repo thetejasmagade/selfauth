@@ -6,23 +6,21 @@ keywords: [http api, rest, /auth/login, /auth/register, csrf, cookies, endpoints
 
 # HTTP API
 
-The routes served under `http.basePath` (default `/auth`) by the generated Express, Fastify and Gin backends. They behave the same on all three. The normative behavior is in the [authentication specification](https://github.com/thetejasmagade/selfauth/blob/main/packages/spec/specs/AUTHENTICATION_SPEC.md); this page is the practical reference. A test in the SelfAuth repository checks that the table below matches the routes the server registers.
+These are the routes the generated Express, Fastify and Gin backends serve under `http.basePath` (`/auth` by default), and they behave the same on all three. The normative behavior is in the [authentication specification](https://github.com/thetejasmagade/selfauth/blob/main/packages/spec/specs/AUTHENTICATION_SPEC.md). This page is the practical version. A test in the SelfAuth repository checks that the routes listed below match what the server really registers.
 
 ## Conventions
 
-- Bodies are JSON (`Content-Type: application/json`) and limited to `http.bodyLimitBytes` (default 16 KiB). A larger body gets `413 PAYLOAD_TOO_LARGE`.
-- Session is an opaque token in an `HttpOnly` cookie named `__Host-session` by default (`dev_session` in development). Browsers send it automatically. Use `credentials: "include"` when the API is on another origin.
-- CSRF: every `POST`, `PUT`, `PATCH` and `DELETE` must come from a trusted origin and carry the CSRF header:
-  - `header` mode (default): `X-SelfAuth-CSRF: 1`.
-  - `token` mode: `X-SelfAuth-CSRF: <csrfToken>`, using the `csrfToken` returned by `login`, `me` and `password/change`.
+- Bodies are JSON (`Content-Type: application/json`), capped at `http.bodyLimitBytes` (16 KiB by default). Anything larger gets `413 PAYLOAD_TOO_LARGE`.
+- The session is an opaque token in an `HttpOnly` cookie, `__Host-session` by default and `dev_session` in development. Browsers send it automatically. Use `credentials: "include"` when the API is on another origin.
+- Every `POST`, `PUT`, `PATCH` and `DELETE` must come from a trusted origin and carry the CSRF header. In `header` mode (the default) that's `X-SelfAuth-CSRF: 1`. In `token` mode it's `X-SelfAuth-CSRF: <csrfToken>`, using the `csrfToken` returned by `login`, `me` and `password/change`.
 
-  A request that fails either check gets `403 CSRF_FAILED`. This applies to the whole app, not only `/auth`.
-- Errors always look like `{ "error": { "code": "…", "message": "…", "requestId": "…" } }`. Branch on `code`, never on `message`. Every response carries `X-Request-Id`. See [Error codes](./errors).
-- Rate limits apply per account and per IP address to `login`, `register`, `password/change`, `password/reset-request` and `email/verification`. When exceeded: `429 RATE_LIMITED` with a `Retry-After` header.
-- Enumeration safety: `register`, `password/reset-request` and `email/verification` answer the same way whether or not the email exists. `login` returns the same `INVALID_CREDENTIALS` for an unknown email and a wrong password.
-- Caching: authentication responses are sent with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
+- A request that fails either check gets `403 CSRF_FAILED`. This covers the whole app, not just `/auth`.
+- Errors always look like `{ "error": { "code": "…", "message": "…", "requestId": "…" } }`. Branch on `code` and never on `message`. Every response also carries an `X-Request-Id` header. See [Error codes](./errors).
+- Rate limits apply per account and per IP address to `login`, `register`, `password/change`, `password/reset-request` and `email/verification`. Go over and you get `429 RATE_LIMITED` with a `Retry-After` header.
+- `register`, `password/reset-request` and `email/verification` answer the same way whether or not the email exists, and `login` returns the same `INVALID_CREDENTIALS` for an unknown email and a wrong password.
+- Authentication responses are sent with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
 
-The `user` object is `{ id, email, emailVerified, state, roles, permissions }`. It never includes credentials.
+The `user` object is `{ id, email, emailVerified, state, roles, permissions }` and never includes credentials.
 
 ## Registration and sessions
 
@@ -49,7 +47,7 @@ The `user` object is `{ id, email, emailVerified, state, roles, permissions }`. 
 
 ## Administration
 
-These routes need a permission and a recent password entry within `authorization.reauthenticationWindowMinutes` (default 15). A stale session gets `REAUTHENTICATION_REQUIRED` and the admin must sign in again.
+These routes need a permission plus a recent password entry, within `authorization.reauthenticationWindowMinutes` (15 by default). If the session is too old you get `REAUTHENTICATION_REQUIRED` and the admin has to sign in again.
 
 | Route | Body | Success | Typical errors |
 | --- | --- | --- | --- |
@@ -57,16 +55,16 @@ These routes need a permission and a recent password entry within `authorization
 | `POST /auth/admin/users/:id/roles` | `{ role }` | `204` | `FORBIDDEN` (needs `auth.roles.assign`, and no granting permissions you don't hold), `REAUTHENTICATION_REQUIRED`, `NOT_FOUND` |
 | `DELETE /auth/admin/users/:id/roles/:role` | — | `204` | Same as assigning, plus `CONFLICT` (removing the last admin) |
 
-Rules enforced for you: you cannot grant a permission you do not hold, and the last administrator cannot be removed, suspended or deleted. Create the first administrator on the server: see [Permissions and roles](/build/permissions-roles#the-first-administrator).
+Some rules are enforced for you: you can't grant a permission you don't hold, and the last administrator can't be removed, suspended or deleted. The first administrator is created on the server. See [Permissions and roles](/build/permissions-roles#the-first-administrator).
 
 ## Email links
 
 Verification and reset emails link to frontend pages built from `SELFAUTH_APP_BASE_URL`:
 
-- `<app>/verify-email#token=…`: the page POSTs `{ token }` to `/auth/email/verify`;
-- `<app>/reset-password#token=…`: the page POSTs `{ token, newPassword }` to `/auth/password/reset`.
+- `<app>/verify-email#token=…`, where the page POSTs `{ token }` to `/auth/email/verify`.
+- `<app>/reset-password#token=…`, where the page POSTs `{ token, newPassword }` to `/auth/password/reset`.
 
-The token is in the URL fragment, so it never reaches server logs or `Referer` headers. The generated Vue and React apps include both pages.
+The token sits in the URL fragment, so it never reaches server logs or `Referer` headers. The generated Vue and React apps include both pages.
 
 ## Example session
 
@@ -76,7 +74,7 @@ curl -s -c jar -b jar -H 'Content-Type: application/json' -H 'X-SelfAuth-CSRF: 1
 curl -s -b jar http://localhost:3000/auth/me
 ```
 
-For a full walk-through with real responses, see [Try the authentication flow](/getting-started/first-flow).
+For a walkthrough with real responses, see [Try the authentication flow](/getting-started/first-flow).
 
 ## From JavaScript
 
@@ -91,4 +89,4 @@ const body = await response.json();
 if (!response.ok) console.error(body.error.code);   // e.g. "INVALID_CREDENTIALS"
 ```
 
-With a generated frontend you rarely write this: the [client](./client) does it.
+With a generated frontend you rarely need to write this yourself, because the [client](./client) does it.

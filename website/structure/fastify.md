@@ -6,7 +6,7 @@ keywords: [fastify, directory structure, preHandler, fastify adapter, boilerplat
 
 # Fastify API project structure
 
-`npx selfauth init my-app --backend fastify` creates the same project as [Express](./express): the same folders, scripts, configuration, stores and tests. Only the HTTP glue differs.
+`npx selfauth init my-app --backend fastify` gives you the same project as [Express](./express): same folders, scripts, configuration, stores and tests. Only the HTTP glue is different.
 
 ## What is different
 
@@ -19,7 +19,7 @@ keywords: [fastify, directory structure, preHandler, fastify adapter, boilerplat
 | Route guards are middleware | Route guards are async `preHandler` hooks |
 | Dependencies: `express`, `cookie`, `@node-rs/argon2` | Dependencies: `fastify`, `cookie`, `@node-rs/argon2` |
 
-`HOST` sets the interface the server listens on (`0.0.0.0` by default).
+`HOST` sets the interface the server listens on, and defaults to `0.0.0.0`.
 
 ## The tree (differences only)
 
@@ -35,7 +35,7 @@ my-app/
 
 ## Your routes
 
-`src/routes/index.ts`:
+`src/routes/index.ts` looks like this:
 
 ```ts
 import type { FastifyInstance } from "fastify";
@@ -48,10 +48,10 @@ export function mountRoutes(app: FastifyInstance, auth: Auth): void {
 }
 ```
 
-The `preHandler` option runs the guard before your handler. Add a permission check the same way:
+The `preHandler` option runs a guard before your handler. A permission check works the same way:
 
 ```ts
 app.get("/api/orders", { preHandler: auth.requirePermission("orders.view") }, async () => []);
 ```
 
-For deny-by-default groups of routes, use `auth.protectedRoutes(app, "/api/orders")`: see [Protect routes](/build/protect-routes).
+For groups of routes that are denied unless a guard allows them, use `auth.protectedRoutes(app, "/api/orders")`. See [Protect routes](/build/protect-routes).

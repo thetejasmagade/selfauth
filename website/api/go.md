@@ -6,11 +6,11 @@ keywords: [gin, go, ginauth, RequireAuth, RequirePermission, AuthorizeResource, 
 
 # Server API (Go and Gin)
 
-The API of the code `selfauth init --backend gin` puts in your project: `internal/ginauth` (the Gin adapter) and `internal/auth` (the core). It is your code, so you call it directly. The examples assume the module path `github.com/you/my-api`.
+This is the API of the code `selfauth init --backend gin` puts in your project: `internal/ginauth` (the Gin adapter) and `internal/auth` (the core). It's your code, so you call it directly. The examples assume the module path `github.com/you/my-api`.
 
 ## Setup
 
-`cmd/server/main.go` and `internal/app/` already do this:
+`cmd/server/main.go` and `internal/app/` already do this for you:
 
 ```go
 a, err := app.NewAuth(app.AuthOptions{
@@ -20,7 +20,7 @@ a, err := app.NewAuth(app.AuthOptions{
 router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: routes.Register})
 ```
 
-`NewAuth` refuses unsafe production settings: an insecure cookie, or an application base URL that is not `https`. `NewRouter` builds the Gin engine in a fixed order: request id and recovery, request logging, the JSON body limit, then SelfAuth's CORS, session and CSRF middleware, then `GET /health`, the `/auth` routes, your routes (`Mount`), and the 404 handler.
+`NewAuth` refuses unsafe production settings, meaning an insecure cookie or an app base URL that isn't `https`. `NewRouter` builds the Gin engine in a fixed order: request id and recovery, request logging, the JSON body limit, SelfAuth's CORS, session and CSRF middleware, `GET /health`, the `/auth` routes, your routes (`Mount`), and finally the 404 handler.
 
 ## `*ginauth.Auth`
 
@@ -37,7 +37,7 @@ router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, M
 | `Service() *auth.Service` | The framework-independent core behind the routes, for custom flows |
 | `Abort(c, err)` | Stops the request with a SelfAuth error in the standard envelope |
 
-As in the TypeScript API, only `RequirePermission` and `AuthorizeResource` count as authorization inside `ProtectedRoutes`; `RequireAuth` alone does not. See [Protect routes](/build/protect-routes).
+As in the TypeScript API, only `RequirePermission` and `AuthorizeResource` count as authorization inside `ProtectedRoutes`. `RequireAuth` on its own doesn't. See [Protect routes](/build/protect-routes).
 
 ## Helpers in `internal/auth`
 
@@ -73,7 +73,7 @@ As in the TypeScript API, only `RequirePermission` and `AuthorizeResource` count
 
 ## Stores (`internal/store`)
 
-`store.New(ctx, cfg, env)` returns PostgreSQL when `DATABASE_URL` is set, otherwise the in-memory store in development. In production without `DATABASE_URL` it returns an error. The `auth.Store` and `auth.RateLimitStore` interfaces are what a store implements; `internal/store/storetest` holds the shared tests every store must pass.
+`store.New(ctx, cfg, env)` returns PostgreSQL when `DATABASE_URL` is set, and the in-memory store in development otherwise. In production without `DATABASE_URL` it returns an error. A store implements the `auth.Store` and `auth.RateLimitStore` interfaces, and `internal/store/storetest` holds the shared tests every store has to pass.
 
 ## Example: a guarded route
 
@@ -87,4 +87,4 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 }
 ```
 
-A complete example with ownership is in [Resources and ownership](/build/resource-ownership).
+[Resources and ownership](/build/resource-ownership) has a complete example with ownership.
