@@ -4,7 +4,7 @@ description: Add, check, upgrade and explain email/password authentication, sess
 license: MIT
 compatibility: Node.js >= 22.18. Supports Express 5 and Fastify 5 (new and existing projects) + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
-  version: "0.10.0"
+  version: "0.11.0"
   spec: "0.1"
 ---
 
