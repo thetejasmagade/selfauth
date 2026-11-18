@@ -4,12 +4,21 @@ import { createInterface } from "node:readline/promises";
 import { detectSourceLayout } from "../layout.js";
 import { applyPlan, ConflictError, planAdd, selfauthRoot } from "../plan.js";
 import { preflightAdd } from "../preflight.js";
-import { stackDependencies, templateSource, type Database } from "../templates.js";
+import {
+  BACKENDS,
+  stackDependencies,
+  templateSource,
+  type Backend,
+  type Database,
+} from "../templates.js";
+import { detectProject } from "../detect.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 export interface AddOptions {
+  /** `express` or `fastify`; default: the framework found in package.json. */
+  backend?: string;
   database?: string;
-  /** Source folder to write under (`<src>/selfauth/`). Default: found from the Express entry file. */
+  /** Source folder to write under (`<src>/selfauth/`). Default: found from the backend entry file. */
   src?: string;
   permissions?: string;
   appBaseUrl?: string;
@@ -32,7 +41,7 @@ function installCommand(pm: string | null, packages: string[], dev: boolean): st
   }
 }
 
-/** `selfauth add [dir]`: add SelfAuth to an existing Express project without editing its files. */
+/** `selfauth add [dir]`: add SelfAuth to an existing Express or Fastify project without editing its files. */
 export async function add(dirArg: string | undefined, options: AddOptions): Promise<number> {
   const dir = resolve(dirArg ?? ".");
   const database = (options.database ?? "memory") as Database;
@@ -42,11 +51,19 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     return 1;
   }
 
-  const layout = await detectSourceLayout(dir);
+  const detected = await detectProject(dir);
+  const requested = options.backend ?? detected.framework ?? undefined;
+  if (requested !== undefined && !BACKENDS.includes(requested as Backend)) {
+    fail(`Unsupported backend '${requested}'. Supported: ${BACKENDS.join(", ")}.`);
+    return 1;
+  }
+  const backend = (requested ?? "express") as Backend;
+  const layout = await detectSourceLayout(dir, backend);
   const srcDir = options.src ?? layout.sourceDir;
   say(`Source folder: ${srcDir} (${options.src ? "from --src" : layout.basis})`);
   const check = await preflightAdd(dir, {
     database,
+    backend,
     srcDir,
     ...(options.allowExistingAuth ? { allowExistingAuth: true } : {}),
   });
@@ -59,6 +76,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
 
   const answers = {
     name: basename(dir),
+    backend,
     database,
     frontend: "none" as const,
     permissions: (options.permissions ?? "")
@@ -109,7 +127,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     `Created ${files.length} files under ${root}/${database === "postgresql" ? " and prisma/" : ""}.`,
   );
 
-  const deps = stackDependencies(database);
+  const deps = stackDependencies(database, backend);
   const versions = await templateSource().versions();
   const spec = (names: string[]) => names.map((n) => `${n}@${versions[n]}`);
   const commands = [
@@ -137,16 +155,31 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     for (const [k, v] of Object.entries(check.tsconfigChanges))
       say(`     "${k}": ${JSON.stringify(v)},`);
   }
-  say(
-    `${step++}. Wire SelfAuth into your Express app (before your routes, error handler after them):`,
-  );
   const fromDir = layout.entryFile ? posix.dirname(layout.entryFile) : check.srcDir;
   let importPath = posix.relative(fromDir, `${root}/setup.ts`);
   if (!importPath.startsWith(".")) importPath = `./${importPath}`;
-  say(`     import { setupSelfAuth } from "${importPath}";`);
-  say(`     const selfauth = await setupSelfAuth(app);`);
-  say(`     // your routes, e.g. app.get("/api/me", selfauth.auth.requireAuth, handler)`);
-  say(`     app.use(selfauth.errorHandler);`);
+  if (backend === "fastify") {
+    say(
+      `${step++}. Wire SelfAuth into your Fastify app (before your routes; create the app with the server options):`,
+    );
+    say(`     import { selfAuthServerOptions, setupSelfAuth } from "${importPath}";`);
+    say(`     const app = Fastify({ ...selfAuthServerOptions() });`);
+    say(`     const selfauth = await setupSelfAuth(app);`);
+    say(
+      `     // your routes, e.g. app.get("/api/me", { preHandler: selfauth.auth.requireAuth }, handler)`,
+    );
+    say(
+      `     app.setErrorHandler(selfauth.errorHandler);   // or call selfauth.auth.handleError(error, req, reply) in yours`,
+    );
+  } else {
+    say(
+      `${step++}. Wire SelfAuth into your Express app (before your routes, error handler after them):`,
+    );
+    say(`     import { setupSelfAuth } from "${importPath}";`);
+    say(`     const selfauth = await setupSelfAuth(app);`);
+    say(`     // your routes, e.g. app.get("/api/me", selfauth.auth.requireAuth, handler)`);
+    say(`     app.use(selfauth.errorHandler);`);
+  }
   say(
     `${step++}. Set SELFAUTH_APP_BASE_URL (your frontend's URL) in your environment; see ${root}/config/env.ts.`,
   );

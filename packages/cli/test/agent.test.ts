@@ -87,12 +87,12 @@ describe("selfauth detect", () => {
   });
 
   it("unsupported, with the reason, for other frameworks and languages", async () => {
-    const fastify = await write(await temp(), {
-      "package.json": '{ "dependencies": { "fastify": "^5", "mongoose": "^8" } }',
+    const koa = await write(await temp(), {
+      "package.json": '{ "dependencies": { "koa": "^2", "mongoose": "^8" } }',
     });
-    const r = await inspect(fastify);
+    const r = await inspect(koa);
     expect(r.recommendation).toBe("unsupported");
-    expect(r.reason).toContain("fastify");
+    expect(r.reason).toContain("koa");
     expect(r.project.databaseClients).toEqual(["mongoose"]);
     expect(r.options).toEqual([]);
 

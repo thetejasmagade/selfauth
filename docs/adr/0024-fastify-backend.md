@@ -40,9 +40,12 @@ is the smallest step from there and the most requested.
   Fastify projects use the same two-package layout (ADR 0023) with the unchanged Vue and React
   frontends. Manual templates `fastify/`, `fastify-vue/` and `fastify-react/` are generated like the
   Express ones.
-- **`selfauth add` stays Express only.** It integrates into someone else's app, and the Fastify
-  adapter has not been exercised against arbitrary existing Fastify apps. `detect` and `add` say so
-  and point to `init --backend fastify`.
+- **`selfauth add` supports Fastify.** It first stayed Express only, because it integrates into
+  someone else's app. It now detects Fastify (`express` wins when both are dependencies; `--backend`
+  overrides), writes the same `<src>/selfauth/` folder, and a Fastify `setup.ts`. Fastify fixes
+  `bodyLimit`, `trustProxy` and `requestIdHeader` when the app is created, so `setup.ts` exports
+  `selfAuthServerOptions()` for the user's `Fastify({ ... })` call. CI runs it against
+  `examples/existing-fastify-app` (`add` and `add-layout`).
 - **Listening address.** Fastify defaults to `localhost`, which a container cannot reach, and an
   explicit `::` fails where IPv6 is missing. The generated server listens on `HOST`, default
   `0.0.0.0` (every IPv4 interface, as Express does).

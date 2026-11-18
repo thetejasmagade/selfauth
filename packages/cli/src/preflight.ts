@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { detectProject, type ProjectInfo } from "./detect.js";
 import { checkTsconfigCoverage } from "./layout.js";
 import { normalizeSrcDir } from "./plan.js";
-import type { Database } from "./templates.js";
+import type { Backend, Database } from "./templates.js";
 
 /** Compiler options the generated code relies on (explicit `.ts` imports, rewritten on build). */
 export const REQUIRED_COMPILER_OPTIONS = {
@@ -84,7 +84,13 @@ function majorMinor(range: string | undefined): [number, number] | null {
 /** Can SelfAuth be added to this project? Reports blockers; changes nothing. */
 export async function preflightAdd(
   dir: string,
-  options: { database: Database; allowExistingAuth?: boolean; srcDir?: string },
+  options: {
+    database: Database;
+    /** Defaults to the framework found in package.json. */
+    backend?: Backend;
+    allowExistingAuth?: boolean;
+    srcDir?: string;
+  },
 ): Promise<Preflight> {
   const project = await detectProject(dir);
   let srcDir = "src";
@@ -108,12 +114,12 @@ export async function preflightAdd(
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
   };
-  if (project.framework !== "express")
-    report.errors.push(
-      project.otherFrameworks.includes("fastify")
-        ? "Express is not a dependency: `selfauth add` supports Express only. For Fastify, start a new project with `selfauth init --backend fastify`."
-        : "Express is not a dependency: only Express projects are supported.",
-    );
+  const backend = options.backend ?? project.framework;
+  if (backend !== "express" && backend !== "fastify") {
+    report.errors.push("Neither Express nor Fastify is a dependency: only those are supported.");
+  } else if (!(backend in { ...pkg.dependencies, ...pkg.devDependencies })) {
+    report.errors.push(`${backend} is not a dependency of this project.`);
+  }
   if (pkg.type !== "module")
     report.errors.push('package.json must have "type": "module" (the generated code is ESM).');
   const tsVersion = majorMinor({ ...pkg.dependencies, ...pkg.devDependencies }["typescript"]);

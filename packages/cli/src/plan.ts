@@ -328,7 +328,11 @@ export async function planAdd(
 ): Promise<PlannedFile[]> {
   const srcDir = normalizeSrcDir(options.srcDir ?? "src");
   const files = await templateFiles(
-    { database: answers.database, frontend: "none" },
+    {
+      database: answers.database,
+      frontend: "none",
+      ...(answers.backend ? { backend: answers.backend } : {}),
+    },
     source,
     "add",
     srcDir,
@@ -342,7 +346,7 @@ export async function planAdd(
     buildManifest(
       { ...answers, frontend: "none" },
       files,
-      await ownedResources(answers.database, source),
+      await ownedResources(answers.database, source, answers.backend),
       "add",
       srcDir,
     ),

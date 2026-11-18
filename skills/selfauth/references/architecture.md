@@ -52,7 +52,7 @@ server/   package.json, tsconfig*.json, .env.example, src/ (as above), test/, pr
 client/   package.json, vite.config.ts, src/auth/ (API client, guards), src/pages/
 ```
 
-### `selfauth add` (existing Express project)
+### `selfauth add` (existing Express or Fastify project)
 
 Everything goes under `src/selfauth/`, plus `prisma/` for PostgreSQL, so
 nothing collides with the application's files. The CLI never edits existing

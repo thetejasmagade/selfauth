@@ -296,6 +296,11 @@
           "layout": "project"
         },
         {
+          "source": "packages/cli/template-variants/setup.fastify.ts",
+          "target": "src/setup.ts",
+          "layout": "add"
+        },
+        {
           "source": "packages/cli/template-variants/smoke.fastify.test.ts",
           "target": "test/auth.smoke.test.ts",
           "layout": "project"

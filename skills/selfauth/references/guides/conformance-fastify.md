@@ -86,7 +86,6 @@ Every mandatory requirement is covered by a case or by another check; the build 
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.
-- `selfauth add` (an existing project) supports Express only; a Fastify project is made with `selfauth init --backend fastify`.
 - Production-profile status is not claimed for Fastify yet: the Fastify adapter has had one review pass, by its author. The sign-offs below are self-assessed, and no independent security audit has been done.
 
 ## Sign-offs

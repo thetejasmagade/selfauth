@@ -35,12 +35,12 @@ the generator is fetched from npm, once.
 
 **Which stacks are supported?** Express 5 or Fastify 5 + TypeScript (Node.js
 22.18 or newer), PostgreSQL through Prisma 7 or an in-memory store, and Vue or React frontends.
-An existing project can use `selfauth add` only if it is Express; Fastify is for
-new projects (`selfauth init --backend fastify`). Run `selfauth list` for the
+An existing Express or Fastify project can use `selfauth add`; a new one uses
+`selfauth init [--backend express|fastify]`. Run `selfauth list` for the
 authoritative list.
 → [framework-support](framework-support.md)
 
-**NestJS, Next.js, Koa, Django, MongoDB, MySQL, Mongoose, or adding SelfAuth to an existing Fastify app?** Not supported.
+**NestJS, Next.js, Koa, Django, MongoDB, MySQL, or Mongoose?** Not supported.
 Say so and stop; never port the Express code or write an adapter.
 MongoDB/Mongoose are planned, not built. → [framework-support](framework-support.md)
 
@@ -66,7 +66,7 @@ keeps rate limits per process. The app refuses to start with it when
 --frontend none|vue|react --permissions a.b,c.d`. Show the `--dry-run` first.
 → SKILL.md step 6
 
-**I have an existing Express app.** `selfauth detect`, then `selfauth add`. It
+**I have an existing Express app (or a Fastify one).** `selfauth detect`, then `selfauth add`. It
 writes only new files under `<src>/selfauth/` and never edits existing files.
 You make the printed edits. → [guides/existing-projects.md](guides/existing-projects.md)
 

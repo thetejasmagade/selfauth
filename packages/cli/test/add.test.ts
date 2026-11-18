@@ -58,7 +58,7 @@ describe("preflightAdd", () => {
 
   it.each([
     ["CommonJS", { type: "commonjs" }, /"type": "module"/],
-    ["no Express", { dependencies: { fastify: "5" } }, /Express is not a dependency/],
+    ["no supported backend", { dependencies: { koa: "2" } }, /Neither Express nor Fastify/],
     ["old TypeScript", { devDependencies: { typescript: "^5.4.0" } }, /5\.7\+ is needed/],
     ["no TypeScript", { devDependencies: {} }, /TypeScript is not a dependency/],
   ])("refuses %s", async (_name, pkg, message) => {

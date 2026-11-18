@@ -2,7 +2,7 @@
 name: selfauth
 description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express or Fastify + TypeScript projects, with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
 license: MIT
-compatibility: Node.js >= 22.18. Supports Express 5 (new and existing projects) and Fastify 5 (new projects) + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
+compatibility: Node.js >= 22.18. Supports Express 5 and Fastify 5 (new and existing projects) + TypeScript >= 5.7 backends with PostgreSQL (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
   version: "0.10.0"
   spec: "0.1"
@@ -53,8 +53,7 @@ from this skill's files, not from memory.
    If the CLI can't generate it, say so and stop. Don't improvise.
 2. **Never invent adapters.** Only what `selfauth list` reports is supported
    (see [framework-support](references/framework-support.md)). For NestJS,
-   Next.js, Django, Mongo, an existing Fastify app (`add` is Express only; a new
-   Fastify project is `init --backend fastify`) or anything else unsupported,
+   Next.js, Django, Mongo or anything else unsupported,
    stop and report it. Don't port the Express code.
 3. **Never bypass the CLI.** Don't copy files out of the SelfAuth repository by
    hand when `init`, `add` or `upgrade` covers the case.
@@ -96,7 +95,7 @@ blockers for each command.
 | `recommendation` | Meaning | Do |
 | --- | --- | --- |
 | `init` | No `package.json`: a new project | `selfauth init <dir>` (step 6) |
-| `add` | An existing Express + TypeScript project | `selfauth add`, with the `--src` detect reports (step 6) |
+| `add` | An existing Express or Fastify + TypeScript project | `selfauth add`, with the `--src` detect reports (step 6) |
 | `add-frontend` | An existing Vue or React app | `selfauth add-frontend` ([layouts](references/project-layouts.md)) |
 | `workspace` | A monorepo root | Run detect on each package, then `add` / `add-frontend` in each ([layouts](references/project-layouts.md)) |
 | `upgrade` | SelfAuth is already installed | `selfauth doctor`, then `selfauth diff` / `upgrade` ([maintenance](#maintaining-an-existing-installation)) |
@@ -165,7 +164,7 @@ Wait for approval. Then run it for real with `--yes`:
 ```bash
 # new project
 selfauth init my-app --backend express --database postgresql --frontend react --permissions orders.view,orders.create --yes
-# existing Express project (writes under <src>/selfauth/ only; --src if detect says so)
+# existing Express or Fastify project (writes under <src>/selfauth/ only; --src if detect says so)
 selfauth add --database memory --permissions orders.view --yes --install
 # existing Vue or React app, in its own folder
 selfauth add-frontend --yes

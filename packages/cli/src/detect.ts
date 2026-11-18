@@ -20,7 +20,6 @@ const AUTH_PACKAGES = [
 
 /** Backend/full-stack frameworks SelfAuth does not generate for (yet). Reported, never guessed at. */
 const OTHER_FRAMEWORKS = [
-  "fastify",
   "koa",
   "@hapi/hapi",
   "@nestjs/core",
@@ -66,7 +65,8 @@ export interface ProjectInfo {
   empty: boolean;
   hasPackageJson: boolean;
   packageManager: "pnpm" | "npm" | "yarn" | "bun" | null;
-  framework: "express" | null;
+  /** The supported backend framework in package.json (`express` wins when both are listed). */
+  framework: "express" | "fastify" | null;
   typescript: boolean;
   prisma: boolean;
   existingAuth: string[];
@@ -133,13 +133,11 @@ export async function detectProject(dir: string): Promise<ProjectInfo> {
     };
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     if ("express" in deps) info.framework = "express";
+    else if ("fastify" in deps) info.framework = "fastify";
     info.typescript = "typescript" in deps || entries.includes("tsconfig.json");
     info.prisma ||= "prisma" in deps || "@prisma/client" in deps;
     info.existingAuth = AUTH_PACKAGES.filter((p) => p in deps);
-    // A Fastify project that SelfAuth generated is supported (upgrade, doctor, validate).
-    info.otherFrameworks = OTHER_FRAMEWORKS.filter(
-      (p) => p in deps && !(p === "fastify" && info.selfauth),
-    );
+    info.otherFrameworks = OTHER_FRAMEWORKS.filter((p) => p in deps);
     info.databaseClients = DATABASE_CLIENTS.filter((p) => p in deps);
     info.esm = pkg.type === "module";
   }

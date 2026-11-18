@@ -28,10 +28,9 @@ with `src/` at the root.
 
 `npx selfauth init my-app --backend fastify --database postgresql` makes the same
 project on Fastify 5: the same core, stores, tests and frontends, with a Fastify
-adapter in `src/auth/fastify/`. Fastify is for new projects; `add` (an existing
-project) supports Express only.
+adapter in `src/auth/fastify/`. `add` works on an existing Fastify project too.
 
-## Existing Express project
+## Existing Express or Fastify project
 
 ```bash
 npx selfauth add --database memory --install

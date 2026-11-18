@@ -10,5 +10,9 @@
   test for it, the `tsconfig` option, and `.env` loading. CI then requires the
   app's existing tests and `validate-auth.ts` to pass (`scripts/smoke-generated.sh memory add`).
 
+- [`existing-fastify-app/`](existing-fastify-app/): the same shop API on Fastify,
+  with [`existing-fastify-app.selfauth.patch`](existing-fastify-app.selfauth.patch)
+  (`SMOKE_BACKEND=fastify scripts/smoke-generated.sh memory add`).
+
 Full-stack examples come from `selfauth init --frontend vue|react`; the
 reference apps are `apps/playground*`.

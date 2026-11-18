@@ -3,7 +3,7 @@
 > **Developer:** Add auth to my NestJS API.
 
 ```text
-**Recommendation: unsupported** — Only Express is supported (found @nestjs/core). Do not hand-write an adapter.
+**Recommendation: unsupported** — Only Express and Fastify are supported (found @nestjs/core). Do not hand-write an adapter.
 ```
 
 Correct response:

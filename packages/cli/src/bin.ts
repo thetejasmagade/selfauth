@@ -44,11 +44,14 @@ program
 
 program
   .command("add [dir]")
-  .description("add SelfAuth to an existing Express + TypeScript project (new files only)")
+  .description(
+    "add SelfAuth to an existing Express or Fastify + TypeScript project (new files only)",
+  )
+  .option("--backend <framework>", "express | fastify (default: the one in package.json)")
   .option("--database <db>", "memory | postgresql", "memory")
   .option(
     "--src <dir>",
-    "source folder to write under (<dir>/selfauth/); default: found from your Express entry file",
+    "source folder to write under (<dir>/selfauth/); default: found from your backend entry file",
   )
   .option("--permissions <list>", "comma-separated application permissions")
   .option("--app-base-url <url>", "frontend origin used in email links", "http://localhost:5173")
