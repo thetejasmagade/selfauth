@@ -26,7 +26,11 @@ that cannot be raced (SEC-RATE-001), unique emails (DATA-MODEL-001).
     with the condition in the filter; `$push` guarded by `roles.name: { $ne }`);
   - a rate-limit update is compare-and-swap on a `v` version number, retried when another request
     won; the first write is a unique-keyed insert;
-  - the password hash is replaced with an aggregation-pipeline update that keeps the creation time.
+  - the password hash is replaced by a conditional update of the embedded credential (a second
+    conditional update creates it when there is none). A first version used an aggregation-pipeline
+    update; it failed against a real MongoDB (a string starting with `$`, such as an Argon2 hash, is
+    a field path in a pipeline, and Mongoose guards pipeline updates behind an option), and plain
+    updates avoid the whole class.
 - **Indexes are the migration.** There is no SQL, so `db:migrate` creates the missing indexes
   (never drops one) and `--plan` lists them. The unique partial index on `emailNormalized` is what
   makes concurrent registrations of one address produce one account, so start-up refuses to run

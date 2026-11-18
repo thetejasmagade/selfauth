@@ -324,20 +324,20 @@ export class MongooseAuthStore implements AuthStore {
   }
 
   async setPasswordHash(userId: string, hash: string, at: Date) {
-    // An aggregation-pipeline update: one atomic write that keeps the original creation time.
-    // In a pipeline a string that starts with "$" is a field path, and an Argon2 hash starts with
-    // "$argon2id$", so the hash must be wrapped as a literal.
-    await this.users.updateOne({ _id: text(userId, "userId") }, [
-      {
-        $set: {
-          credential: {
-            secretHash: { $literal: text(hash, "hash") },
-            createdAt: { $ifNull: ["$credential.createdAt", at] },
-            updatedAt: at,
-          },
-        },
-      },
-    ]);
+    const id = text(userId, "userId");
+    const secretHash = text(hash, "hash");
+    // Two conditional updates, each atomic, instead of a pipeline update: the first replaces the
+    // hash of an existing credential and keeps its creation time; the second creates the
+    // credential when the user has none (after deleteCredentials).
+    const replaced = await this.users.updateOne(
+      { _id: id, credential: { $ne: null } },
+      { $set: { "credential.secretHash": secretHash, "credential.updatedAt": at } },
+    );
+    if (replaced.matchedCount > 0) return;
+    await this.users.updateOne(
+      { _id: id, credential: null },
+      { $set: { credential: { secretHash, createdAt: at, updatedAt: at } } },
+    );
   }
 
   async deleteCredentials(userId: string) {
