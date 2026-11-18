@@ -13,12 +13,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Documentation-only pull requests skip the expensive jobs below (skipped jobs count as passed).
+  # Anything outside docs/, .changeset/ and root Markdown files counts as code.
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ] || git diff --name-only "$BASE...$HEAD" | grep -qvE '^(docs/|\.changeset/|[^/]+\.md$)'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   check:
     name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     strategy:
+      # Pull requests test the primary Node version; main also covers the newest one.
       matrix:
-        node: [22, 24]
+        node: ${{ fromJSON(github.event_name == 'push' && '[22, 24]' || '[22]') }}
     services:
       # Real database for the Prisma store, migration tests and the conformance suite.
       postgres:
@@ -55,22 +79,14 @@ jobs:
         run: pnpm templates:check
       - name: Specification coverage report
         run: pnpm --filter @selfauth/conformance coverage:report
-
-  audit:
-    name: Dependency audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod --audit-level high
+      - name: Dependency audit
+        if: matrix.node == 22
+        run: pnpm audit --prod --audit-level high
 
   e2e:
     name: Browser end-to-end tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -80,13 +96,32 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(pnpm --filter @selfauth/e2e exec playwright --version)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium for Playwright
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @selfauth/e2e exec playwright install --with-deps chromium
+      - name: Install Chromium system dependencies
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @selfauth/e2e exec playwright install-deps chromium
       - run: pnpm e2e
 
   packages:
     name: Published packages (pack, install, run)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -96,7 +131,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
       - name: Pack every published package and install the tarballs outside the monorepo
         run: scripts/pack-check.sh "$RUNNER_TEMP/packed"
       - name: Generate and exercise projects with the packaged CLI (bundled templates and skill)
@@ -110,6 +150,8 @@ jobs:
 
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -151,6 +193,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
       - name: Generate, install, migrate, boot and exercise a project outside the monorepo
         run: scripts/smoke-generated.sh ${{ matrix.database }} ${{ matrix.mode }}
