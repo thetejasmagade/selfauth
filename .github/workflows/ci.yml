@@ -194,6 +194,38 @@ jobs:
       - name: Run every conformance case against the database
         run: node scripts/dialect-conformance.mjs ${{ matrix.database }} ${{ matrix.app }}
 
+  gin:
+    name: Gin (Go) reference app
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/playground-gin/go.mod
+          cache-dependency-path: apps/playground-gin/go.sum
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Format, vet and unit tests
+        working-directory: apps/playground-gin
+        run: |
+          test -z "$(gofmt -l .)" || { gofmt -d .; exit 1; }
+          go vet ./...
+          go test -race ./...
+      - name: Run every conformance case against the Go application
+        run: pnpm --filter @selfauth/playground-gin conformance
+
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})
     needs: changes

@@ -1,0 +1,18 @@
+{
+  "name": "@selfauth/playground-gin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Gin (Go) reference application for SelfAuth. The Go code is the product; the TypeScript here only drives the language-neutral conformance suite against it.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "conformance": "vitest run",
+    "go:build": "go build ./...",
+    "go:test": "go test ./..."
+  },
+  "devDependencies": {
+    "@selfauth/conformance": "workspace:*",
+    "@selfauth/spec": "workspace:*"
+  }
+}
