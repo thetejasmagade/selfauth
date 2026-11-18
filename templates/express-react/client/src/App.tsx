@@ -1,9 +1,8 @@
 import { Link, Route, Routes, useNavigate } from "react-router";
-import { Can, GuestOnly, RequireAuth, useAuth } from "./auth/index.ts";
+import { GuestOnly, RequireAuth, useAuth } from "./auth/index.ts";
 import { AccountPage } from "./pages/AccountPage.tsx";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage.tsx";
 import { LoginPage } from "./pages/auth/LoginPage.tsx";
-import { NotesPage } from "./pages/NotesPage.tsx";
 import { RegisterPage } from "./pages/auth/RegisterPage.tsx";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage.tsx";
 import { VerifyEmailPage } from "./pages/auth/VerifyEmailPage.tsx";
@@ -20,15 +19,7 @@ function Header() {
       <Link to="/">
         <strong>SelfAuth</strong>
       </Link>
-      {auth.isAuthenticated && (
-        <>
-          <Link to="/notes">Notes</Link>
-          <Link to="/account">Account</Link>
-          <Can permission="notes.view_any">
-            <span data-testid="support-badge">Support</span>
-          </Can>
-        </>
-      )}
+      {auth.isAuthenticated && <Link to="/account">Account</Link>}
       {auth.status === "loading" ? (
         <span>Loading…</span>
       ) : auth.isAuthenticated ? (
@@ -55,7 +46,7 @@ function Home() {
       <h1>SelfAuth React playground</h1>
       {auth.isAuthenticated ? (
         <p>
-          Signed in. Go to your <Link to="/notes">notes</Link>.
+          Signed in. Go to your <Link to="/account">account</Link>.
         </p>
       ) : (
         <p>
@@ -80,7 +71,7 @@ export function App() {
             <Route
               path="/login"
               element={
-                <GuestOnly home="/notes">
+                <GuestOnly home="/account">
                   <LoginPage />
                 </GuestOnly>
               }
@@ -88,7 +79,7 @@ export function App() {
             <Route
               path="/register"
               element={
-                <GuestOnly home="/notes">
+                <GuestOnly home="/account">
                   <RegisterPage />
                 </GuestOnly>
               }
@@ -96,14 +87,6 @@ export function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route
-              path="/notes"
-              element={
-                <RequireAuth>
-                  <NotesPage />
-                </RequireAuth>
-              }
-            />
             <Route
               path="/account"
               element={

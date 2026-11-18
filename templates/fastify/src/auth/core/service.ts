@@ -123,16 +123,6 @@ export class AuthService {
     if (!result.allowed) this.rateLimited(result.retryAfterSeconds);
   }
 
-  private async checkLimit(key: string, rule: LimitRule): Promise<void> {
-    const result = await this.deps.limiter.check(key, rule);
-    if (!result.allowed) this.rateLimited(result.retryAfterSeconds);
-  }
-
-  private async countFailure(key: string, rule: LimitRule, ctx: RequestContext): Promise<void> {
-    const result = await this.deps.limiter.hit(key, rule);
-    if (result.justBlocked) await this.rateLimitEvent(key, ctx);
-  }
-
   private rateLimitEvent(key: string, ctx: RequestContext): Promise<void> {
     // The key's scope (e.g. "login:acct") is logged; the identifier itself is not.
     return this.event("rate_limit.triggered", "failure", ctx, {
@@ -269,16 +259,16 @@ export class AuthService {
   ): Promise<void> {
     const rules = this.cfg.rateLimit.passwordChange;
     await this.limit(`pwchg:addr:${ctx.ipAddress}`, rules.perAddress, ctx);
-    await this.checkLimit(`pwchg:acct:${auth.userId}`, rules.perAccount);
+    // Counted before the hash, atomically (see login): concurrent guesses cannot exceed the limit.
+    const accountKey = `pwchg:acct:${auth.userId}`;
+    await this.limit(accountKey, rules.perAccount, ctx);
     const hash = await this.deps.store.getPasswordHash(auth.userId);
     const ok =
       typeof password === "string" &&
       hash !== null &&
       (await this.deps.hasher.verify(hash, password));
-    if (!ok) {
-      await this.countFailure(`pwchg:acct:${auth.userId}`, rules.perAccount, ctx);
-      fail("INVALID_CREDENTIALS");
-    }
+    if (!ok) fail("INVALID_CREDENTIALS");
+    await this.deps.limiter.reset(accountKey);
   }
 
   private requirePermission(auth: AuthContext, permission: string): void {
@@ -411,8 +401,11 @@ export class AuthService {
     const rules = this.cfg.rateLimit.login;
     await this.limit(`login:addr:${ctx.ipAddress}`, rules.perAddress, ctx);
     const accountKey = `login:acct:${normalized}`;
-    // Applies whether or not the account exists (AUTHN-LOGIN-006, SEC-RATE-004).
-    await this.checkLimit(accountKey, rules.perAccount);
+    // Applies whether or not the account exists (AUTHN-LOGIN-006, SEC-RATE-004). The attempt is
+    // counted here, before the slow password hash, in one atomic step: concurrent requests then
+    // cannot all pass a read-only check and evaluate more guesses than the limit allows
+    // (SEC-RATE-001). A verified password clears the count below.
+    await this.limit(accountKey, rules.perAccount, ctx);
 
     const { store, hasher } = this.deps;
     const user = await store.findUserByEmail(normalized);
@@ -425,11 +418,12 @@ export class AuthService {
     }
 
     if (!user || !verified) {
-      await this.countFailure(accountKey, rules.perAccount, ctx);
       await this.event("auth.login.failed", "failure", ctx, { userId: user?.id ?? null });
       fail("INVALID_CREDENTIALS"); // AUTHN-LOGIN-002
     }
 
+    // The right password ends the guessing, whatever the account's state.
+    await this.deps.limiter.reset(accountKey);
     // State is revealed only after the password is verified (AUTHN-LOGIN-004).
     if (user.state !== "active") {
       await this.event("auth.login.failed", "failure", ctx, {
@@ -439,7 +433,6 @@ export class AuthService {
       fail(user.state === "pending" ? "EMAIL_NOT_VERIFIED" : "ACCOUNT_UNAVAILABLE");
     }
 
-    await this.deps.limiter.reset(accountKey);
     if (storedHash && hasher.needsRehash(storedHash)) {
       await store.setPasswordHash(user.id, await hasher.hash(password), this.now()); // SEC-HASH-004
     }

@@ -1,20 +1,40 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export interface E2EOptions {
-  /** The Express e2e backend serving this frontend (test-only mail endpoint). */
+  /** The e2e backend serving this frontend (test-only mail endpoint). */
   backendUrl: string;
 }
 
 /**
- * One spec, every reference frontend. Each frontend is built, served by
- * `vite preview`, and proxies /auth and /api to its own Express e2e backend
- * (same-origin topology, docs/frontend-deployment.md). Separate backends keep
- * email links pointing at the right origin.
+ * One spec, every reference frontend against every reference backend. Each frontend is built once,
+ * served by `vite preview`, and proxies /auth and /api to its own e2e backend (same-origin
+ * topology, docs/frontend-deployment.md). Separate backends keep email links pointing at the
+ * right origin. Web servers start in order, so a frontend's first entry builds it and later
+ * entries only serve the finished build.
  */
-const apps = [
-  { name: "vue", pkg: "@selfauth/playground-vue", app: 4173, backend: 3100 },
-  { name: "react", pkg: "@selfauth/playground-react", app: 4174, backend: 3101 },
+const frontends = [
+  { name: "vue", pkg: "@selfauth/playground-vue" },
+  { name: "react", pkg: "@selfauth/playground-react" },
 ];
+const backends = [
+  { name: "express", pkg: "@selfauth/playground" },
+  { name: "fastify", pkg: "@selfauth/playground-fastify" },
+];
+
+let nextPort = 3100;
+const apps = backends.flatMap((backend) =>
+  frontends.map((frontend) => {
+    const offset = nextPort++ - 3100;
+    return {
+      name: `${frontend.name}-${backend.name}`,
+      frontend,
+      backend,
+      backendPort: 3100 + offset,
+      appPort: 4173 + offset,
+      first: backend === backends[0],
+    };
+  }),
+);
 
 export default defineConfig<E2EOptions>({
   testDir: "tests",
@@ -27,21 +47,26 @@ export default defineConfig<E2EOptions>({
     name: a.name,
     use: {
       ...devices["Desktop Chrome"],
-      baseURL: `http://localhost:${a.app}`,
-      backendUrl: `http://localhost:${a.backend}`,
+      baseURL: `http://localhost:${a.appPort}`,
+      backendUrl: `http://localhost:${a.backendPort}`,
     },
   })),
   webServer: apps.flatMap((a) => [
     {
-      command: "pnpm --filter @selfauth/playground e2e:server",
-      env: { PORT: String(a.backend), SELFAUTH_APP_BASE_URL: `http://localhost:${a.app}` },
-      url: `http://localhost:${a.backend}/health`,
+      command: `pnpm --filter ${a.backend.pkg} e2e:server`,
+      env: {
+        PORT: String(a.backendPort),
+        SELFAUTH_APP_BASE_URL: `http://localhost:${a.appPort}`,
+      },
+      url: `http://localhost:${a.backendPort}/health`,
       reuseExistingServer: false,
     },
     {
-      command: `pnpm --filter ${a.pkg} build && pnpm --filter ${a.pkg} preview`,
-      env: { SELFAUTH_API_TARGET: `http://localhost:${a.backend}` },
-      url: `http://localhost:${a.app}`,
+      command: a.first
+        ? `pnpm --filter ${a.frontend.pkg} build && pnpm --filter ${a.frontend.pkg} exec vite preview --port ${a.appPort}`
+        : `pnpm --filter ${a.frontend.pkg} exec vite preview --port ${a.appPort}`,
+      env: { SELFAUTH_API_TARGET: `http://localhost:${a.backendPort}` },
+      url: `http://localhost:${a.appPort}`,
       reuseExistingServer: false,
     },
   ]),

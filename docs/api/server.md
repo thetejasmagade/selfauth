@@ -129,5 +129,6 @@ routes.get(
 app.use("/api/orders", routes.router);
 ```
 
-The generated `src/routes/notes.ts` (full-stack projects) is a complete,
-tested version of this pattern.
+The reference apps' `src/routes/notes.ts` (`apps/playground/` and
+`apps/playground-fastify/` in the SelfAuth repository) is a complete, browser-tested
+version of this pattern. Generated projects ship without it, so there is no demo to delete.

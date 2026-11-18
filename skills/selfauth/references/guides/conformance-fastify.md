@@ -15,11 +15,11 @@ sign-off with evidence (`conformance/adapters/fastify.json`).
 
 | Level | Needs | Cases |
 | --- | --- | --- |
-| Core compliant | all core cases pass; every automated check for core requirements (adapter, schema, migration tests) is signed off | 68 |
+| Core compliant | all core cases pass; every automated check for core requirements (adapter, schema, migration tests) is signed off | 71 |
 | Authorization compliant | core, plus the authorization cases and the authorization checks | 18 |
 | Production-profile compliant | all cases, plus every review, documentation and static-analysis item signed off | 1 |
 
-The suite has 87 cases in total.
+The suite has 90 cases in total.
 
 ## Result
 
@@ -39,8 +39,8 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | backend | `fastify` | Fastify 5 + TypeScript |
 | database | `postgresql` | PostgreSQL via Prisma (store `postgresql`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
-| frontend | `vue` | Vue 3 (generated and built with a Fastify API; browser tests run against Express) |
-| frontend | `react` | React (generated and built with a Fastify API; browser tests run against Express) |
+| frontend | `vue` | Vue 3 (generated and built with a Fastify API; browser-tested against Fastify) |
+| frontend | `react` | React (generated and built with a Fastify API; browser-tested against Fastify) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 
@@ -62,18 +62,18 @@ Not supported yet: see [Known limitations](#known-limitations).
 | Area | Mandatory requirements | By cases | By other checks | Cases touching it |
 | --- | ---: | ---: | ---: | ---: |
 | Registration and identity | 29 | 26 | 3 | 21 |
-| Login and logout | 17 | 16 | 1 | 13 |
+| Login and logout | 17 | 16 | 1 | 15 |
 | Password storage | 10 | 8 | 2 | 5 |
 | Session expiration and revocation | 11 | 10 | 1 | 12 |
-| Password recovery and change | 21 | 20 | 1 | 19 |
+| Password recovery and change | 21 | 20 | 1 | 20 |
 | Email verification | 7 | 7 | 0 | 7 |
 | RBAC | 14 | 10 | 4 | 9 |
 | Permission enforcement | 7 | 7 | 0 | 5 |
 | Resource ownership | 5 | 5 | 0 | 5 |
 | CSRF and browser safety | 10 | 8 | 2 | 9 |
-| Rate limiting | 5 | 5 | 0 | 8 |
+| Rate limiting | 5 | 5 | 0 | 10 |
 | Secret and log redaction | 10 | 5 | 5 | 7 |
-| Errors and enumeration safety | 6 | 5 | 1 | 9 |
+| Errors and enumeration safety | 6 | 5 | 1 | 10 |
 | Migration safety | 4 | 2 | 2 | 3 |
 | Configuration | 5 | 0 | 5 | 0 |
 
@@ -86,8 +86,6 @@ Every mandatory requirement is covered by a case or by another check; the build 
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.
-- `selfauth add` (an existing project) supports Express only; a Fastify project is made with `selfauth init --backend fastify`.
-- The Vue and React browser end-to-end suite runs against the Express backend. Fastify full-stack projects are generated, type-checked, built and exercised through the API by CI.
 - Production-profile status is not claimed for Fastify yet: the Fastify adapter has had one review pass, by its author. The sign-offs below are self-assessed, and no independent security audit has been done.
 
 ## Sign-offs

@@ -662,6 +662,145 @@
           }
         }
       ]
+    },
+    {
+      "id": "CT-RATE-006",
+      "title": "Concurrent login attempts cannot exceed the per-account limit",
+      "category": "rate-limits",
+      "level": "core",
+      "requirements": ["SEC-RATE-001", "SEC-RATE-004", "AUTHN-LOGIN-006"],
+      "config": {
+        "authentication": {
+          "rateLimit": {
+            "login": {
+              "perAccount": {
+                "limit": 3
+              },
+              "perAddress": {
+                "limit": 100
+              }
+            }
+          }
+        }
+      },
+      "given": [
+        {
+          "user": "alice",
+          "email": "alice@example.test",
+          "password": "correct horse battery staple",
+          "state": "active"
+        }
+      ],
+      "steps": [
+        {
+          "op": "concurrent",
+          "note": "ten wrong guesses at once: exactly the limit is evaluated, the rest are refused",
+          "input": {
+            "steps": [
+              {
+                "op": "login",
+                "as": "w0",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w1",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w2",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w3",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w4",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w5",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w6",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w7",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w8",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              },
+              {
+                "op": "login",
+                "as": "w9",
+                "input": {
+                  "email": "alice@example.test",
+                  "password": "wrong password!!"
+                }
+              }
+            ]
+          },
+          "expect": {
+            "outcome": "success",
+            "assert": {
+              "errorCodes.INVALID_CREDENTIALS": 3,
+              "errorCodes.RATE_LIMITED": 7
+            }
+          }
+        },
+        {
+          "op": "login",
+          "note": "the account stays blocked, even for the correct password",
+          "input": {
+            "email": "alice@example.test",
+            "password": "correct horse battery staple"
+          },
+          "expect": {
+            "outcome": "error",
+            "code": "RATE_LIMITED",
+            "sessionCreated": false
+          }
+        }
+      ]
     }
   ]
 }

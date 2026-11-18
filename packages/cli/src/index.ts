@@ -22,6 +22,7 @@ export {
 export {
   checkTsconfigCoverage,
   detectSourceLayout,
+  findBackendEntryFiles,
   findExpressEntryFiles,
   findWorkspacePackages,
   suggestSourceDir,

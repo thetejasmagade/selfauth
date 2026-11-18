@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 
 /**
  * Where things live in an existing project. SelfAuth never assumes `src/`: it looks for the
- * Express entry file, suggests a source folder from it, and reports monorepo packages, so the
+ * backend entry file (Express or Fastify), suggests a source folder from it, and reports monorepo packages, so the
  * developer (or their agent) can pass `--src` or run in the right package.
  */
 
@@ -24,7 +24,7 @@ const SKIP = new Set([
 const SOURCE = /\.(?:[cm]?[jt]s)$/;
 const MAX_DEPTH = 4;
 const MAX_FILES = 1500;
-/** Names an Express entry file usually has; used only to break ties. */
+/** Names a backend entry file usually has; used only to break ties. */
 const ENTRY_NAMES = ["server", "app", "index", "main"];
 
 async function files(dir: string, depth = 0, out: string[] = []): Promise<string[]> {
@@ -48,15 +48,34 @@ export function trimTrailingSlashes(text: string): string {
   return text.slice(0, end);
 }
 
+export type BackendFramework = "express" | "fastify";
+
+const ENTRY_PATTERNS: Record<BackendFramework, { imports: RegExp; creates: RegExp }> = {
+  express: {
+    imports: /from\s+["']express["']|require\(\s*["']express["']\s*\)/,
+    creates: /\bexpress\(\s*\)/,
+  },
+  fastify: {
+    imports: /from\s+["']fastify["']|require\(\s*["']fastify["']\s*\)/,
+    creates: /\b[Ff]astify\s*\(/,
+  },
+};
+
 /** Files that create an Express application, as paths relative to `dir`, best candidate first. */
 export async function findExpressEntryFiles(dir: string): Promise<string[]> {
+  return findBackendEntryFiles(dir, "express");
+}
+
+/** Files that create an application of `framework`, as paths relative to `dir`, best first. */
+export async function findBackendEntryFiles(
+  dir: string,
+  framework: BackendFramework,
+): Promise<string[]> {
   const found: string[] = [];
+  const pattern = ENTRY_PATTERNS[framework];
   for (const file of await files(dir)) {
     const text = await readFile(file, "utf8").catch(() => "");
-    if (
-      /from\s+["']express["']|require\(\s*["']express["']\s*\)/.test(text) &&
-      /\bexpress\(\s*\)/.test(text)
-    ) {
+    if (pattern.imports.test(text) && pattern.creates.test(text)) {
       found.push(posix(relative(dir, file)));
     }
   }
@@ -89,18 +108,22 @@ export function suggestSourceDir(entryFile: string): string {
 }
 
 export interface SourceLayout {
-  /** The Express entry file, relative to the project, when one was found. */
+  /** The backend entry file, relative to the project, when one was found. */
   entryFile: string | null;
   /** Folder to pass to `--src`. `src` when it exists and holds the entry, or no entry was found. */
   sourceDir: string;
-  /** Other candidates when more than one Express entry file exists. */
+  /** Other candidates when more than one entry file exists. */
   otherEntryFiles: string[];
   /** How `sourceDir` was chosen, for the developer. */
   basis: string;
 }
 
-export async function detectSourceLayout(dir: string): Promise<SourceLayout> {
-  const entries = await findExpressEntryFiles(dir);
+export async function detectSourceLayout(
+  dir: string,
+  framework: BackendFramework = "express",
+): Promise<SourceLayout> {
+  const name = framework === "fastify" ? "Fastify" : "Express";
+  const entries = await findBackendEntryFiles(dir, framework);
   const entryFile = entries[0] ?? null;
   if (!entryFile) {
     return {
@@ -108,15 +131,15 @@ export async function detectSourceLayout(dir: string): Promise<SourceLayout> {
       sourceDir: "src",
       otherEntryFiles: [],
       basis: existsSync(join(dir, "src"))
-        ? "no Express entry file found; src/ exists"
-        : "no Express entry file found; defaulting to src/ (pass --src if the code lives elsewhere)",
+        ? `no ${name} entry file found; src/ exists`
+        : `no ${name} entry file found; defaulting to src/ (pass --src if the code lives elsewhere)`,
     };
   }
   return {
     entryFile,
     sourceDir: suggestSourceDir(entryFile),
     otherEntryFiles: entries.slice(1, 6),
-    basis: `Express app created in ${entryFile}`,
+    basis: `${name} app created in ${entryFile}`,
   };
 }
 
@@ -129,7 +152,7 @@ export interface WorkspacePackage {
   dir: string;
   name: string | null;
   role: "backend" | "frontend" | "other";
-  /** `express`, `vue` or `react` when recognised. */
+  /** `express`, `fastify`, `vue` or `react` when recognised. */
   framework: string | null;
 }
 
@@ -199,11 +222,24 @@ export async function findWorkspacePackages(dir: string): Promise<WorkspacePacka
     };
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     const framework =
-      "express" in deps ? "express" : "vue" in deps ? "vue" : "react" in deps ? "react" : null;
+      "express" in deps
+        ? "express"
+        : "fastify" in deps
+          ? "fastify"
+          : "vue" in deps
+            ? "vue"
+            : "react" in deps
+              ? "react"
+              : null;
     packages.push({
       dir: d,
       name: pkg.name ?? null,
-      role: framework === "express" ? "backend" : framework ? "frontend" : "other",
+      role:
+        framework === "express" || framework === "fastify"
+          ? "backend"
+          : framework
+            ? "frontend"
+            : "other",
       framework,
     });
   }

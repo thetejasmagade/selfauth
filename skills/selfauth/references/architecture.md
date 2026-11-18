@@ -4,7 +4,7 @@
 
 A development-time generator. `selfauth init` / `selfauth add` copy SelfAuth's
 reference implementation into the project. It is the code that passes the
-87-case conformance suite and the browser tests, copied byte for byte. After
+90-case conformance suite and the browser tests, copied byte for byte. After
 that the code belongs to the project:
 
 - No SelfAuth package is a runtime dependency, and nothing phones home.
@@ -28,8 +28,7 @@ src/
     selfauth.config.ts  behaviour, permissions, roles (edit this)
     env.ts, dev-config.ts
   routes/
-    index.ts            the application's routes (edit; mounts the notes example)
-    notes.ts            example of guards, ownership and list filtering
+    index.ts            the application's routes (edit; one protected example route)
   email/mailer.ts       email delivery (replace the dev mailer)
   db/store.ts           chooses the data store (PostgreSQL or in-memory)
   http/                 errors.ts, request-id.ts
@@ -52,7 +51,7 @@ server/   package.json, tsconfig*.json, .env.example, src/ (as above), test/, pr
 client/   package.json, vite.config.ts, src/auth/ (API client, guards), src/pages/
 ```
 
-### `selfauth add` (existing Express project)
+### `selfauth add` (existing Express or Fastify project)
 
 Everything goes under `src/selfauth/`, plus `prisma/` for PostgreSQL, so
 nothing collides with the application's files. The CLI never edits existing

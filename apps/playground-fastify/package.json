@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "e2e:server": "NODE_ENV=test node test/e2e-server.ts",
     "dev": "node --env-file-if-exists=.env --watch src/server.ts",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",

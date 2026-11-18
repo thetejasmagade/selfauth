@@ -15,7 +15,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     kind: "backend",
     id: "express",
-    label: "Express 5 + TypeScript (reference implementation, 87/87 conformance cases)",
+    label: "Express 5 + TypeScript (reference implementation, 90/90 conformance cases)",
     production: true,
     add: true,
   },
@@ -23,9 +23,9 @@ export const INTEGRATIONS: Integration[] = [
     kind: "backend",
     id: "fastify",
     label:
-      "Fastify 5 + TypeScript (87/87 conformance cases, authorization level; `selfauth init --backend fastify`)",
+      "Fastify 5 + TypeScript (90/90 conformance cases, authorization level; `selfauth init --backend fastify`)",
     production: true,
-    add: false,
+    add: true,
   },
   {
     kind: "database",
@@ -75,7 +75,9 @@ export function list(options: { json?: boolean } = {}): number {
     last = i.kind;
     say(`  ${title.padEnd(10)} ${i.id.padEnd(16)} ${i.label}`);
   }
-  say("\nExisting Express + TypeScript projects: `selfauth add` (new files only, ADR 0019).");
+  say(
+    "\nExisting Express or Fastify + TypeScript projects: `selfauth add` (new files only, ADR 0019).",
+  );
   say(`Planned, not available yet: ${PLANNED.join("; ")}.`);
   return 0;
 }

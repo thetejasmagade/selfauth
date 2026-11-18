@@ -9,7 +9,7 @@ executes them, and requirement-coverage tooling.
 - `loadCases()`, `runCase(driver, case)` and the `Driver` interface: an
   adapter implements `Driver`, which is HTTP requests plus test-only views of
   time, mail, storage and logs. It then runs every case. The Express
-  reference implementation passes all 87.
+  reference implementation passes all 90.
 - `selfauth-coverage` (bin) reports every MUST requirement as covered by a
   case, covered by `verification.json`, or uncovered.
 

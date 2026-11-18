@@ -104,19 +104,9 @@ export const config: SelfAuthConfig = {
   },
   "authorization": {
     "strategy": "rbac",
-    "permissions": [
-      "notes.create",
-      "notes.view",
-      "notes.view_any"
-    ],
+    "permissions": [],
     "roles": {
-      "user": [
-        "notes.create",
-        "notes.view"
-      ],
-      "support": [
-        "notes.view_any"
-      ],
+      "user": [],
       "admin": []
     },
     "defaultRoles": [

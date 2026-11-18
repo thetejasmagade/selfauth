@@ -154,7 +154,7 @@ describe("selfauth upgrade --reorganize", () => {
   });
 
   it.each([
-    ["memory, Vue (notes example)", { ...base, database: "memory", frontend: "vue" }],
+    ["memory, Vue", { ...base, database: "memory", frontend: "vue" }],
     ["postgresql, React", { ...base, database: "postgresql", frontend: "react" }],
   ] as const)(
     "splits a full-stack project into server/ and client/ (%s)",

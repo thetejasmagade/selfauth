@@ -1,9 +1,6 @@
 import { parseConfig, PERMISSION_PATTERN, type SelfAuthConfig } from "@selfauth/spec";
 import type { Backend, Database, Frontend } from "./templates.js";
 
-/** Permissions used by the notes example that ships with a frontend. */
-export const EXAMPLE_PERMISSIONS = ["notes.create", "notes.view", "notes.view_any"];
-
 export interface InitAnswers {
   name: string;
   database: Database;
@@ -16,15 +13,51 @@ export interface InitAnswers {
 }
 
 /** Resolved configuration written to src/config/selfauth.config.ts (validated by the spec schema). */
+/**
+ * A message when `value` is not a usable frontend address, otherwise null. It is written into
+ * `.env`, so spaces and control characters (a newline would add a line) are refused outright.
+ */
+export function appBaseUrlProblem(value: string): string | null {
+  // eslint-disable-next-line no-control-regex -- control characters are exactly what is refused
+  if (/[\u0000-\u001f\u007f\s]/.test(value))
+    return "The address must not contain spaces or control characters.";
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? null
+      : "Use an http:// or https:// address.";
+  } catch {
+    return "That is not a web address (for example http://localhost:5173).";
+  }
+}
+
+function checkedBaseUrl(value: string): string {
+  const problem = appBaseUrlProblem(value);
+  if (problem) throw new Error(`invalid app base URL: ${problem}`);
+  return value;
+}
+
+/** A message when `permission` is not a valid application permission, otherwise null. */
+export function permissionProblem(permission: string): string | null {
+  return !PERMISSION_PATTERN.test(permission) || permission.startsWith("auth.")
+    ? `invalid permission '${permission}' (format: resource.action, lowercase; 'auth.' is reserved)`
+    : null;
+}
+
+/** Splits `a.b, c.d` into permissions, dropping empty entries. */
+export function parsePermissions(list: string | undefined): string[] {
+  return (list ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 export function buildConfig(answers: InitAnswers): SelfAuthConfig {
   for (const p of answers.permissions) {
-    if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth."))
-      throw new Error(`invalid permission '${p}' (format: resource.action)`);
+    const problem = permissionProblem(p);
+    if (problem) throw new Error(problem);
   }
-  const example = answers.frontend !== "none";
-  const permissions = [
-    ...new Set([...answers.permissions, ...(example ? EXAMPLE_PERMISSIONS : [])]),
-  ];
+  const permissions = [...new Set(answers.permissions)];
   return parseConfig({
     adapter: {
       backend: answers.backend ?? "express",
@@ -34,10 +67,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
     },
     authorization: {
       permissions,
-      // With a frontend, the notes example shows ownership: users see their own notes, support sees all.
-      roles: example
-        ? { user: ["notes.create", "notes.view"], support: ["notes.view_any"], admin: [] }
-        : { user: [], admin: [] },
+      roles: { user: [], admin: [] },
     },
   });
 }
@@ -202,7 +232,7 @@ export function renderEnvExample(answers: InitAnswers): string {
     "NODE_ENV=development",
     "PORT=3000",
     "# Absolute URL of your frontend: email links point here (AUTHN-VERIFY-009).",
-    `SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}`,
+    `SELFAUTH_APP_BASE_URL=${checkedBaseUrl(answers.appBaseUrl)}`,
     '# Only for http.csrf.mode "token": 32+ random bytes, base64url.',
     "# SELFAUTH_CSRF_SECRET=",
   ];
@@ -276,7 +306,6 @@ type Row = [string, string];
 
 function serverRows(answers: InitAnswers): Row[] {
   const pg = answers.database === "postgresql";
-  const web = answers.frontend !== "none";
   return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
@@ -287,9 +316,6 @@ function serverRows(answers: InitAnswers): Row[] {
     ["    dev-config.ts", "cookie settings for local http development"],
     ["  routes/", ""],
     ["    index.ts", "your routes: guard them with auth.requireAuth / requirePermission"],
-    ...(web
-      ? ([["    notes.ts", "example: permissions and ownership (replace it)"]] as Row[])
-      : []),
     ["  email/mailer.ts", "plug in your email provider here"],
     [
       "  db/store.ts",
@@ -320,7 +346,7 @@ function clientRows(answers: InitAnswers): Row[] {
     ],
     [
       "  pages/",
-      `your pages (${answers.frontend === "vue" ? "home, account, notes, forbidden, 404" : "account, notes"}): replace the notes example`,
+      `your pages (${answers.frontend === "vue" ? "home, account, forbidden, 404" : "account"}): add yours here`,
     ],
   ];
 }
@@ -384,7 +410,7 @@ deploy it. Nothing here calls a SelfAuth service.
 \`\`\`bash
 ${run}
 \`\`\`
-${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`server/src/routes/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
+${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. Your API routes go in \`server/src/routes/\` (guard them with \`auth.requireAuth\` or \`auth.requirePermission\`), your pages in \`client/src/pages/\`.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
 development. Before production, implement \`createMailer()\` in
 \`${base}src/email/mailer.ts\`; the server refuses to start in production until you do.

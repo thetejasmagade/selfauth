@@ -6,7 +6,7 @@ const auth = useAuth();
 <template>
   <h1>SelfAuth Vue playground</h1>
   <p v-if="auth.isAuthenticated">
-    Signed in. Go to your <RouterLink to="/notes">notes</RouterLink>.
+    Signed in. Go to your <RouterLink to="/account">account</RouterLink>.
   </p>
   <p v-else>
     <RouterLink to="/login">Sign in</RouterLink> or

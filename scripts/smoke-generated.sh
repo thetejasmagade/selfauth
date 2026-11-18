@@ -5,7 +5,8 @@
 #   [SMOKE_BACKEND=fastify] scripts/smoke-generated.sh memory [none|vue|react|add|add-layout|manual]
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-generated.sh postgresql [none|vue|react|manual]
 # The second argument adds a frontend (installed, typechecked and built), or
-# runs `selfauth add` against an existing Express app instead of `init` (add-layout:
+# runs `selfauth add` against an existing Express (or, with SMOKE_BACKEND=fastify, Fastify) app
+# instead of `init` (add-layout:
 # the app's code lives in server/, not src/), or
 # (manual) copies templates/express by hand and never runs any SelfAuth tool:
 # plain npm and Prisma, as in docs/manual-integration.md.
@@ -15,7 +16,7 @@
 set -euo pipefail
 DB="${1:?usage: smoke-generated.sh memory|postgresql [none|vue|react|add|add-layout|manual]}"
 MODE="${2:-none}"
-# SMOKE_BACKEND=fastify generates a Fastify project (init modes only); the default is Express.
+# SMOKE_BACKEND=fastify uses Fastify (init modes, and add / add-layout on the Fastify example); the default is Express.
 BACKEND="${SMOKE_BACKEND:-express}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 # SELFAUTH_SMOKE_CLI: run a packaged CLI (scripts/pack-check.sh) instead of the workspace build.
@@ -37,20 +38,21 @@ expect() { # expect <label> <haystack> <needle>
 }
 
 if [[ "$MODE" == "add" || "$MODE" == "add-layout" ]]; then
-  step "existing Express app + selfauth add ($DB, $MODE)"
-  # examples/existing-express-app: a small shop API with its own test suite.
+  step "existing $BACKEND app + selfauth add ($DB, $MODE)"
+  # examples/existing-<backend>-app: a small shop API with its own test suite.
+  EXAMPLE="existing-$BACKEND-app"
   mkdir -p "$APP"
-  cp -r "$REPO/examples/existing-express-app/." "$APP"
+  cp -r "$REPO/examples/$EXAMPLE/." "$APP"
   cd "$APP"
   SRC=src
-  PATCH="$REPO/examples/existing-express-app.selfauth.patch"
+  PATCH="$REPO/examples/$EXAMPLE.selfauth.patch"
   if [[ "$MODE" == "add-layout" ]]; then
     # The same app with its code in server/: no src/ folder, tsconfig lists "server".
     SRC=server
     mv src server
     sed -i 's#src/#server/#g; s#"src"#"server"#g' package.json tsconfig.json test/app.test.ts
     PATCH="$WORK/layout.patch"
-    sed 's#src/#server/#g; s#"src"#"server"#g' "$REPO/examples/existing-express-app.selfauth.patch" > "$PATCH"
+    sed 's#src/#server/#g; s#"src"#"server"#g' "$REPO/examples/$EXAMPLE.selfauth.patch" > "$PATCH"
   fi
   npm install --no-audit --no-fund --loglevel=error
   expect "existing tests pass before" "$(npm test 2>&1)" "# pass 3"
@@ -164,9 +166,7 @@ expect "login before verification" "$(curl "${H[@]}" "localhost:$PORT/auth/login
 TOKEN="$(grep -o 'token=[A-Za-z0-9_-]*' server.log | head -1 | cut -d= -f2)"
 expect verify "$(curl "${H[@]}" "localhost:$PORT/auth/email/verify" -d "{\"token\":\"$TOKEN\"}")" '"verified"'
 expect login "$(curl "${H[@]}" "localhost:$PORT/auth/login" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")" "\"email\":\"$EMAIL\""
-if [[ "$MODE" == "vue" || "$MODE" == "react" ]]; then
-  expect "notes example" "$(curl "${H[@]}" "localhost:$PORT/api/notes" -d '{"text":"from smoke"}')" '"from smoke"'
-elif [[ "$MODE" == "add" || "$MODE" == "add-layout" ]]; then
+if [[ "$MODE" == "add" || "$MODE" == "add-layout" ]]; then
   expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/account")" "\"email\":\"$EMAIL\""
 else
   expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/hello")" "\"hello\":\"$EMAIL\""
@@ -177,7 +177,6 @@ fi
 if [[ "$MODE" != "manual" ]]; then
   step "agent skill: validate-auth (static checks, project scripts, live probes)"
   PROTECTED=/api/hello
-  [[ "$MODE" == "vue" || "$MODE" == "react" ]] && PROTECTED=/api/notes
   [[ "$MODE" == "add" || "$MODE" == "add-layout" ]] && PROTECTED=/api/account
   VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
   echo "$VALIDATION"

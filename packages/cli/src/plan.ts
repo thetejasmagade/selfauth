@@ -27,6 +27,7 @@ import {
   templateSource,
   type TemplateSource,
 } from "./templates.js";
+import { isDemoFile, withoutNotesExample } from "./example.js";
 import { trimTrailingSlashes } from "./layout.js";
 import { CLI_VERSION } from "./version.js";
 
@@ -65,7 +66,11 @@ export async function templateFiles(
   };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
   const adapt = (target: string, content: string) =>
-    layout === "add" ? adaptForAdd(target, content, srcDir) : content;
+    layout === "add"
+      ? adaptForAdd(target, content, srcDir)
+      : target.startsWith("web/")
+        ? withoutNotesExample(target, content)
+        : content;
   const backend = answers.backend ?? "express";
   for (const entry of stackFiles({
     backend,
@@ -76,6 +81,7 @@ export async function templateFiles(
     const stack = entry.target.startsWith("web/") ? answers.frontend : backend;
     if (entry.directory) {
       for (const rel of await source.listDirectory(entry.source)) {
+        if (isDemoFile(`${entry.target}/${rel}`)) continue;
         const path = place(rebase(`${entry.target}/${rel}`));
         if (path === null) continue;
         files.push({
@@ -328,7 +334,11 @@ export async function planAdd(
 ): Promise<PlannedFile[]> {
   const srcDir = normalizeSrcDir(options.srcDir ?? "src");
   const files = await templateFiles(
-    { database: answers.database, frontend: "none" },
+    {
+      database: answers.database,
+      frontend: "none",
+      ...(answers.backend ? { backend: answers.backend } : {}),
+    },
     source,
     "add",
     srcDir,
@@ -342,7 +352,7 @@ export async function planAdd(
     buildManifest(
       { ...answers, frontend: "none" },
       files,
-      await ownedResources(answers.database, source),
+      await ownedResources(answers.database, source, answers.backend),
       "add",
       srcDir,
     ),

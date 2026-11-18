@@ -17,7 +17,7 @@ async function submit() {
   try {
     await auth.login(email.value, password.value);
     // Only same-origin paths are accepted from the URL (SEC-REDIRECT-001).
-    await router.replace(safeRedirect(route.query["redirect"], "/notes"));
+    await router.replace(safeRedirect(route.query["redirect"], "/account"));
   } catch (e) {
     error.value = describeError(e);
   } finally {

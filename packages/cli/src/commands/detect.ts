@@ -30,14 +30,14 @@ export interface DetectReport {
   project: ProjectInfo;
   /** file:line evidence of hand-written authentication in the application's source. */
   authSignals: AuthSignal[];
-  /** Where the Express app lives and which folder `add` would write under. Null if not Express. */
+  /** Where the backend app lives and which folder `add` would write under. Null if not a supported backend. */
   layout: SourceLayout | null;
   /** Packages of a monorepo (empty for a single package): run the command in the right one. */
   workspaces: WorkspacePackage[];
   /** Which Vue or React frontend this folder is, and whether `add-frontend` applies. */
   frontend: { framework: "vue" | "react"; options: CommandOption[] } | null;
   /**
-   * What to do: `init` (new project), `add` (existing Express project), `add-frontend`
+   * What to do: `init` (new project), `add` (existing Express or Fastify project), `add-frontend`
    * (an existing Vue or React app), `workspace` (a monorepo root: run detect in a package),
    * `upgrade` (SelfAuth is already installed) or `unsupported` (stop and tell the developer).
    */
@@ -53,7 +53,8 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
   const project = await detectProject(dir);
   const authSignals = project.exists && !project.empty ? await findAuthSignals(dir) : [];
   const workspaces = project.hasPackageJson ? await findWorkspacePackages(dir) : [];
-  const layout = project.framework === "express" ? await detectSourceLayout(dir) : null;
+  const backend = project.framework;
+  const layout = backend ? await detectSourceLayout(dir, backend) : null;
   const base = {
     cli: CLI_VERSION,
     spec: SPEC_VERSION,
@@ -95,7 +96,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
 
   if (!project.hasPackageJson) {
     const blockers = project.otherLanguages.map(
-      (l) => `this looks like a ${l} project; only Node.js + Express is supported`,
+      (l) => `this looks like a ${l} project; only Node.js with Express or Fastify is supported`,
     );
     return {
       ...base,
@@ -112,7 +113,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     };
   }
 
-  if (project.framework !== "express" && workspaces.length > 0) {
+  if (!backend && workspaces.length > 0) {
     const backends = workspaces.filter((w) => w.role === "backend");
     const frontends = workspaces.filter((w) => w.role === "frontend");
     const list = (ws: WorkspacePackage[]) => ws.map((w) => w.dir).join(", ") || "none";
@@ -137,7 +138,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     };
   }
 
-  if (project.framework !== "express") {
+  if (!backend) {
     const web = await preflightAddFrontend(dir);
     if (web.frontend) {
       const blockers = [...web.errors];
@@ -163,7 +164,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
         recommendation: blockers.length ? "unsupported" : "add-frontend",
         reason: blockers.length
           ? `A ${web.frontend} app, but \`selfauth add-frontend\` is blocked (see blockers).`
-          : `A ${web.frontend} app: \`selfauth add-frontend\` writes the auth module under ${web.srcDir}/selfauth/ only. The API is a separate Express project: run \`selfauth detect\` there.`,
+          : `A ${web.frontend} app: \`selfauth add-frontend\` writes the auth module under ${web.srcDir}/selfauth/ only. The API is a separate Express or Fastify project: run \`selfauth detect\` there.`,
         options: [],
       };
     }
@@ -173,9 +174,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     return {
       ...base,
       recommendation: "unsupported",
-      reason: project.otherFrameworks.includes("fastify")
-        ? `\`selfauth add\` supports Express only (${found}). Fastify is supported for new projects: \`selfauth init --backend fastify\`. Do not hand-write an adapter.`
-        : `Only Express is supported (${found}). Do not hand-write an adapter.`,
+      reason: `Only Express and Fastify are supported (${found}). Do not hand-write an adapter.`,
       options: [],
     };
   }
@@ -184,6 +183,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
   for (const database of ["memory", "postgresql"] as const) {
     const check = await preflightAdd(dir, {
       database,
+      backend,
       allowExistingAuth: true,
       srcDir: layout?.sourceDir ?? "src",
     });
@@ -192,7 +192,7 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     if (project.existingAuth.length)
       warnings.push("needs --allow-existing-auth, and only with the developer's approval");
     options.push({
-      command: `selfauth add --database ${database}${layout && layout.sourceDir !== "src" ? ` --src ${layout.sourceDir}` : ""}${project.existingAuth.length ? " --allow-existing-auth" : ""}`,
+      command: `selfauth add --database ${database}${backend === "fastify" ? " --backend fastify" : ""}${layout && layout.sourceDir !== "src" ? ` --src ${layout.sourceDir}` : ""}${project.existingAuth.length ? " --allow-existing-auth" : ""}`,
       available: !blockers.length,
       blockers,
       warnings,
@@ -204,8 +204,8 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     ...base,
     recommendation: any ? "add" : "unsupported",
     reason: any
-      ? `Existing Express project: \`selfauth add\` writes new files under ${layout?.sourceDir === "." ? "" : `${layout?.sourceDir ?? "src"}/`}selfauth/ only.`
-      : "Existing Express project, but `selfauth add` is blocked (see blockers).",
+      ? `Existing ${backend === "fastify" ? "Fastify" : "Express"} project: \`selfauth add\` writes new files under ${layout?.sourceDir === "." ? "" : `${layout?.sourceDir ?? "src"}/`}selfauth/ only.`
+      : `Existing ${backend === "fastify" ? "Fastify" : "Express"} project, but \`selfauth add\` is blocked (see blockers).`,
     options,
   };
 }
@@ -231,7 +231,7 @@ export async function detect(
   );
   if (report.layout)
     info(
-      `source folder: ${report.layout.sourceDir} (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other Express files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
+      `source folder: ${report.layout.sourceDir} (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other entry files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
     );
   for (const w of report.workspaces)
     info(`package ${w.dir}: ${w.role}${w.framework ? ` (${w.framework})` : ""}`);

@@ -18,7 +18,7 @@ async function submit() {
     const result = await auth.client.register({ email: email.value, password: password.value });
     if (result.signedIn) {
       await auth.refresh();
-      await router.replace("/notes");
+      await router.replace("/account");
     } else {
       done.value = true; // Same message whether or not the email was new (AUTHN-REG-005).
     }

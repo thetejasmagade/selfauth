@@ -151,13 +151,13 @@ databases (Phase 6 CLI).
   `fastify/`, `fastify-vue/`, `fastify-react/`; CI smoke-tests generated Fastify projects.
 - `conformance/adapters/fastify.json` and the generated [`docs/conformance-fastify.md`](docs/conformance-fastify.md):
   authorization level on both stores; production-profile is not claimed yet.
-- Express only, for now: `selfauth add` (existing projects) and the browser end-to-end suite.
+- `selfauth add` for existing Fastify projects (Fastify `setup.ts`, `examples/existing-fastify-app`), and the browser end-to-end suite runs every frontend against both backends.
 - ADR 0024.
 
 ## Next
 
 1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").
-2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify: a production-profile review, `selfauth add`, and browser tests against it.
+2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify: a production-profile review.
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`, tests for the `add` layout.
 
 ## Decisions made after Sprint 1 review

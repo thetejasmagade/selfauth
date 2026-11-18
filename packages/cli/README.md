@@ -6,6 +6,13 @@ runtime.
 
 ## New project
 
+Run `npx selfauth init` with no flags in a terminal and it asks: the folder, the backend,
+the database, the frontend and your permissions (arrow keys, or a number; a bad answer is
+explained and asked again; Ctrl-C cancels and writes nothing). It shows the list of files and
+asks before it writes anything. Every flag below answers its question in advance, so you only
+see what you left out. With `--yes`, or when there is no terminal (CI, scripts, coding agents),
+it asks nothing and uses the defaults for whatever the flags leave out.
+
 ```bash
 npx selfauth init my-app --database postgresql --frontend vue --permissions orders.view
 cd my-app && npm install                  # one install covers server/ and client/
@@ -18,8 +25,7 @@ npm run dev                 # the API (:3000) and the Vue app (:5173) together
 
 `--frontend vue|react` makes a full-stack project of two packages in one npm
 workspace: the API in `server/` and the reference frontend in `client/` (API
-client, session state, route guards, `<Can>`, every auth page), with a notes
-example on both sides that shows permissions and ownership. Each package has its
+client, session state, route guards, `<Can>`, every auth page). Each package has its
 own `selfauth.manifest.json`; run `selfauth doctor`, `validate`, `diff` or `upgrade`
 at the root and it covers both. Without a frontend the project is a single package
 with `src/` at the root.
@@ -28,10 +34,9 @@ with `src/` at the root.
 
 `npx selfauth init my-app --backend fastify --database postgresql` makes the same
 project on Fastify 5: the same core, stores, tests and frontends, with a Fastify
-adapter in `src/auth/fastify/`. Fastify is for new projects; `add` (an existing
-project) supports Express only.
+adapter in `src/auth/fastify/`. `add` works on an existing Fastify project too.
 
-## Existing Express project
+## Existing Express or Fastify project
 
 ```bash
 npx selfauth add --database memory --install
@@ -93,5 +98,5 @@ instead of writing authentication code. Before it reports success, the agent
 must validate the result. See [`integrations/`](../../integrations/README.md).
 
 Generated code is the SelfAuth reference implementation — what passes the
-87-case conformance suite and the browser tests — copied byte for byte
+90-case conformance suite and the browser tests — copied byte for byte
 (ADR 0018).

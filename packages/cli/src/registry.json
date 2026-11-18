@@ -106,25 +106,6 @@
         {
           "source": "packages/cli/template-variants/routes.ts",
           "target": "src/routes/index.ts",
-          "when": {
-            "frontend": "none"
-          },
-          "layout": "project"
-        },
-        {
-          "source": "apps/playground/src/routes/index.ts",
-          "target": "src/routes/index.ts",
-          "when": {
-            "frontend": "any"
-          },
-          "layout": "project"
-        },
-        {
-          "source": "apps/playground/src/routes/notes.ts",
-          "target": "src/routes/notes.ts",
-          "when": {
-            "frontend": "any"
-          },
           "layout": "project"
         },
         {
@@ -296,6 +277,11 @@
           "layout": "project"
         },
         {
+          "source": "packages/cli/template-variants/setup.fastify.ts",
+          "target": "src/setup.ts",
+          "layout": "add"
+        },
+        {
           "source": "packages/cli/template-variants/smoke.fastify.test.ts",
           "target": "test/auth.smoke.test.ts",
           "layout": "project"
@@ -303,25 +289,6 @@
         {
           "source": "packages/cli/template-variants/routes.fastify.ts",
           "target": "src/routes/index.ts",
-          "when": {
-            "frontend": "none"
-          },
-          "layout": "project"
-        },
-        {
-          "source": "apps/playground-fastify/src/routes/index.ts",
-          "target": "src/routes/index.ts",
-          "when": {
-            "frontend": "any"
-          },
-          "layout": "project"
-        },
-        {
-          "source": "apps/playground-fastify/src/routes/notes.ts",
-          "target": "src/routes/notes.ts",
-          "when": {
-            "frontend": "any"
-          },
           "layout": "project"
         },
         {

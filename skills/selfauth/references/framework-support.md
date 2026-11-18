@@ -10,7 +10,7 @@ developer instead.
 | Kind | ID | Notes | `init` | `add` |
 | --- | --- | --- | --- | --- |
 | backend | `express` | Express 5 + TypeScript ≥ 5.7, ESM (`"type": "module"`), Node.js ≥ 22.18 | ✓ | ✓ |
-| backend | `fastify` | Fastify 5 + TypeScript, same core and stores as Express (`selfauth init --backend fastify`). All 87 conformance cases pass on both stores; published at authorization level, production-profile review pending. An existing Fastify app cannot use `add` | ✓ | ✗ |
+| backend | `fastify` | Fastify 5 + TypeScript, same core and stores as Express (`selfauth init --backend fastify`). All 90 conformance cases pass on both stores; published at authorization level, production-profile review pending. `add` works on an existing Fastify app | ✓ | ✓ |
 | database | `postgresql` | PostgreSQL via Prisma 7. Committed, reviewable migrations | ✓ | ✓ (only if the project has no Prisma schema yet) |
 | database | `memory` | In-memory store. For trying SelfAuth out, not for production: refuses to start with `NODE_ENV=production` | ✓ | ✓ |
 | frontend | `none` | API only | ✓ | ✓ |

@@ -147,6 +147,7 @@ jobs:
           SMOKE_BACKEND=fastify scripts/smoke-generated.sh memory none
           scripts/smoke-generated.sh memory add
           scripts/smoke-generated.sh memory add-layout
+          SMOKE_BACKEND=fastify scripts/smoke-generated.sh memory add-layout
 
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})
@@ -166,6 +167,8 @@ jobs:
           # Fastify (`init --backend fastify`): API only, and full-stack with a real database.
           - { backend: fastify, database: memory, mode: none }
           - { backend: fastify, database: postgresql, mode: vue }
+          # `selfauth add` into an existing Fastify app (examples/existing-fastify-app).
+          - { backend: fastify, database: memory, mode: add }
           # No SelfAuth tooling at all: templates/express copied by hand, plain npm + Prisma.
           - { database: postgresql, mode: manual }
     services:

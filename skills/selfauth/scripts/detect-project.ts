@@ -91,7 +91,7 @@ if (p.otherFrameworks.length)
 if (p.otherLanguages.length) lines.push(`- Non-JavaScript backend: ${p.otherLanguages.join(", ")}`);
 if (report.layout)
   lines.push(
-    `- Source folder for \`add\`: \`${report.layout.sourceDir}\` (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other Express files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
+    `- Source folder for \`add\`: \`${report.layout.sourceDir}\` (${report.layout.basis})${report.layout.otherEntryFiles.length ? `; other entry files: ${report.layout.otherEntryFiles.join(", ")}` : ""}`,
   );
 if (report.workspaces.length)
   lines.push(

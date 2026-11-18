@@ -9,6 +9,7 @@ import {
   applyPlan,
   diagnose,
   inspect,
+  planAdd,
   planInit,
   planUpgrade,
   preflightAdd,
@@ -84,7 +85,7 @@ describe("planInit --backend fastify", () => {
   it("makes a full-stack project of two packages, with the Fastify API in server/", async () => {
     const paths = (await planInit(answers("postgresql", "vue"))).map((f) => f.path);
     expect(paths).toContain("server/src/auth/fastify/index.ts");
-    expect(paths).toContain("server/src/routes/notes.ts");
+    expect(paths.some((p) => /notes/i.test(p))).toBe(false);
     expect(paths).toContain("client/vite.config.ts");
     expect(paths).not.toContain("server/src/auth/express/index.ts");
   });
@@ -138,10 +139,10 @@ describe("a generated Fastify project", () => {
   });
 });
 
-describe("existing Fastify projects", () => {
-  it("are pointed to `init --backend fastify`: `add` supports Express only", async () => {
+describe("existing Fastify projects (selfauth add)", () => {
+  async function existingFastify(srcDir = "src") {
     const dir = await temp();
-    const { writeFile } = await import("node:fs/promises");
+    const { mkdir, writeFile } = await import("node:fs/promises");
     await writeFile(
       join(dir, "package.json"),
       JSON.stringify({
@@ -150,19 +151,77 @@ describe("existing Fastify projects", () => {
         devDependencies: { typescript: "~6.0.3" },
       }),
     );
-    const check = await preflightAdd(dir, { database: "memory", allowExistingAuth: false });
-    expect(check.errors.join(" ")).toMatch(/Express only.*init --backend fastify/);
+    await writeFile(join(dir, "tsconfig.json"), '{ "compilerOptions": { "module": "NodeNext" } }');
+    await writeFile(join(dir, ".gitignore"), ".env\nnode_modules\n");
+    await mkdir(join(dir, srcDir), { recursive: true });
+    await writeFile(
+      join(dir, srcDir, "app.ts"),
+      'import Fastify from "fastify";\nexport const app = Fastify();\n',
+    );
+    return dir;
+  }
+
+  it("are accepted by preflight and recommended `add` by detect", async () => {
+    const dir = await existingFastify();
+    const check = await preflightAdd(dir, { database: "memory" });
+    expect(check.errors).toEqual([]);
     const report = await inspect(dir);
-    expect(report.recommendation).toBe("unsupported");
-    expect(report.reason).toMatch(/init --backend fastify/);
+    expect(report.recommendation).toBe("add");
+    expect(report.project.framework).toBe("fastify");
+    expect(report.project.otherFrameworks).toEqual([]);
+    expect(report.layout).toMatchObject({ entryFile: "src/app.ts", sourceDir: "src" });
+    expect(report.options.map((o) => o.command)).toEqual([
+      "selfauth add --database memory --backend fastify",
+      "selfauth add --database postgresql --backend fastify",
+    ]);
+  });
+
+  it("finds the source folder from the Fastify entry file", async () => {
+    const report = await inspect(await existingFastify("server"));
+    expect(report.layout).toMatchObject({ entryFile: "server/app.ts", sourceDir: "server" });
+  });
+
+  it("are given the Fastify adapter and a setup file, and nothing of the Express one", async () => {
+    const dir = await existingFastify();
+    const files = await planAdd({ ...answers(), frontend: "none" });
+    const paths = files.map((f) => f.path);
+    expect(paths).toContain("src/selfauth/setup.ts");
+    expect(paths).toContain("src/selfauth/auth/fastify/index.ts");
+    expect(paths.some((p) => p.includes("/express/"))).toBe(false);
+    expect(paths).not.toContain("src/selfauth/app.ts");
+    const setup = files.find((f) => f.path === "src/selfauth/setup.ts")!.content;
+    expect(setup).toContain("export async function setupSelfAuth(app: FastifyInstance)");
+    expect(setup).not.toContain("express");
+    const manifest = JSON.parse(files.find((f) => f.path === "selfauth.manifest.json")!.content);
+    expect(manifest.options).toMatchObject({ layout: "add", backend: "fastify" });
+
+    await applyPlan(dir, files);
+    expect(existsSync(join(dir, "src/selfauth/setup.ts"))).toBe(true);
+    const plan = await planUpgrade(dir);
+    expect(plan.items.filter((i) => i.status !== "unchanged")).toEqual([]);
+    expect((await diagnose(dir)).errors).toEqual([]);
+  });
+
+  it("keeps Express as the backend when both frameworks are listed", async () => {
+    const dir = await existingFastify();
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(
+      join(dir, "package.json"),
+      JSON.stringify({
+        type: "module",
+        dependencies: { express: "^5.0.0", fastify: "^5.0.0" },
+        devDependencies: { typescript: "~6.0.3" },
+      }),
+    );
+    expect((await inspect(dir)).project.framework).toBe("express");
   });
 });
 
 describe("selfauth list", () => {
-  it("offers Fastify for new projects only", () => {
+  it("offers Fastify for new projects and for `selfauth add`", () => {
     const fastify = INTEGRATIONS.find((i) => i.id === "fastify")!;
     expect(fastify.kind).toBe("backend");
-    expect(fastify.add).toBe(false);
+    expect(fastify.add).toBe(true);
     expect(INTEGRATIONS.find((i) => i.id === "express")!.add).toBe(true);
   });
 });

@@ -91,7 +91,7 @@ describe("detect-project.ts", () => {
   });
 
   it.each([
-    ["Fastify", { "package.json": '{ "dependencies": { "fastify": "^5" } }' }, "fastify"],
+    ["Koa", { "package.json": '{ "dependencies": { "koa": "^2" } }' }, "koa"],
     ["NestJS", { "package.json": '{ "dependencies": { "@nestjs/core": "^11" } }' }, "@nestjs/core"],
     ["Django", { "requirements.txt": "django\n" }, "python"],
   ])("refuses unsupported stacks (%s)", async (_name, files, found) => {

@@ -28,9 +28,9 @@ never runs as part of the application it helps build.
 | # | Component | Location | Status |
 | --- | --- | --- | --- |
 | 1 | **Core specification** — requirements, data contracts, security rules, error codes, configuration | `packages/spec` | Draft 0.1 |
-| 2 | **Conformance suite** — language-neutral cases, coverage enforcement, and an executable runner with a driver contract | `conformance` | 87 cases, runner |
-| 3 | **Framework adapters** — Express backend plus Vue 3 and React frontend reference implementations (application-owned code, the future template source) | `apps/playground*/src/auth` | Express: 87/87 cases on memory and PostgreSQL; Vue and React: unit tests + one shared browser spec |
-| 4 | **Database & migration adapters** — stores per database; migration contract + SQL safety analysis + Prisma Migrate adapter | `apps/playground/src/auth/stores`, `packages/migration` | PostgreSQL/Prisma: 87/87 cases; MongoDB later |
+| 2 | **Conformance suite** — language-neutral cases, coverage enforcement, and an executable runner with a driver contract | `conformance` | 90 cases, runner |
+| 3 | **Framework adapters** — Express backend plus Vue 3 and React frontend reference implementations (application-owned code, the future template source) | `apps/playground*/src/auth` | Express: 90/90 cases on memory and PostgreSQL; Vue and React: unit tests + one shared browser spec |
+| 4 | **Database & migration adapters** — stores per database; migration contract + SQL safety analysis + Prisma Migrate adapter | `apps/playground/src/auth/stores`, `packages/migration` | PostgreSQL/Prisma: 90/90 cases; MongoDB later |
 | 5 | **CLI** — `init` (backend + optional Vue/React), `add`, `diff`, `upgrade`, `doctor`, `validate`, `db *` | `packages/cli` | Generated and added projects smoke-tested in CI |
 | 6 | **LLM skills** — `selfauth` skill for Claude Code and compatible agents | `skills/selfauth` | Phase 7 |
 

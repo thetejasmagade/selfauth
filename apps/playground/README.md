@@ -7,10 +7,10 @@ has no runtime dependency on SelfAuth packages.
 
 ## Status
 
-- All **87 conformance cases** pass (`test/conformance/`), plus unit and
+- All **90 conformance cases** pass (`test/conformance/`), plus unit and
   adapter tests.
 - Storage: **PostgreSQL via Prisma** when `DATABASE_URL` is set, otherwise
-  in-memory. All 87 cases pass on both.
+  in-memory. All 90 cases pass on both.
 - Email: `DevConsoleMailer` prints links in development and refuses to run in
   production. Supply your own `Mailer` for real delivery.
 - The playground server refuses `NODE_ENV=production`.
