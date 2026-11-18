@@ -8,6 +8,7 @@ packages:
 # Prisma downloads its schema engine for migrations.
 onlyBuiltDependencies:
   - "@prisma/engines"
+  - better-sqlite3
   - prisma
 
 # Advisories accepted on purpose. Review and remove each once a patched release exists.

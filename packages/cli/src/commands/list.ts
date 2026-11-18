@@ -36,6 +36,14 @@ export const INTEGRATIONS: Integration[] = [
   },
   {
     kind: "database",
+    id: "sqlite",
+    label:
+      "SQLite via Prisma 7: one file on one host, no server to run (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
+    production: true,
+    add: true,
+  },
+  {
+    kind: "database",
     id: "memory",
     label: "In-memory store for trying SelfAuth out (not for production)",
     production: false,

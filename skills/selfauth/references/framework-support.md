@@ -12,6 +12,7 @@ developer instead.
 | backend | `express` | Express 5 + TypeScript ≥ 5.7, ESM (`"type": "module"`), Node.js ≥ 22.18 | ✓ | ✓ |
 | backend | `fastify` | Fastify 5 + TypeScript, same core and stores as Express (`selfauth init --backend fastify`). All 90 conformance cases pass on both stores; published at authorization level, production-profile review pending. `add` works on an existing Fastify app | ✓ | ✓ |
 | database | `postgresql` | PostgreSQL via Prisma 7. Committed, reviewable migrations | ✓ | ✓ (only if the project has no Prisma schema yet) |
+| database | `sqlite` | SQLite via Prisma 7 (`better-sqlite3`): one file on one host, no server. Derived from the PostgreSQL reference at generation time; all 90 conformance cases pass; claimed at authorization level, not production (no rate-limit store shared across machines). `DATABASE_URL=file:./app.db`; `selfauth db migrate` creates the file | ✓ | ✓ (only if the project has no Prisma schema yet) |
 | database | `memory` | In-memory store. For trying SelfAuth out, not for production: refuses to start with `NODE_ENV=production` | ✓ | ✓ |
 | frontend | `none` | API only | ✓ | ✓ |
 | frontend | `vue` | Vue 3 + Vite in `web/`. For an existing app, `selfauth add-frontend` adds only the auth module (`src/selfauth/`) | ✓ | ✓ (`add-frontend`) |

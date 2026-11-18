@@ -16,3 +16,6 @@ apps/playground-fastify/src/generated/
 # Playwright output
 test-results/
 playwright-report/
+
+# Derived-database test copies (scripts/dialect-conformance.mjs)
+apps/*/.dialect/

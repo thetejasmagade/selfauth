@@ -490,5 +490,12 @@
       ],
       "typecheck": "tsc --noEmit -p tsconfig.json"
     }
+  },
+  "dialects": {
+    "sqlite": {
+      "migrations": "packages/cli/template-variants/sqlite/prisma/migrations",
+      "dependencies": ["@prisma/client", "@prisma/adapter-better-sqlite3", "better-sqlite3"],
+      "devDependencies": ["prisma", "@types/better-sqlite3"]
+    }
   }
 }

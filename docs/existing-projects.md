@@ -125,6 +125,7 @@ state-changing requests (the client does).
 
 - Frontends other than Vue and React (Angular, Svelte, Next.js, …). They can
   call the API by hand; see [the HTTP API](api/http.md).
+- A database that is not PostgreSQL, SQLite or the in-memory store (MySQL and MongoDB are planned).
 - A backend that is not Express 5 or Fastify 5 + TypeScript (see the
   [support matrix](conformance.md#support-matrix)).
 - Several Express or Fastify apps in one package: `add` uses the first entry

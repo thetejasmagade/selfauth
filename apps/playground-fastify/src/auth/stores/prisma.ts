@@ -1,4 +1,6 @@
+// <dialect:imports>
 import { PrismaPg } from "@prisma/adapter-pg";
+// </dialect:imports>
 import { Prisma, PrismaClient } from "../../generated/prisma/client.ts";
 import type { RateLimitRecord, RateLimitStore } from "../core/rate-limit.ts";
 import {
@@ -17,6 +19,7 @@ import {
  * user creation runs in one transaction, token consumption and session
  * revocation are conditional updates, and rate-limit updates lock their row.
  */
+// <dialect:client>
 export function createPrismaClient(options: {
   connectionString: string;
   schema?: string;
@@ -35,6 +38,7 @@ export function createPrismaClient(options: {
   );
   return new PrismaClient({ adapter });
 }
+// </dialect:client>
 
 function isUniqueViolation(error: unknown, field: string): boolean {
   if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002")
@@ -257,10 +261,10 @@ export class PrismaAuthStore implements AuthStore {
         await tx.authRolePermission.deleteMany({
           where: { roleId: role.id, permissionId: { notIn: wanted } },
         });
-        await tx.authRolePermission.createMany({
-          data: wanted.map((permissionId) => ({ roleId: role.id, permissionId })),
-          skipDuplicates: true,
-        });
+        await linkRolePermissions(
+          tx,
+          wanted.map((permissionId) => ({ roleId: role.id, permissionId })),
+        );
       }
     });
   }
@@ -289,10 +293,7 @@ export class PrismaAuthStore implements AuthStore {
   async addUserRole(userId: string, role: string, assignedBy: string | null, at: Date) {
     const found = await this.db.authRole.findUnique({ where: { name: role } });
     if (!found) throw new Error(`role '${role}' does not exist`);
-    await this.db.authUserRole.createMany({
-      data: [{ userId, roleId: found.id, assignedAt: at, assignedBy }],
-      skipDuplicates: true,
-    });
+    await linkUserRole(this.db, { userId, roleId: found.id, assignedAt: at, assignedBy });
   }
 
   async removeUserRole(userId: string, role: string) {
@@ -311,6 +312,55 @@ export class PrismaAuthStore implements AuthStore {
   }
 }
 
+// <dialect:links>
+/** Adds role-permission links, skipping the ones that already exist. */
+async function linkRolePermissions(
+  tx: Tx,
+  rows: { roleId: string; permissionId: string }[],
+): Promise<void> {
+  await tx.authRolePermission.createMany({ data: rows, skipDuplicates: true });
+}
+
+/** Gives a user a role; already having it is not an error. */
+async function linkUserRole(
+  db: PrismaClient | Tx,
+  row: { userId: string; roleId: string; assignedAt: Date; assignedBy: string | null },
+): Promise<void> {
+  await db.authUserRole.createMany({ data: [row], skipDuplicates: true });
+}
+// </dialect:links>
+
+// <dialect:lockRow>
+/**
+ * Makes sure the row for `key` exists and locks it until the transaction ends, so concurrent
+ * updates of one key serialize (a new row reads as `windowEndsAt === 0`).
+ */
+async function lockRateLimitRow(tx: Tx, key: string): Promise<RateLimitRecord> {
+  await tx.$executeRaw`
+    INSERT INTO auth_rate_limits (key, count, window_ends_at, blocked_until, strikes, last_block_at)
+    VALUES (${key}, 0, to_timestamp(0), to_timestamp(0), 0, to_timestamp(0))
+    ON CONFLICT (key) DO NOTHING`;
+  const rows = await tx.$queryRaw<
+    {
+      count: number;
+      window_ends_at: Date;
+      blocked_until: Date;
+      strikes: number;
+      last_block_at: Date;
+    }[]
+  >`SELECT count, window_ends_at, blocked_until, strikes, last_block_at
+    FROM auth_rate_limits WHERE key = ${key} FOR UPDATE`;
+  const row = rows[0]!;
+  return {
+    count: row.count,
+    windowEndsAt: row.window_ends_at.getTime(),
+    blockedUntil: row.blocked_until.getTime(),
+    strikes: row.strikes,
+    lastBlockAt: row.last_block_at.getTime(),
+  };
+}
+// </dialect:lockRow>
+
 /** Shared PostgreSQL rate-limit store (SEC-RATE-006); one row lock per key. */
 export class PrismaRateLimitStore implements RateLimitStore {
   private readonly db: PrismaClient;
@@ -324,29 +374,7 @@ export class PrismaRateLimitStore implements RateLimitStore {
     fn: (current: RateLimitRecord | undefined) => { next?: RateLimitRecord; result: T },
   ): Promise<T> {
     return this.db.$transaction(async (tx: Tx) => {
-      // Ensure a row exists, then lock it so concurrent updates of this key serialize.
-      await tx.$executeRaw`
-        INSERT INTO auth_rate_limits (key, count, window_ends_at, blocked_until, strikes, last_block_at)
-        VALUES (${key}, 0, to_timestamp(0), to_timestamp(0), 0, to_timestamp(0))
-        ON CONFLICT (key) DO NOTHING`;
-      const rows = await tx.$queryRaw<
-        {
-          count: number;
-          window_ends_at: Date;
-          blocked_until: Date;
-          strikes: number;
-          last_block_at: Date;
-        }[]
-      >`SELECT count, window_ends_at, blocked_until, strikes, last_block_at
-        FROM auth_rate_limits WHERE key = ${key} FOR UPDATE`;
-      const row = rows[0]!;
-      const current: RateLimitRecord = {
-        count: row.count,
-        windowEndsAt: row.window_ends_at.getTime(),
-        blockedUntil: row.blocked_until.getTime(),
-        strikes: row.strikes,
-        lastBlockAt: row.last_block_at.getTime(),
-      };
+      const current = await lockRateLimitRow(tx, key);
       const { next, result } = fn(current.windowEndsAt === 0 ? undefined : current);
       if (next) {
         await tx.authRateLimit.update({

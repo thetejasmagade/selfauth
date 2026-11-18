@@ -11,6 +11,9 @@ import {
 } from "../render.js";
 import {
   BACKENDS,
+  DATABASE_INFO,
+  DATABASES,
+  usesPrisma,
   frontendInfo,
   type Backend,
   type Database,
@@ -31,7 +34,6 @@ export interface InitOptions {
   prompter?: Prompter;
 }
 
-const DATABASES: Database[] = ["postgresql", "memory"];
 const FRONTENDS: Frontend[] = ["none", "vue", "react"];
 
 /** Folder names `init` accepts when it asks for one: a plain relative path, or `.` for here. */
@@ -141,6 +143,7 @@ async function run(
           "Which database?",
           [
             { value: "postgresql", label: "PostgreSQL", hint: "via Prisma; for real use" },
+            { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
             {
               value: "memory",
               label: "In-memory",
@@ -205,7 +208,7 @@ async function run(
   }
 
   say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${database === "postgresql" ? "PostgreSQL/Prisma" : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : "Express"} + ${usesPrisma(database) ? `${DATABASE_INFO[database].label}/Prisma` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -250,9 +253,9 @@ async function run(
     say(ws ? "  npm install               # installs server/ and client/" : "  npm install");
   say(
     `  cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}` +
-      (database === "postgresql" ? "   # set DATABASE_URL" : ""),
+      (usesPrisma(database) ? "   # set DATABASE_URL" : ""),
   );
-  if (database === "postgresql") {
+  if (usesPrisma(database)) {
     say("  npx selfauth db plan      # review the migration first");
     say("  npm run db:migrate && npm run db:seed");
   }

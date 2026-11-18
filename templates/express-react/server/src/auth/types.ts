@@ -55,7 +55,7 @@ export interface SelfAuthConfig {
   adapter: {
     backend: "express" | "fastify";
     frontend: "vue" | "react" | "none";
-    database: "postgresql" | "mongodb" | "memory";
+    database: "postgresql" | "mysql" | "sqlite" | "mongodb" | "memory";
     orm: "prisma" | "mongoose" | "none";
   };
   authentication: {

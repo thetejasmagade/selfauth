@@ -181,6 +181,11 @@ export class PrismaMigrationAdapter implements MigrationAdapter {
       const block = rest.split(/\n\s*\n/)[0] ?? "";
       return [...block.matchAll(MIGRATION_NAME)].map((x) => x[0]);
     };
+    // A SQLite database is a file that the first `migrate deploy` creates: before that, Prisma
+    // answers "database does not exist", which here only means nothing has been applied yet.
+    if (result.code !== 0 && /SQLite database/i.test(output) && /P1003/.test(output)) {
+      return { upToDate: false, applied: [], pending: files, failed: [], output };
+    }
     const pending = section(/have not yet been applied:/i);
     const failed = section(/failed/i).filter((n) => files.includes(n));
     const upToDate = result.code === 0 && /up to date/i.test(output);

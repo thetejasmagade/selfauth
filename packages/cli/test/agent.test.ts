@@ -70,6 +70,7 @@ describe("selfauth detect", () => {
     expect(r.options.map((o) => [o.command, o.available])).toEqual([
       ["selfauth add --database memory", true],
       ["selfauth add --database postgresql", true],
+      ["selfauth add --database sqlite", true],
     ]);
     expect(r.options[0]!.tsconfigChanges).toEqual({
       allowImportingTsExtensions: true,

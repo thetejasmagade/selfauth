@@ -61,6 +61,26 @@ describe("PrismaMigrationAdapter", () => {
     expect(calls.at(-1)).toEqual(["migrate", "deploy"]);
   });
 
+  it("treats a SQLite file that does not exist yet as nothing applied, not as an error", async () => {
+    const cwd = await project(
+      { "20260101000000_init": `CREATE TABLE "auth_users" ("id" TEXT NOT NULL PRIMARY KEY);` },
+      { ...manifest, database: { type: "sqlite", orm: "prisma" } },
+    );
+    const output =
+      'Datasource "db": SQLite database "app.db" at "file:./app.db"\n\nError: P1003: Database `app.db` does not exist';
+    const { run } = fakePrisma(output, 1);
+    const adapter = new PrismaMigrationAdapter({ cwd, run });
+    const status = await adapter.status();
+    expect(status).toMatchObject({
+      upToDate: false,
+      pending: ["20260101000000_init"],
+      applied: [],
+    });
+    const plan = await adapter.plan();
+    expect(plan.pending.map((f) => f.name)).toEqual(["20260101000000_init"]);
+    expect(plan).toMatchObject({ requiresApproval: false, blocked: false });
+  });
+
   it("refuses destructive plans unless approved", async () => {
     const cwd = await project(
       {

@@ -21,7 +21,7 @@ export const manifestSchema = z.strictObject({
   templateVersion: z.string().optional(),
   specVersion: z.string().regex(/^\d+\.\d+$/),
   database: z.strictObject({
-    type: z.enum(["postgresql", "mongodb", "memory"]),
+    type: z.enum(["postgresql", "mysql", "sqlite", "mongodb", "memory"]),
     orm: z.enum(["prisma", "mongoose", "none"]),
   }),
   ownedResources: z.strictObject({

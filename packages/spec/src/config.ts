@@ -66,6 +66,8 @@ const originSchema = z.string().refine(
 
 const ADAPTER_PAIRS: Record<string, string> = {
   postgresql: "prisma",
+  mysql: "prisma",
+  sqlite: "prisma",
   mongodb: "mongoose",
   memory: "none",
 };
@@ -79,7 +81,7 @@ export const selfAuthConfigSchema = z
     adapter: z.strictObject({
       backend: z.enum(["express", "fastify"]),
       frontend: z.enum(["vue", "react", "none"]).default("none"),
-      database: z.enum(["postgresql", "mongodb", "memory"]),
+      database: z.enum(["postgresql", "mysql", "sqlite", "mongodb", "memory"]),
       orm: z.enum(["prisma", "mongoose", "none"]),
     }),
     authentication: z

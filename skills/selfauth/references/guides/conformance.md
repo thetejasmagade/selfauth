@@ -27,6 +27,7 @@ The suite has 90 cases in total.
 | --- | --- |
 | memory | Authorization compliant |
 | postgresql | Production-profile compliant |
+| sqlite | Authorization compliant |
 
 **No independent security audit has been done.** Production-profile status is self-assessed from the sign-offs below. An outside review is required before 1.0.
 
@@ -38,6 +39,7 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | --- | --- | --- |
 | backend | `express` | Express 5 + TypeScript |
 | database | `postgresql` | PostgreSQL via Prisma (store `postgresql`) |
+| database | `sqlite` | SQLite via Prisma (derived from the PostgreSQL reference; verified by scripts/dialect-conformance.mjs in CI) (store `sqlite`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
 | frontend | `vue` | Vue 3 |
 | frontend | `react` | React |
@@ -81,6 +83,7 @@ Every mandatory requirement is covered by a case or by another check; the build 
 
 ## Known limitations
 
+- SQLite is a single file on one host. It is claimed at authorization level, not production: the production profile expects a shared store for rate limits across instances (SEC-RATE-006), and SQLite does not give you that across machines.
 - Express 5 and Fastify 5 are the only supported backends (Phase 10 continues).
 - MongoDB and Mongoose are in the configuration schema but not implemented; createAuth() refuses them.
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.

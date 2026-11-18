@@ -11,6 +11,20 @@ migration in every PostgreSQL template:
   reviewable SQL. If you don't use Prisma, you can also apply it with
   `psql` or your own migration tool.
 
+## Other databases
+
+**SQLite** (`--database sqlite`) uses the same logical model through Prisma. It is derived from the
+PostgreSQL schema when the project is generated (ADR 0025 (`docs/adr/0025-derived-sql-databases.md` in the SelfAuth repository)), so
+the tables and their names are identical; only the column types differ (SQLite stores UUIDs and
+enum values as text and timestamps as dates Prisma manages), and there are no enum types. Its
+`DATABASE_URL` is a file, for example `file:./app.db`; `selfauth db migrate` creates the file. It is
+one file on one host: use it for a single server, a desktop or edge deployment, or a project that
+does not want a database server. A relative `file:` URL is resolved from the folder you start the
+server in, and `selfauth db migrate` writes it next to `prisma.config.ts`: start the server from
+that folder (the npm scripts do), or use an absolute path. If the tables are missing the server
+says so and stops. For several application servers, use PostgreSQL, whose
+rate-limit counters are shared and row-locked.
+
 ## Tables SelfAuth owns
 
 Every name has the `auth_` prefix, so it won't collide with your tables.
@@ -29,7 +43,7 @@ list.
 | `auth_security_events` | Audit log: login success and failure, password and role changes, admin actions |
 | `auth_rate_limits` | Rate-limit counters, shared across app instances (row-locked updates) |
 
-Enum types: `auth_account_state`, `auth_credential_type`,
+Enum types (PostgreSQL): `auth_account_state`, `auth_credential_type`,
 `auth_session_revoked_reason`, `auth_event_outcome`.
 
 ## Rules

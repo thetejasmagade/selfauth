@@ -1,5 +1,6 @@
 import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
 import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
+import { DATABASE_INFO, type Database } from "../templates.js";
 import { databaseDir, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
@@ -42,11 +43,11 @@ export async function db(
       say(`  environment variable:  ${found.environment}`);
       say(`  ${found.path}:  ${found.envFile}`);
       info(
-        `Add a line like DATABASE_URL=postgresql://user:password@host:5432/dbname to ${found.path} (and save the file), or set the variable in your shell.`,
+        `Add a line like DATABASE_URL=${DATABASE_INFO[manifest.database.type as Database].urlExample} to ${found.path} (and save the file), or set the variable in your shell.`,
       );
       return 1;
     }
-    const problems = databaseUrlProblems(found.url);
+    const problems = databaseUrlProblems(found.url, manifest.database.type as Database);
     if (problems.length) {
       fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
       return 1;

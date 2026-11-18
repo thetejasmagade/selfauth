@@ -75,7 +75,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
       );
     if (config.adapter.database === "memory")
       report.warnings.push(
-        "in-memory store: data is lost on restart; use PostgreSQL in production",
+        "in-memory store: data is lost on restart; use PostgreSQL or SQLite in production",
       );
     if (config.http.csrf.mode === "token") {
       const env = await readEnvFile(dir, ".env");
@@ -105,7 +105,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
   if (existsSync(join(dir, ".env"))) {
     if (!env["SELFAUTH_APP_BASE_URL"])
       report.errors.push(".env: SELFAUTH_APP_BASE_URL is missing (email links need it)");
-    if (manifest.database.type === "postgresql" && !env["DATABASE_URL"])
+    if (manifest.database.orm === "prisma" && !env["DATABASE_URL"])
       report.warnings.push(".env: DATABASE_URL is missing");
   } else {
     report.notes.push("no .env yet (copy .env.example)");
