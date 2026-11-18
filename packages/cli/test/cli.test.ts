@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfig } from "@selfauth/spec";
 import { describe, expect, it } from "vitest";
+import { withoutNotesExample } from "../src/example.js";
 import {
   applyPlan,
   buildConfig,
@@ -102,40 +103,45 @@ describe("planInit", () => {
   });
 });
 
+describe("the notes demo", () => {
+  it("is removed with exact replacements, and generation fails when the reference changes", () => {
+    expect(withoutNotesExample("web/src/main.ts", 'home: "/notes"')).toBe('home: "/account"');
+    expect(() => withoutNotesExample("web/src/main.ts", 'home: "/start"')).toThrow(/example\.ts/);
+    // Files the demo never touched pass through unchanged.
+    expect(withoutNotesExample("web/src/router.test.ts", "x")).toBe("x");
+  });
+});
+
 describe("planInit with a frontend", () => {
   it.each(["vue", "react"] as const)(
-    "copies the %s reference frontend into client/ byte for byte",
+    "copies the %s reference frontend into client/, minus the notes demo",
     async (frontend) => {
       const files = await planInit(answers("postgresql", frontend));
       const web = files.filter((f) => f.template.startsWith(`${frontend}:`));
       expect(web.length).toBeGreaterThan(15);
       for (const f of web) {
         expect(f.path.startsWith("client/"), f.path).toBe(true);
-        expect(f.content, f.path).toBe(
-          await readFile(join(REPO, f.template.slice(frontend.length + 1)), "utf8"),
-        );
+        const reference = await readFile(join(REPO, f.template.slice(frontend.length + 1)), "utf8");
+        // Byte for byte, except the files the notes demo touched (src/example.ts lists them).
+        expect(f.content, f.path).toBe(withoutNotesExample(`web/${f.path.slice(7)}`, reference));
+        expect(f.content, f.path).not.toMatch(/notes/i);
       }
-      // The backend ships the notes example the frontend uses.
-      expect(files.map((f) => f.path)).toContain("server/src/routes/notes.ts");
-      expect(files.find((f) => f.path === "server/src/routes/index.ts")!.content).toContain(
-        "mountNotes",
-      );
+      const paths = files.map((f) => f.path);
+      expect(paths.some((p) => /notes/i.test(p))).toBe(false);
+      // The backend has one small protected route to copy from, not a demo.
+      const routes = files.find((f) => f.path === "server/src/routes/index.ts")!.content;
+      expect(routes).toContain("/hello");
+      expect(routes).not.toContain("mountNotes");
     },
   );
 
-  it("configures the example permissions, frontend origin and client package", async () => {
+  it("configures the frontend origin and client package, with no demo permissions", async () => {
     const files = await planInit(answers("memory", "react"));
     const config = files.find((f) => f.path === "server/src/config/selfauth.config.ts")!.content;
     const literal = JSON.parse(config.slice(config.indexOf("= ") + 2, config.lastIndexOf(";")));
     expect(literal.adapter.frontend).toBe("react");
-    expect(literal.authorization.permissions).toEqual([
-      "orders.view",
-      "orders.create",
-      "notes.create",
-      "notes.view",
-      "notes.view_any",
-    ]);
-    expect(literal.authorization.roles.support).toEqual(["notes.view_any"]);
+    expect(literal.authorization.permissions).toEqual(["orders.view", "orders.create"]);
+    expect(literal.authorization.roles).toEqual({ user: [], admin: [] });
 
     const web = JSON.parse(files.find((f) => f.path === "client/package.json")!.content);
     const reference = JSON.parse(

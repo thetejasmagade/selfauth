@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { Can, useAuth } from "./auth/index.ts";
+import { useAuth } from "./auth/index.ts";
 
 const auth = useAuth();
 const router = useRouter();
@@ -15,9 +15,7 @@ async function logout() {
   <header>
     <RouterLink to="/"><strong>SelfAuth</strong></RouterLink>
     <template v-if="auth.isAuthenticated">
-      <RouterLink to="/notes">Notes</RouterLink>
       <RouterLink to="/account">Account</RouterLink>
-      <Can permission="notes.view_any"><span data-testid="support-badge">Support</span></Can>
     </template>
     <span v-if="auth.state.status === 'loading'">Loading…</span>
     <template v-else-if="auth.isAuthenticated">

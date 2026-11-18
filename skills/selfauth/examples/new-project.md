@@ -33,7 +33,7 @@ selfauth db migrate
 npm run db:seed
 ```
 
-**7. Integrate.** Add `server/src/routes/orders.ts`, modelled on `server/src/routes/notes.ts`: an
+**7. Integrate.** Add `server/src/routes/orders.ts`, modelled on the ownership pattern in the server API guide (`references/guides/api/server.md`): an
 `ownershipPolicy` for `order`, `auth.protectedRoutes()`,
 `requirePermission("orders.create")`, and `ownerFilter` in the list query.
 Mount it from `server/src/routes/index.ts`. Don't touch `server/src/auth/**`.

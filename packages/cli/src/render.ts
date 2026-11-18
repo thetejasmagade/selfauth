@@ -1,9 +1,6 @@
 import { parseConfig, PERMISSION_PATTERN, type SelfAuthConfig } from "@selfauth/spec";
 import type { Backend, Database, Frontend } from "./templates.js";
 
-/** Permissions used by the notes example that ships with a frontend. */
-export const EXAMPLE_PERMISSIONS = ["notes.create", "notes.view", "notes.view_any"];
-
 export interface InitAnswers {
   name: string;
   database: Database;
@@ -21,10 +18,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
     if (!PERMISSION_PATTERN.test(p) || p.startsWith("auth."))
       throw new Error(`invalid permission '${p}' (format: resource.action)`);
   }
-  const example = answers.frontend !== "none";
-  const permissions = [
-    ...new Set([...answers.permissions, ...(example ? EXAMPLE_PERMISSIONS : [])]),
-  ];
+  const permissions = [...new Set(answers.permissions)];
   return parseConfig({
     adapter: {
       backend: answers.backend ?? "express",
@@ -34,10 +28,7 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
     },
     authorization: {
       permissions,
-      // With a frontend, the notes example shows ownership: users see their own notes, support sees all.
-      roles: example
-        ? { user: ["notes.create", "notes.view"], support: ["notes.view_any"], admin: [] }
-        : { user: [], admin: [] },
+      roles: { user: [], admin: [] },
     },
   });
 }
@@ -276,7 +267,6 @@ type Row = [string, string];
 
 function serverRows(answers: InitAnswers): Row[] {
   const pg = answers.database === "postgresql";
-  const web = answers.frontend !== "none";
   return [
     ["src/", ""],
     ["  server.ts", "starts the server"],
@@ -287,9 +277,6 @@ function serverRows(answers: InitAnswers): Row[] {
     ["    dev-config.ts", "cookie settings for local http development"],
     ["  routes/", ""],
     ["    index.ts", "your routes: guard them with auth.requireAuth / requirePermission"],
-    ...(web
-      ? ([["    notes.ts", "example: permissions and ownership (replace it)"]] as Row[])
-      : []),
     ["  email/mailer.ts", "plug in your email provider here"],
     [
       "  db/store.ts",
@@ -320,7 +307,7 @@ function clientRows(answers: InitAnswers): Row[] {
     ],
     [
       "  pages/",
-      `your pages (${answers.frontend === "vue" ? "home, account, notes, forbidden, 404" : "account, notes"}): replace the notes example`,
+      `your pages (${answers.frontend === "vue" ? "home, account, forbidden, 404" : "account"}): add yours here`,
     ],
   ];
 }
@@ -384,7 +371,7 @@ deploy it. Nothing here calls a SelfAuth service.
 \`\`\`bash
 ${run}
 \`\`\`
-${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. The \`notes\` example (backend \`server/src/routes/notes.ts\`, frontend notes page) shows permissions and ownership: replace it with your own features.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
+${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. Your API routes go in \`server/src/routes/\` (guard them with \`auth.requireAuth\` or \`auth.requirePermission\`), your pages in \`client/src/pages/\`.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
 development. Before production, implement \`createMailer()\` in
 \`${base}src/email/mailer.ts\`; the server refuses to start in production until you do.

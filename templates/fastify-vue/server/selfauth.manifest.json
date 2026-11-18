@@ -163,13 +163,8 @@
     },
     {
       "path": "src/routes/index.ts",
-      "template": "fastify:apps/playground-fastify/src/routes/index.ts",
-      "sha256": "d07c268a36c1b5590c00b8a9d7fbccf6441d2cc0ea1c585a85aad8e4b3d220b6"
-    },
-    {
-      "path": "src/routes/notes.ts",
-      "template": "fastify:apps/playground-fastify/src/routes/notes.ts",
-      "sha256": "3d39b77090aea69c84ed89d18bf312689b90e194b7fdaffc48d05b5c8e030171"
+      "template": "fastify:packages/cli/template-variants/routes.fastify.ts",
+      "sha256": "d6f14740dc9c5dee57748bc496f3b64fb8db2129da8176f7c1822a6883d6609a"
     },
     {
       "path": "src/db/store.ts",
@@ -234,7 +229,7 @@
     {
       "path": "src/config/selfauth.config.ts",
       "template": "rendered:config",
-      "sha256": "4f2e0fb7ce770b31e503772bb95359a33718c368758f1d72050c3e5b56189035"
+      "sha256": "6df53878c83d50883bb16c745bf8a0cdcb2c49fdbf62f4ce56c8b6f3811401fc"
     }
   ]
 }

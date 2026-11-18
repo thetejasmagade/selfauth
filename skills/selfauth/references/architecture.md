@@ -28,8 +28,7 @@ src/
     selfauth.config.ts  behaviour, permissions, roles (edit this)
     env.ts, dev-config.ts
   routes/
-    index.ts            the application's routes (edit; mounts the notes example)
-    notes.ts            example of guards, ownership and list filtering
+    index.ts            the application's routes (edit; one protected example route)
   email/mailer.ts       email delivery (replace the dev mailer)
   db/store.ts           chooses the data store (PostgreSQL or in-memory)
   http/                 errors.ts, request-id.ts

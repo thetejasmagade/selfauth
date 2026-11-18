@@ -19,6 +19,6 @@ const client = createAuthClient({
   },
 });
 const store = createAuthStore(client);
-installAuthGuard(router, store, { login: "/login", forbidden: "/forbidden", home: "/notes" });
+installAuthGuard(router, store, { login: "/login", forbidden: "/forbidden", home: "/account" });
 
 createApp(App).use(createAuthPlugin(store)).use(router).mount("#app");

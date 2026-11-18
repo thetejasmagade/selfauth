@@ -166,9 +166,7 @@ expect "login before verification" "$(curl "${H[@]}" "localhost:$PORT/auth/login
 TOKEN="$(grep -o 'token=[A-Za-z0-9_-]*' server.log | head -1 | cut -d= -f2)"
 expect verify "$(curl "${H[@]}" "localhost:$PORT/auth/email/verify" -d "{\"token\":\"$TOKEN\"}")" '"verified"'
 expect login "$(curl "${H[@]}" "localhost:$PORT/auth/login" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")" "\"email\":\"$EMAIL\""
-if [[ "$MODE" == "vue" || "$MODE" == "react" ]]; then
-  expect "notes example" "$(curl "${H[@]}" "localhost:$PORT/api/notes" -d '{"text":"from smoke"}')" '"from smoke"'
-elif [[ "$MODE" == "add" || "$MODE" == "add-layout" ]]; then
+if [[ "$MODE" == "add" || "$MODE" == "add-layout" ]]; then
   expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/account")" "\"email\":\"$EMAIL\""
 else
   expect "protected route" "$(curl "${H[@]}" "localhost:$PORT/api/hello")" "\"hello\":\"$EMAIL\""
@@ -179,7 +177,6 @@ fi
 if [[ "$MODE" != "manual" ]]; then
   step "agent skill: validate-auth (static checks, project scripts, live probes)"
   PROTECTED=/api/hello
-  [[ "$MODE" == "vue" || "$MODE" == "react" ]] && PROTECTED=/api/notes
   [[ "$MODE" == "add" || "$MODE" == "add-layout" ]] && PROTECTED=/api/account
   VALIDATION="$(skill validate-auth.ts . --url "http://localhost:$PORT" --protected "$PROTECTED" || true)"
   echo "$VALIDATION"

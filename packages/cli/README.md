@@ -18,8 +18,7 @@ npm run dev                 # the API (:3000) and the Vue app (:5173) together
 
 `--frontend vue|react` makes a full-stack project of two packages in one npm
 workspace: the API in `server/` and the reference frontend in `client/` (API
-client, session state, route guards, `<Can>`, every auth page), with a notes
-example on both sides that shows permissions and ownership. Each package has its
+client, session state, route guards, `<Can>`, every auth page). Each package has its
 own `selfauth.manifest.json`; run `selfauth doctor`, `validate`, `diff` or `upgrade`
 at the root and it covers both. Without a frontend the project is a single package
 with `src/` at the root.

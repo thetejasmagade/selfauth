@@ -163,13 +163,8 @@
     },
     {
       "path": "src/routes/index.ts",
-      "template": "express:apps/playground/src/routes/index.ts",
-      "sha256": "4b45fde4fdb50ca7a1b1a6303740517b4a031cd6779770bb53384b32995081e5"
-    },
-    {
-      "path": "src/routes/notes.ts",
-      "template": "express:apps/playground/src/routes/notes.ts",
-      "sha256": "222878d60311eafa1ec8fe5903768fa44b983a6996aee31991c41944172cc4fc"
+      "template": "express:packages/cli/template-variants/routes.ts",
+      "sha256": "5ac418c6dc1c703544434b40c551ea38682264f58578c38540151f7e200a52e5"
     },
     {
       "path": "src/db/store.ts",
@@ -234,7 +229,7 @@
     {
       "path": "src/config/selfauth.config.ts",
       "template": "rendered:config",
-      "sha256": "8654179a1affd8cf38231f47c7535aa88df8c6d5f932776530e322901aa1ffb0"
+      "sha256": "31f089d5220c822d286de8303cf658330031e8844237f43bad134e25aca41ade"
     }
   ]
 }

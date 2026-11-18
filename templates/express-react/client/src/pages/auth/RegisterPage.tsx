@@ -19,7 +19,7 @@ export function RegisterPage() {
       const result = await auth.client.register({ email, password });
       if (result.signedIn) {
         await auth.store.refresh();
-        void navigate("/notes", { replace: true });
+        void navigate("/account", { replace: true });
       } else {
         setDone(true); // Same message whether or not the email was new (AUTHN-REG-005).
       }

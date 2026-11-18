@@ -19,11 +19,6 @@ export function createAppRouter(history: RouterHistory = createWebHistory()) {
       { path: "/forgot-password", component: () => import("./pages/auth/ForgotPasswordPage.vue") },
       { path: "/reset-password", component: () => import("./pages/auth/ResetPasswordPage.vue") },
       {
-        path: "/notes",
-        component: () => import("./pages/NotesPage.vue"),
-        meta: { requiresAuth: true },
-      },
-      {
         path: "/account",
         component: () => import("./pages/AccountPage.vue"),
         meta: { requiresAuth: true },

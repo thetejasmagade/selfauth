@@ -149,7 +149,7 @@ export function installAuthGuard(
 
 /**
  * Renders its slot only when the user holds `permission` (or `role`).
- * `<Can permission="notes.view_any">…</Can>`
+ * `<Can permission="orders.view">…</Can>`
  */
 export const Can = defineComponent({
   name: "Can",

@@ -146,7 +146,7 @@ export function GuestOnly({ children, home = "/" }: { children: ReactNode; home?
   return <>{children}</>;
 }
 
-/** `<Can permission="notes.view_any">…</Can>` — permission-aware UI (UX only). */
+/** `<Can permission="orders.view">…</Can>` — permission-aware UI (UX only). */
 export function Can({
   permission,
   role,

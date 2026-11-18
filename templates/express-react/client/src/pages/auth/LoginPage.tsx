@@ -18,7 +18,7 @@ export function LoginPage() {
     try {
       await auth.store.login(email, password);
       // Only same-origin paths are accepted from the URL (SEC-REDIRECT-001).
-      void navigate(safeRedirect(params.get("redirect"), "/notes"), { replace: true });
+      void navigate(safeRedirect(params.get("redirect"), "/account"), { replace: true });
     } catch (e) {
       setError(describeError(e));
     } finally {

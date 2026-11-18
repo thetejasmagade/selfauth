@@ -85,7 +85,7 @@ describe("planInit --backend fastify", () => {
   it("makes a full-stack project of two packages, with the Fastify API in server/", async () => {
     const paths = (await planInit(answers("postgresql", "vue"))).map((f) => f.path);
     expect(paths).toContain("server/src/auth/fastify/index.ts");
-    expect(paths).toContain("server/src/routes/notes.ts");
+    expect(paths.some((p) => /notes/i.test(p))).toBe(false);
     expect(paths).toContain("client/vite.config.ts");
     expect(paths).not.toContain("server/src/auth/express/index.ts");
   });

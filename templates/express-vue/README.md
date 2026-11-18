@@ -14,7 +14,7 @@ npm run db:seed               # roles from server/src/config/selfauth.config.ts
 npm run dev                   # API on :3000 and the vue app together
 ```
 
-Open http://localhost:5173. The API is in `server/` and the vue frontend in `client/`; they are two packages in one npm workspace, so one `npm install` at the root installs both and `npm run dev` starts both (the frontend proxies /auth and /api to the API). The frontend's `src/auth/` holds the API client, session state, route guards and `<Can>`. The `notes` example (backend `server/src/routes/notes.ts`, frontend notes page) shows permissions and ownership: replace it with your own features.
+Open http://localhost:5173. The API is in `server/` and the vue frontend in `client/`; they are two packages in one npm workspace, so one `npm install` at the root installs both and `npm run dev` starts both (the frontend proxies /auth and /api to the API). The frontend's `src/auth/` holds the API client, session state, route guards and `<Can>`. Your API routes go in `server/src/routes/` (guard them with `auth.requireAuth` or `auth.requirePermission`), your pages in `client/src/pages/`.
 
 The backend only trusts the frontend origin in `SELFAUTH_APP_BASE_URL` (`server/.env`). If you serve the frontend elsewhere (for example `vite preview` on another port, or a deployed domain), set that variable or add the origin to `http.trustedOrigins`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.
 
@@ -35,7 +35,6 @@ server/                          the Express API (PostgreSQL)
       dev-config.ts              cookie settings for local http development
     routes/
       index.ts                   your routes: guard them with auth.requireAuth / requirePermission
-      notes.ts                   example: permissions and ownership (replace it)
     email/mailer.ts              plug in your email provider here
     db/store.ts                  picks the data store (PostgreSQL, or in-memory without DATABASE_URL)
     http/                        error responses and request ids
@@ -51,7 +50,7 @@ client/                          the vue frontend (Vite)
     main.ts, App.vue, router.ts  entry point, app shell and routes
     auth/                        SelfAuth's frontend module: API client, session state, route guards, <Can>
     pages/auth/                  the five account screens (unstyled HTML; add your own styles): login, register, verify email, forgot and reset password
-    pages/                       your pages (home, account, notes, forbidden, 404): replace the notes example
+    pages/                       your pages (home, account, forbidden, 404): add yours here
   package.json                   its own package
   selfauth.manifest.json         which files SelfAuth generated
 package.json                     workspace root: `npm run dev` starts both
