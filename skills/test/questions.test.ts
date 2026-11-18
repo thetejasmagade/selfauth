@@ -321,7 +321,17 @@ describe("answers that quote the product stay true", () => {
     for (const i of INTEGRATIONS) expect(supported).toContain(`\`${i.id}\``);
     // What the question map calls supported is exactly what the CLI offers.
     expect(INTEGRATIONS.map((i) => i.id).sort()).toEqual(
-      ["express", "fastify", "memory", "none", "postgresql", "react", "sqlite", "vue"].sort(),
+      [
+        "express",
+        "fastify",
+        "memory",
+        "mysql",
+        "none",
+        "postgresql",
+        "react",
+        "sqlite",
+        "vue",
+      ].sort(),
     );
   });
 });

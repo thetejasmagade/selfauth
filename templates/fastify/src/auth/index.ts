@@ -36,7 +36,7 @@ export interface Auth extends FastifyAuth {
 }
 
 /** Stores this adapter implements; the configuration schema also allows others (e.g. MongoDB). */
-const SUPPORTED_DATABASES: readonly string[] = ["postgresql", "sqlite", "memory"];
+const SUPPORTED_DATABASES: readonly string[] = ["postgresql", "mysql", "sqlite", "memory"];
 
 export function createAuth(options: CreateAuthOptions): Auth {
   const { config, nodeEnv } = options;

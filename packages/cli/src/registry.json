@@ -496,6 +496,11 @@
       "migrations": "packages/cli/template-variants/sqlite/prisma/migrations",
       "dependencies": ["@prisma/client", "@prisma/adapter-better-sqlite3", "better-sqlite3"],
       "devDependencies": ["prisma", "@types/better-sqlite3"]
+    },
+    "mysql": {
+      "migrations": "packages/cli/template-variants/mysql/prisma/migrations",
+      "dependencies": ["@prisma/client", "@prisma/adapter-mariadb", "mariadb"],
+      "devDependencies": ["prisma"]
     }
   }
 }

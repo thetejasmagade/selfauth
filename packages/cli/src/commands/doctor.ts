@@ -75,7 +75,7 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
       );
     if (config.adapter.database === "memory")
       report.warnings.push(
-        "in-memory store: data is lost on restart; use PostgreSQL or SQLite in production",
+        "in-memory store: data is lost on restart; use PostgreSQL, MySQL or SQLite in production",
       );
     if (config.http.csrf.mode === "token") {
       const env = await readEnvFile(dir, ".env");

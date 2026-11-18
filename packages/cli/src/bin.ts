@@ -27,7 +27,7 @@ program
   .command("init [dir]")
   .description("generate a new Express or Fastify project with SelfAuth authentication")
   .option("--backend <framework>", "express | fastify (default: express)")
-  .option("--database <db>", "postgresql | sqlite | memory")
+  .option("--database <db>", "postgresql | mysql | sqlite | memory")
   .option("--frontend <fw>", "none | vue | react (generated into web/)")
   .option(
     "--permissions <list>",
@@ -48,7 +48,7 @@ program
     "add SelfAuth to an existing Express or Fastify + TypeScript project (new files only)",
   )
   .option("--backend <framework>", "express | fastify (default: the one in package.json)")
-  .option("--database <db>", "memory | postgresql | sqlite", "memory")
+  .option("--database <db>", "memory | postgresql | mysql | sqlite", "memory")
   .option(
     "--src <dir>",
     "source folder to write under (<dir>/selfauth/); default: found from your backend entry file",

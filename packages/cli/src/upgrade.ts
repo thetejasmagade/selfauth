@@ -44,8 +44,7 @@ export const PROPOSAL_SUFFIX = ".selfauth-new";
 
 function answersFrom(manifest: Manifest): Pick<InitAnswers, "database" | "frontend" | "backend"> {
   const database = manifest.database.type;
-  if (database === "mongodb" || database === "mysql")
-    throw new Error(`${database} projects are not supported yet`);
+  if (database === "mongodb") throw new Error(`${database} projects are not supported yet`);
   return {
     database,
     frontend: manifest.options?.frontend ?? "none",

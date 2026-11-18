@@ -300,7 +300,8 @@ async function applyWorkspace(dir: string, plan: WorkspacePlan): Promise<void> {
     renderRootPackageJson({
       name: baseName,
       database:
-        (["postgresql", "sqlite"] as const).find((d) => d === manifest.database.type) ?? "memory",
+        (["postgresql", "mysql", "sqlite"] as const).find((d) => d === manifest.database.type) ??
+        "memory",
       frontend: frontend === "react" ? "react" : "vue",
       permissions: manifest.options?.permissions ?? [],
       appBaseUrl: manifest.options?.appBaseUrl ?? "http://localhost:5173",

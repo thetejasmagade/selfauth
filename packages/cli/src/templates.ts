@@ -4,8 +4,8 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import registry from "./registry.json" with { type: "json" };
 
-export type Database = "memory" | "postgresql" | "sqlite";
-export const DATABASES: readonly Database[] = ["postgresql", "sqlite", "memory"];
+export type Database = "memory" | "postgresql" | "mysql" | "sqlite";
+export const DATABASES: readonly Database[] = ["postgresql", "mysql", "sqlite", "memory"];
 
 /** Databases that use Prisma and the SQL schema (PostgreSQL is the reference; the rest are derived). */
 export const usesPrisma = (database: Database): database is Exclude<Database, "memory"> =>
@@ -21,6 +21,12 @@ export const DATABASE_INFO: Record<
     urlExample: "postgresql://user:password@localhost:5432/app",
     urlPrefixes: ["postgresql://", "postgres://"],
     urlHint: 'it must start with "postgresql://" (or "postgres://")',
+  },
+  mysql: {
+    label: "MySQL",
+    urlExample: "mysql://user:password@localhost:3306/app",
+    urlPrefixes: ["mysql://", "mariadb://"],
+    urlHint: 'it must start with "mysql://", for example mysql://user:password@localhost:3306/app',
   },
   sqlite: {
     label: "SQLite",
@@ -160,8 +166,8 @@ export function stackDependencies(
   const stack = registry.stacks[backend];
   if (database === "memory")
     return { dependencies: stack.dependencies, devDependencies: stack.devDependencies };
-  if (database === "sqlite") {
-    const dialect = registry.dialects.sqlite;
+  if (database === "sqlite" || database === "mysql") {
+    const dialect = registry.dialects[database];
     return {
       dependencies: [...stack.dependencies, ...dialect.dependencies],
       devDependencies: [...stack.devDependencies, ...dialect.devDependencies],

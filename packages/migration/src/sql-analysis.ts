@@ -29,11 +29,16 @@ export interface SqlFinding {
   severity: "destructive" | "risky";
 }
 
-const IDENT = String.raw`(?:"(?:[^"]|"")+"|[A-Za-z_][A-Za-z0-9_$]*)`;
+// Double quotes are PostgreSQL and SQLite; backticks are MySQL.
+const IDENT = String.raw`(?:"(?:[^"]|"")+"|\`(?:[^\`]|\`\`)+\`|[A-Za-z_][A-Za-z0-9_$]*)`;
 const QUALIFIED = String.raw`(?:${IDENT}\.)?(${IDENT})`;
 
 const unquote = (s: string) =>
-  s.startsWith('"') ? s.slice(1, -1).replace(/""/g, '"') : s.toLowerCase();
+  s.startsWith('"')
+    ? s.slice(1, -1).replace(/""/g, '"')
+    : s.startsWith("`")
+      ? s.slice(1, -1).replace(/``/g, "`")
+      : s.toLowerCase();
 
 /** Splits SQL into statements, ignoring `--` / block comments and quoted semicolons. */
 export function splitStatements(sql: string): { statement: string; line: number }[] {
@@ -42,7 +47,7 @@ export function splitStatements(sql: string): { statement: string; line: number 
   let startLine = 1;
   let line = 1;
   let i = 0;
-  let quote: "'" | '"' | null = null;
+  let quote: "'" | '"' | "`" | null = null;
   while (i < sql.length) {
     const ch = sql[i]!;
     const next = sql[i + 1];
@@ -60,7 +65,7 @@ export function splitStatements(sql: string): { statement: string; line: number 
     if (ch === "\n") line++;
     if (quote) {
       if (ch === quote) quote = null;
-    } else if (ch === "'" || ch === '"') {
+    } else if (ch === "'" || ch === '"' || ch === "`") {
       quote = ch;
     } else if (ch === ";") {
       if (current.trim()) out.push({ statement: current.trim(), line: startLine });
@@ -90,7 +95,16 @@ const RULES: { kind: FindingKind; severity: SqlFinding["severity"]; pattern: Reg
   {
     kind: "drop_schema",
     severity: "destructive",
-    pattern: new RegExp(String.raw`^DROP\s+SCHEMA\s+(?:IF\s+EXISTS\s+)?(${IDENT})`, "i"),
+    pattern: new RegExp(
+      String.raw`^DROP\s+(?:SCHEMA|DATABASE)\s+(?:IF\s+EXISTS\s+)?(${IDENT})`,
+      "i",
+    ),
+  },
+  {
+    // MySQL: RENAME TABLE a TO b
+    kind: "rename",
+    severity: "destructive",
+    pattern: new RegExp(String.raw`^RENAME\s+TABLE\s+${QUALIFIED}`, "i"),
   },
   {
     kind: "truncate",
@@ -159,14 +173,21 @@ export function analyzeSql(
       const table = unquote(alter[1]!);
       const actions = alter[2]!;
       checkOwned(table, statement, line);
-      if (/\bDROP\s+(?:COLUMN\s+)?(?!CONSTRAINT\b|DEFAULT\b|NOT\s+NULL\b)/i.test(actions))
+      if (
+        /\bDROP\s+(?:COLUMN\s+)?(?!CONSTRAINT\b|DEFAULT\b|NOT\s+NULL\b|FOREIGN\b|PRIMARY\b|INDEX\b|KEY\b|CHECK\b)/i.test(
+          actions,
+        )
+      )
         add("drop_column", "destructive", table, statement, line);
       if (/\bALTER\s+(?:COLUMN\s+)?\S+\s+(?:SET\s+DATA\s+)?TYPE\b/i.test(actions))
+        add("alter_column_type", "destructive", table, statement, line);
+      // MySQL changes a column's type or name with MODIFY and CHANGE.
+      if (/\b(?:MODIFY|CHANGE)\s+(?:COLUMN\s+)?/i.test(actions))
         add("alter_column_type", "destructive", table, statement, line);
       if (/\bSET\s+NOT\s+NULL\b/i.test(actions))
         add("set_not_null", "risky", table, statement, line);
       if (/\bRENAME\b/i.test(actions)) add("rename", "destructive", table, statement, line);
-      if (/\bDROP\s+CONSTRAINT\b/i.test(actions))
+      if (/\bDROP\s+(?:CONSTRAINT|FOREIGN\s+KEY|PRIMARY\s+KEY|CHECK)\b/i.test(actions))
         add("drop_constraint", "risky", table, statement, line);
     } else {
       const touched = TOUCHES.exec(statement);

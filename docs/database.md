@@ -23,6 +23,14 @@ that folder (the npm scripts do), or use an absolute path. If the tables are mis
 says so and stops. For several application servers, use PostgreSQL, whose
 rate-limit counters are shared and row-locked.
 
+**MySQL** (`--database mysql`, MySQL 8 or MariaDB) is derived the same way. Columns are `CHAR(36)`
+for ids and `DATETIME(3)` for times, enum columns use MySQL's own `ENUM`, and tables use the
+`utf8mb4_bin` collation so that two different emails or rate-limit keys never compare equal (MySQL's
+default collation ignores case and accents). `DATABASE_URL` is `mysql://user:password@host:3306/db`;
+create the (empty) database first, then run `selfauth db migrate`. The rate-limit counters are shared
+and row-locked, as on PostgreSQL. It is claimed at authorization level until its production profile
+is reviewed.
+
 ## Tables SelfAuth owns
 
 Every name has the `auth_` prefix, so it won't collide with your tables.

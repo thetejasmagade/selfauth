@@ -88,3 +88,60 @@ describe("createdObjects", () => {
     });
   });
 });
+
+describe("MySQL SQL", () => {
+  const owned = { tables: ["auth_users"], types: [] };
+
+  it("reads backtick-quoted names and keeps semicolons inside backticks", () => {
+    expect(
+      splitStatements("CREATE TABLE `a;b` (x int); DROP TABLE `a;b`;").map((p) => p.statement),
+    ).toEqual(["CREATE TABLE `a;b` (x int)", "DROP TABLE `a;b`"]);
+    expect(createdObjects("CREATE TABLE `auth_users` (`id` CHAR(36) NOT NULL);")).toEqual({
+      tables: ["auth_users"],
+      types: [],
+    });
+  });
+
+  it("flags destructive MySQL statements", () => {
+    expect(kinds("DROP TABLE `auth_users`;", owned)).toEqual(["drop_table:auth_users"]);
+    expect(kinds("DROP DATABASE `app`;")).toEqual(["drop_schema:app"]);
+    expect(kinds("RENAME TABLE `auth_users` TO `users2`;")).toEqual(["rename:auth_users"]);
+    expect(kinds("ALTER TABLE `auth_users` DROP COLUMN `email`;", owned)).toEqual([
+      "drop_column:auth_users",
+    ]);
+    expect(kinds("ALTER TABLE `auth_users` MODIFY `email` TEXT NOT NULL;", owned)).toEqual([
+      "alter_column_type:auth_users",
+    ]);
+    expect(kinds("ALTER TABLE `auth_users` CHANGE `email` `mail` TEXT;", owned)).toEqual([
+      "alter_column_type:auth_users",
+    ]);
+  });
+
+  it("does not call dropping a key or index a dropped column", () => {
+    expect(kinds("ALTER TABLE `auth_users` DROP FOREIGN KEY `fk`;", owned)).toEqual([
+      "drop_constraint:auth_users",
+    ]);
+    expect(kinds("ALTER TABLE `auth_users` DROP INDEX `i`;", owned)).toEqual([]);
+    expect(kinds("ALTER TABLE `auth_users` DROP PRIMARY KEY;", owned)).toEqual([
+      "drop_constraint:auth_users",
+    ]);
+  });
+
+  it("flags a table the project owns nothing of", () => {
+    expect(kinds("ALTER TABLE `orders` ADD COLUMN `x` INT;", owned)).toEqual(["not_owned:orders"]);
+  });
+
+  it("finds nothing to flag in the generated SelfAuth migration", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const sql = await readFile(
+      new URL(
+        "../../cli/template-variants/mysql/prisma/migrations/20261116085533_selfauth_init/migration.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    const created = createdObjects(sql);
+    expect(created.tables).toContain("auth_users");
+    expect(analyzeSql(sql, { tables: created.tables, types: [] })).toEqual([]);
+  });
+});

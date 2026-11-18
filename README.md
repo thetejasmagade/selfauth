@@ -13,7 +13,7 @@ SelfAuth is **not** a hosted identity provider, auth server, or runtime SDK.
 Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
-> **Status: pre-alpha.** Spec, conformance suite, Express and Fastify backends with PostgreSQL and SQLite,
+> **Status: pre-alpha.** Spec, conformance suite, Express and Fastify backends with PostgreSQL, MySQL and SQLite,
 > Vue/React frontends, a CLI (`init`, `add`, `upgrade`, migrations), and a
 > `selfauth` skill for coding agents. See [`ROADMAP.md`](ROADMAP.md).
 
