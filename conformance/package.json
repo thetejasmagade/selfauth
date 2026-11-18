@@ -1,6 +1,6 @@
 {
   "name": "@selfauth/conformance",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Language-neutral SelfAuth conformance cases and requirement-coverage tooling.",
   "license": "MIT",
   "repository": {
