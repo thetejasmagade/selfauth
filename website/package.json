@@ -1,0 +1,19 @@
+{
+  "name": "@selfauth/website",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The SelfAuth documentation website (VitePress).",
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview --port 4173",
+    "docs:check": "node scripts/check-docs.mjs"
+  },
+  "devDependencies": {
+    "mermaid": "^11.4.1",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "vue": "^3.5.13"
+  }
+}

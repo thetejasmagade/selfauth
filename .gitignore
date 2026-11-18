@@ -19,3 +19,6 @@ playwright-report/
 
 # Derived-database test copies (scripts/dialect-conformance.mjs)
 apps/*/.dialect/
+
+# VitePress cache
+website/.vitepress/cache/

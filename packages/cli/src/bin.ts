@@ -28,7 +28,7 @@ program
   .description("generate a new Express, Fastify or Gin (Go) project with SelfAuth authentication")
   .option("--backend <framework>", "express | fastify | gin (default: express)")
   .option("--database <db>", "postgresql | mysql | sqlite | mongodb | memory")
-  .option("--frontend <fw>", "none | vue | react (generated into web/)")
+  .option("--frontend <fw>", "none | vue | react (generated into client/)")
   .option(
     "--permissions <list>",
     "comma-separated application permissions, e.g. orders.view,orders.create",

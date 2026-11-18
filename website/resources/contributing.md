@@ -1,0 +1,61 @@
+---
+title: Contributing
+description: How to contribute to SelfAuth - development setup, pull request rules, writing specification requirements and the rules for AI coding agents that work on the repository.
+keywords: [contributing, pull request, development setup, pnpm, changeset, adr, developer certificate of origin]
+---
+
+# Contributing
+
+SelfAuth generates security-sensitive code that other people run in production, so the bar for correctness is high and the process is deliberate. The full guide is [`CONTRIBUTING.md`](https://github.com/thetejasmagade/selfauth/blob/main/CONTRIBUTING.md); this is the short version.
+
+## Before you start
+
+1. Read [`ARCHITECTURE.md`](https://github.com/thetejasmagade/selfauth/blob/main/ARCHITECTURE.md) and [`DECISIONS.md`](https://github.com/thetejasmagade/selfauth/blob/main/DECISIONS.md).
+2. For behavior changes, read the relevant [specification](https://github.com/thetejasmagade/selfauth/tree/main/packages/spec/specs).
+3. For anything larger than a bug fix, **open an issue first**. New adapters always start with an issue.
+
+## Development setup
+
+You need Node.js 22.18 or newer and pnpm 10. Go 1.26 is needed for the Gin app.
+
+```bash
+git clone https://github.com/thetejasmagade/selfauth.git
+cd selfauth
+corepack enable
+pnpm install
+pnpm check          # format check, lint, typecheck, tests
+pnpm build
+```
+
+PostgreSQL tests run when `TEST_DATABASE_URL` is set (CI always runs them).
+
+## This documentation site
+
+The site is the `website/` package (VitePress). Pages are Markdown files in `website/`.
+
+```bash
+pnpm docs:dev       # live-reloading preview at http://localhost:5173
+pnpm docs:build     # production build into website/.vitepress/dist
+pnpm docs:preview   # serve the production build at http://localhost:4173
+pnpm docs:check     # checks the docs against the source code
+```
+
+See [Documentation coverage](./coverage) for how pages are kept in step with the code, and for how to add a page.
+
+## Pull requests
+
+- Keep them small and focused, with acceptance criteria in the description.
+- Add tests, including **negative security cases** (wrong password, expired token, replayed token, missing permission).
+- Changing a requirement? Update the spec and the conformance cases.
+- Changing architecture? Add an ADR.
+- Changing a published package? Add a changeset with `pnpm changeset`.
+- Sign off your commits (`git commit -s`) to certify the Developer Certificate of Origin.
+- Contributions are licensed under MIT; template contributions under both MIT and 0BSD.
+
+## Rules for AI coding agents working on the repository
+
+No mandatory runtime service; no custom cryptography; never overwrite application code without review; never run destructive migrations without approval; every security-sensitive feature needs tests; never claim completion without validation. The full list is in `CONTRIBUTING.md`.
+
+## Next
+
+- [License](./license)
