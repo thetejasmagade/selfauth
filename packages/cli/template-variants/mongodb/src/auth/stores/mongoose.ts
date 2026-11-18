@@ -325,11 +325,13 @@ export class MongooseAuthStore implements AuthStore {
 
   async setPasswordHash(userId: string, hash: string, at: Date) {
     // An aggregation-pipeline update: one atomic write that keeps the original creation time.
+    // In a pipeline a string that starts with "$" is a field path, and an Argon2 hash starts with
+    // "$argon2id$", so the hash must be wrapped as a literal.
     await this.users.updateOne({ _id: text(userId, "userId") }, [
       {
         $set: {
           credential: {
-            secretHash: text(hash, "hash"),
+            secretHash: { $literal: text(hash, "hash") },
             createdAt: { $ifNull: ["$credential.createdAt", at] },
             updatedAt: at,
           },
