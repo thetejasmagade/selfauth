@@ -74,7 +74,7 @@ repository (`selfauth add-frontend` for Vue and React):
 
 | Command | What it does |
 | --- | --- |
-| `init [dir]` | New project: `--backend express\|fastify`, `--database postgresql\|sqlite\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
+| `init [dir]` | New project: `--backend express\|fastify`, `--database postgresql\|mysql\|sqlite\|memory`, `--frontend none\|vue\|react`, `--permissions`, `--app-base-url`, `--dry-run`, `--yes`, `--install` |
 | `add [dir]` | Existing Express project: same options plus `--src <folder>` and `--allow-existing-auth` |
 | `add-frontend [dir]` | Existing Vue or React app: adds the authentication module under `src/selfauth/` (`--frontend`, `--src`, `--dry-run`, `--yes`, `--install`); generates no pages |
 | `detect [dir]` | Read-only inspection: stack, source folder, monorepo packages, database, existing auth (packages and source), which command applies and what blocks it |

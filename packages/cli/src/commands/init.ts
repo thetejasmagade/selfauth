@@ -143,6 +143,7 @@ async function run(
           "Which database?",
           [
             { value: "postgresql", label: "PostgreSQL", hint: "via Prisma; for real use" },
+            { value: "mysql", label: "MySQL", hint: "via Prisma; MySQL 8 or MariaDB" },
             { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
             {
               value: "memory",

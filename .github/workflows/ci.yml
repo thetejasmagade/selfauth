@@ -157,8 +157,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [sqlite]
+        database: [sqlite, mysql]
         app: [playground, playground-fastify]
+    env:
+      MYSQL_TEST_URL: mysql://root:root@127.0.0.1:3306/selfauth_test
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -173,6 +175,11 @@ jobs:
           key: turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: turbo-${{ github.job }}-
       - run: pnpm build --cache-dir=.turbo
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.database == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS selfauth_test"
       - name: Run every conformance case against the derived database
         run: node scripts/dialect-conformance.mjs ${{ matrix.database }} ${{ matrix.app }}
 
@@ -190,6 +197,9 @@ jobs:
           # SQLite (derived from the PostgreSQL reference): API only, and full-stack on Fastify.
           - { database: sqlite, mode: none }
           - { backend: fastify, database: sqlite, mode: react }
+          # MySQL (derived from the PostgreSQL reference), against a real MySQL 8.
+          - { database: mysql, mode: none }
+          - { backend: fastify, database: mysql, mode: vue }
           - { database: memory, mode: vue }
           - { database: postgresql, mode: react }
           - { database: memory, mode: add }
@@ -217,6 +227,7 @@ jobs:
           --health-retries 10
     env:
       SMOKE_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/smoke
+      SMOKE_MYSQL_URL: mysql://root:root@127.0.0.1:3306/smoke
       SMOKE_BACKEND: ${{ matrix.backend || 'express' }}
     steps:
       - uses: actions/checkout@v7
@@ -232,5 +243,10 @@ jobs:
           key: turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: turbo-${{ github.job }}-
       - run: pnpm build --cache-dir=.turbo
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.database == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
       - name: Generate, install, migrate, boot and exercise a project outside the monorepo
         run: scripts/smoke-generated.sh ${{ matrix.database }} ${{ matrix.mode }}

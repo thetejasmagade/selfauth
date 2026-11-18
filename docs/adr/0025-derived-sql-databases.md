@@ -1,4 +1,4 @@
-# 0025: SQLite (and MySQL) are derived from the PostgreSQL reference
+# 0025: SQLite and MySQL are derived from the PostgreSQL reference
 
 - Status: accepted
 - Date: 2026-11-18
@@ -33,9 +33,22 @@ code.
   has no `skipDuplicates`, so role links use upserts. `auth_security_events.seq` (an insertion-order
   aid used only by tests) is dropped because SQLite allows autoincrement on the primary key only;
   the test helper reads `rowid` instead. Write-ahead logging is switched on at start-up.
-- **Claimed level.** SQLite is claimed at authorization level, not production: it is one file on
-  one host, and the production profile expects a rate-limit store shared across instances
-  (SEC-RATE-006).
+- **MySQL specifics.** The adapter is `@prisma/adapter-mariadb` (works with MySQL 8 and MariaDB).
+  PostgreSQL's native types map to `CHAR(36)` and `DATETIME(3)`; `VARCHAR(n)` is kept, and `seq`
+  stays (MySQL allows AUTO_INCREMENT on a unique column). Prisma writes tables with a
+  case- and accent-insensitive collation (`utf8mb4_unicode_ci`), under which two different emails or
+  rate-limit keys could collide, so the generated migration is rewritten to `utf8mb4_bin`
+  (exact bytes, as PostgreSQL compares); the rewrite refuses SQL that does not contain the
+  collation it expects. The rate-limit row lock is `INSERT ... ON DUPLICATE KEY UPDATE` (a no-op
+  that takes the row's write lock at once) followed by `SELECT ... FOR UPDATE`: `INSERT IGNORE`
+  would take a shared lock and deadlock when two transactions upgrade it. `skipDuplicates` works
+  on MySQL, so the role-link block is PostgreSQL's. The migration safety analysis
+  (`@selfauth/migration`) reads backtick-quoted SQL and knows MySQL's `MODIFY`, `CHANGE`,
+  `DROP FOREIGN KEY` and `RENAME TABLE`.
+- **Claimed level.** SQLite and MySQL are claimed at authorization level, not production. SQLite is
+  one file on one host, and the production profile expects a rate-limit store shared across
+  instances (SEC-RATE-006); MySQL has such a store, but its production profile (isolation level,
+  deadlock handling) has not been reviewed.
 - **MongoDB is different.** It has no SQL schema to derive from; it gets its own Mongoose store and
   its own conformance run (a later change).
 

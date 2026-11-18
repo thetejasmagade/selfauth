@@ -178,6 +178,7 @@ describe("existing Fastify projects (selfauth add)", () => {
     expect(report.options.map((o) => o.command)).toEqual([
       "selfauth add --database memory --backend fastify",
       "selfauth add --database postgresql --backend fastify",
+      "selfauth add --database mysql --backend fastify",
       "selfauth add --database sqlite --backend fastify",
     ]);
   });

@@ -2,7 +2,7 @@
 /* global process, console */
 /* eslint-disable no-console -- script output */
 // Runs the conformance suite against a database that is derived from the PostgreSQL reference.
-// Usage: node scripts/dialect-conformance.mjs <sqlite> <playground|playground-fastify> [vitest args]
+// Usage: node scripts/dialect-conformance.mjs <sqlite|mysql> <playground|playground-fastify> [vitest args]
 //
 // It copies the reference app into apps/<app>/.dialect/<db>/ (git-ignored), applies the same
 // transforms `selfauth init` applies (packages/cli/src/dialect.ts), generates the migration with
@@ -16,11 +16,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const [dialect, app, ...vitestArgs] = process.argv.slice(2);
 if (!dialect || !app) {
   console.error(
-    "usage: dialect-conformance.mjs <sqlite> <playground|playground-fastify> [vitest args]",
+    "usage: dialect-conformance.mjs <sqlite|mysql> <playground|playground-fastify> [vitest args]",
   );
   process.exit(2);
 }
-const { adaptForDialect } = await import(
+const { adaptForDialect, adaptMigrationSql } = await import(
   pathToFileURL(join(root, "packages/cli/dist/dialect.js")).href
 );
 const appDir = join(root, "apps", app);
@@ -70,6 +70,8 @@ run(process.execPath, [
   "--output",
   "prisma/migrations/0001_init/migration.sql",
 ]);
+const sqlFile = join(out, "prisma/migrations/0001_init/migration.sql");
+writeFileSync(sqlFile, adaptMigrationSql(dialect, readFileSync(sqlFile, "utf8")));
 run(process.execPath, [prisma, "generate"], {
   env: { ...process.env, DATABASE_URL: "file:./unused.db" },
 });
@@ -81,10 +83,9 @@ if (!existsSync(helpers)) {
   process.exit(1);
 }
 cpSync(helpers, join(out, "test/postgres.ts"));
-cpSync(
-  join(root, "apps", app, "test", "dialects", `${dialect}-events.ts`),
-  join(out, "test/conformance/events.ts"),
-);
+// A database that keeps `seq` reads events the way PostgreSQL does; the others have their own.
+const events = join(root, "apps", app, "test", "dialects", `${dialect}-events.ts`);
+if (existsSync(events)) cpSync(events, join(out, "test/conformance/events.ts"));
 const helperFile = join(out, "test/helpers.ts");
 const original = readFileSync(helperFile, "utf8");
 const patched = original.replace(
@@ -100,6 +101,15 @@ run(
   "pnpm",
   ["exec", "vitest", "run", "--root", out, "test/conformance/conformance.test.ts", ...vitestArgs],
   {
-    env: { ...process.env, TEST_DATABASE_URL: `${dialect}:harness`, DATABASE_URL: "" },
+    env: {
+      ...process.env,
+      // MySQL needs a server: MYSQL_TEST_URL (a user that may create databases), as in CI.
+      TEST_DATABASE_URL:
+        dialect === "mysql"
+          ? (process.env["MYSQL_TEST_URL"] ??
+            "mysql://selfauth:selfauth@127.0.0.1:3306/selfauth_test")
+          : `${dialect}:harness`,
+      DATABASE_URL: "",
+    },
   },
 );

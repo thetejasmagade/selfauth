@@ -2,7 +2,7 @@
 name: selfauth
 description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express or Fastify + TypeScript projects, with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
 license: MIT
-compatibility: Node.js >= 22.18. Supports Express 5 and Fastify 5 (new and existing projects) + TypeScript >= 5.7 backends with PostgreSQL or SQLite (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
+compatibility: Node.js >= 22.18. Supports Express 5 and Fastify 5 (new and existing projects) + TypeScript >= 5.7 backends with PostgreSQL, MySQL or SQLite (Prisma) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
   version: "0.11.0"
   spec: "0.1"
@@ -208,7 +208,7 @@ routes, CSRF protection and the protected routes you name refuse anonymous
 requests. If anything fails, fix the cause and run it again. Don't edit
 generated security code or relax config to make a check pass.
 
-For PostgreSQL or SQLite, also run `selfauth db plan` and `selfauth db migrate` (see
+For PostgreSQL, MySQL or SQLite, also run `selfauth db plan` and `selfauth db migrate` (see
 [migration-rules](references/migration-rules.md)). Run `npm run db:seed`, or
 `node --env-file=.env src/selfauth/scripts/seed.ts` in the add layout, so the
 roles exist.

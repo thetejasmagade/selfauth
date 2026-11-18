@@ -8,10 +8,10 @@
 import type { Database } from "./templates.js";
 
 /** Databases that are derived from the PostgreSQL reference. */
-export type DerivedDialect = "sqlite";
+export type DerivedDialect = "sqlite" | "mysql";
 
 export const isDerivedDialect = (database: Database): database is DerivedDialect =>
-  database === "sqlite";
+  database === "sqlite" || database === "mysql";
 
 /** The regions of `src/auth/stores/prisma.ts` that are specific to PostgreSQL. */
 const BLOCKS = ["imports", "client", "links", "lockRow"] as const;
@@ -82,7 +82,65 @@ async function lockRateLimitRow(tx: Tx, key: string): Promise<RateLimitRecord> {
 `,
 };
 
-const BLOCK_TEXT: Record<DerivedDialect, Record<Block, string>> = { sqlite: SQLITE_BLOCKS };
+const MYSQL_BLOCKS: Partial<Record<Block, string>> = {
+  imports: `import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+`,
+  client: `export function createPrismaClient(options: {
+  /** A MySQL URL such as \`mysql://user:password@localhost:3306/app\` (DATABASE_URL). */
+  connectionString: string;
+  /** Not used with MySQL; accepted so every database shares one signature. */
+  schema?: string;
+  max?: number;
+}): PrismaClient {
+  const url = new URL(options.connectionString);
+  if (options.max) url.searchParams.set("connectionLimit", String(options.max));
+  const adapter = new PrismaMariaDb(url.toString());
+  return new PrismaClient({ adapter });
+}
+`,
+  // \`skipDuplicates\` (the \`links\` block) works on MySQL as it is, so that block is kept.
+  lockRow: `/** A DATETIME read back by a raw query: a Date, or text in UTC. */
+const instant = (value: Date | string): number =>
+  value instanceof Date ? value.getTime() : Date.parse(\`\${value.replace(" ", "T")}Z\`);
+
+/**
+ * Makes sure the row for \`key\` exists and locks it until the transaction ends, so concurrent
+ * updates of one key serialize (a new row reads as \`windowEndsAt === 0\`). The insert is an
+ * upsert that changes nothing: for a row that exists it takes the write lock at once, where
+ * \`INSERT IGNORE\` would take a shared lock and then deadlock when two transactions upgrade it.
+ */
+async function lockRateLimitRow(tx: Tx, key: string): Promise<RateLimitRecord> {
+  const epoch = new Date(0);
+  await tx.$executeRaw\`
+    INSERT INTO auth_rate_limits (\\\`key\\\`, count, window_ends_at, blocked_until, strikes, last_block_at)
+    VALUES (\${key}, 0, \${epoch}, \${epoch}, 0, \${epoch})
+    ON DUPLICATE KEY UPDATE \\\`key\\\` = \\\`key\\\`\`;
+  const rows = await tx.$queryRaw<
+    {
+      count: number;
+      window_ends_at: Date | string;
+      blocked_until: Date | string;
+      strikes: number;
+      last_block_at: Date | string;
+    }[]
+  >\`SELECT count, window_ends_at, blocked_until, strikes, last_block_at
+    FROM auth_rate_limits WHERE \\\`key\\\` = \${key} FOR UPDATE\`;
+  const row = rows[0]!;
+  return {
+    count: Number(row.count),
+    windowEndsAt: instant(row.window_ends_at),
+    blockedUntil: instant(row.blocked_until),
+    strikes: Number(row.strikes),
+    lastBlockAt: instant(row.last_block_at),
+  };
+}
+`,
+};
+
+const BLOCK_TEXT: Record<DerivedDialect, Partial<Record<Block, string>>> = {
+  sqlite: SQLITE_BLOCKS,
+  mysql: MYSQL_BLOCKS,
+};
 
 function replaceBlock(source: string, name: Block, replacement: string): string {
   const open = `// <dialect:${name}>\n`;
@@ -100,7 +158,12 @@ function replaceBlock(source: string, name: Block, replacement: string): string 
 /** `src/auth/stores/prisma.ts` for `dialect`: PostgreSQL's blocks replaced by the dialect's. */
 export function adaptStore(dialect: DerivedDialect, source: string): string {
   let out = source;
-  for (const block of BLOCKS) out = replaceBlock(out, block, BLOCK_TEXT[dialect][block]);
+  for (const block of BLOCKS) {
+    // A block the dialect does not replace is the PostgreSQL text, which works as it is.
+    const text = BLOCK_TEXT[dialect][block];
+    if (text !== undefined) out = replaceBlock(out, block, text);
+  }
+  out = withoutMarkers(out);
   return out
     .replace(
       "PostgreSQL AuthStore backed by Prisma",
@@ -109,7 +172,7 @@ export function adaptStore(dialect: DerivedDialect, source: string): string {
     .replace("Shared PostgreSQL rate-limit store", `Shared ${LABEL[dialect]} rate-limit store`);
 }
 
-const LABEL: Record<DerivedDialect, string> = { sqlite: "SQLite" };
+const LABEL: Record<DerivedDialect, string> = { sqlite: "SQLite", mysql: "MySQL" };
 
 function once(source: string, from: string | RegExp, to: string, what: string): string {
   const out = source.replace(from, to);
@@ -139,6 +202,33 @@ function stripNativeTypes(line: string): string {
   }
 }
 
+/** MySQL's names for the native types PostgreSQL's schema uses; anything else must be common. */
+function mysqlTypes(line: string): string {
+  const out = line
+    .replace("@db.Uuid", "@db.Char(36)")
+    .replace("@db.Timestamptz(3)", "@db.DateTime(3)");
+  const rest = out.indexOf("@db.");
+  if (rest >= 0 && !/^@db\.(Char|VarChar|DateTime)\(/.test(out.slice(rest, rest + 16))) {
+    throw new Error(
+      `schema.prisma uses a native type MySQL does not map: ${out.trim()}; update dialect.ts`,
+    );
+  }
+  return out;
+}
+
+/**
+ * The migration SQL Prisma writes for a derived database, made safe. MySQL tables default to a
+ * case- and accent-insensitive collation, so two different emails (or rate-limit keys) could
+ * collide; SelfAuth compares exact bytes, as PostgreSQL does.
+ */
+export function adaptMigrationSql(dialect: DerivedDialect, sql: string): string {
+  if (dialect !== "mysql") return sql;
+  if (!sql.includes("COLLATE utf8mb4_unicode_ci")) {
+    throw new Error("the MySQL migration has no utf8mb4_unicode_ci collation; update dialect.ts");
+  }
+  return sql.replaceAll("COLLATE utf8mb4_unicode_ci", "COLLATE utf8mb4_bin");
+}
+
 /** `prisma/schema.prisma` for `dialect`. */
 export function adaptSchema(dialect: DerivedDialect, schema: string): string {
   let out = once(schema, 'provider = "postgresql"', `provider = "${dialect}"`, "schema.prisma");
@@ -148,14 +238,16 @@ export function adaptSchema(dialect: DerivedDialect, schema: string): string {
     `SelfAuth data model for ${LABEL[dialect]}`,
     "schema.prisma",
   );
-  // Native types are PostgreSQL's.
-  let lines = out.split("\n").map(stripNativeTypes);
+  // Native types are PostgreSQL's: SQLite has none; MySQL maps the two it does not share.
+  let lines = out
+    .split("\n")
+    .map((l) => (dialect === "sqlite" ? stripNativeTypes(l) : mysqlTypes(l)));
+  // Neither can express a JSON default (Prisma writes `DEFAULT {}`, invalid SQL); the store always
+  // supplies `metadata`.
+  const json = lines.findIndex((l) => l.includes("Json") && l.includes('@default("{}")'));
+  if (json < 0) throw new Error("schema.prisma changed: no Json default; update dialect.ts");
+  lines[json] = lines[json]!.replace('@default("{}")', "").trimEnd();
   if (dialect === "sqlite") {
-    // SQLite cannot express a JSON default (Prisma writes `DEFAULT {}`, which is invalid SQL); the
-    // store always supplies `metadata`.
-    const json = lines.findIndex((l) => l.includes("Json") && l.includes('@default("{}")'));
-    if (json < 0) throw new Error("schema.prisma changed: no Json default; update dialect.ts");
-    lines[json] = lines[json]!.replace('@default("{}")', "").trimEnd();
     // SQLite allows AUTOINCREMENT on the primary key only; `seq` was only an insertion-order aid.
     const seq = lines.findIndex(
       (l) => l.trimStart().startsWith("seq ") && l.includes("autoincrement()"),
@@ -203,6 +295,23 @@ export function adaptDbStore(dialect: DerivedDialect, source: string): string {
       \`No SelfAuth tables in \${databaseUrl}. Run \\\`npm run db:migrate && npm run db:seed\\\` first. \` +
         "A relative file: URL is resolved from the folder you start the server in, so start it " +
         "from the same folder as prisma.config.ts.",
+    );
+  }
+  const store = new PrismaAuthStore(db);
+`,
+      "db/store.ts",
+    );
+  }
+  if (dialect === "mysql") {
+    out = once(
+      out,
+      "  const store = new PrismaAuthStore(db);\n",
+      `  try {
+    await db.authRole.count();
+  } catch {
+    // Say what is missing, instead of Prisma's "table does not exist".
+    throw new Error(
+      "No SelfAuth tables in the database DATABASE_URL points to. Run \\\`npm run db:migrate && npm run db:seed\\\` first.",
     );
   }
   const store = new PrismaAuthStore(db);
