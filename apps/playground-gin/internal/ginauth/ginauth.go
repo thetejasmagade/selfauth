@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"example.com/app/internal/auth"
 	"example.com/app/internal/config"
@@ -105,7 +106,20 @@ func (a *Auth) Context(c *gin.Context) *auth.Context {
 func detached(c *gin.Context) context.Context { return context.WithoutCancel(c.Request.Context()) }
 
 func (a *Auth) rc(c *gin.Context) auth.RequestContext {
-	return auth.RequestContext{IPAddress: c.ClientIP(), UserAgent: c.Request.UserAgent(), RequestID: httpx.RequestID(c)}
+	return auth.RequestContext{
+		IPAddress: truncate(c.ClientIP(), 64),
+		// Stored in bounded columns: an oversized header must not become a database error.
+		UserAgent: truncate(c.Request.UserAgent(), 512),
+		RequestID: httpx.RequestID(c),
+	}
+}
+
+// truncate keeps at most n characters.
+func truncate(s string, n int) string {
+	if utf8.RuneCountInString(s) <= n {
+		return s
+	}
+	return string([]rune(s)[:n])
 }
 
 func header(c *gin.Context, name string) (string, bool) {

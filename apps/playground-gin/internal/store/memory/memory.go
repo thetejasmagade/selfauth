@@ -339,6 +339,9 @@ func (s *Store) RoleExists(_ context.Context, role string) (bool, error) {
 func (s *Store) AddUserRole(_ context.Context, userID, role string, assignedBy *string, at time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if _, ok := s.roles[role]; !ok {
+		return fmt.Errorf("role %q does not exist", role)
+	}
 	for _, r := range s.userRoles {
 		if r.UserID == userID && r.Role == role {
 			return nil

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"example.com/app/internal/auth"
+	"example.com/app/internal/store/storetest"
 )
 
 func newUser(email string) auth.UserRecord {
@@ -70,4 +71,8 @@ func TestConsumeTokenRefusesExpiredAndInvalidated(t *testing.T) {
 			t.Errorf("token %s consumed", id)
 		}
 	}
+}
+
+func TestStoreContract(t *testing.T) {
+	storetest.Run(t, func(t *testing.T) auth.Store { return New() })
 }

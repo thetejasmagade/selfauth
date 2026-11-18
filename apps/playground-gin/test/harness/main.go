@@ -36,8 +36,6 @@ import (
 	"example.com/app/internal/auth"
 	"example.com/app/internal/config"
 	"example.com/app/internal/ginauth"
-	"example.com/app/internal/httpx"
-	"example.com/app/internal/store/memory"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,6 +64,8 @@ type given struct {
 }
 
 type createRequest struct {
+	// Store is "memory" (default) or "postgres" (needs TEST_DATABASE_URL).
+	Store       string          `json:"store"`
 	Config      json.RawMessage `json:"config"`
 	Environment string          `json:"environment"`
 	Given       []given         `json:"given"`
@@ -77,7 +77,8 @@ type instance struct {
 	handler http.Handler
 	clock   *auth.ManualClock
 	mailer  *auth.MemoryMailer
-	store   *memory.Store
+	backend backend
+	store   auth.Store
 	logs    *auth.MemoryLogSink
 
 	mu           sync.Mutex
@@ -185,6 +186,7 @@ func (s *server) control(w http.ResponseWriter, r *http.Request) {
 		s.mu.Lock()
 		delete(s.instances, parts[1])
 		s.mu.Unlock()
+		inst.backend.close()
 		writeJSON(w, http.StatusOK, map[string]bool{"closed": true})
 	case action == "advance" && r.Method == http.MethodPost:
 		var body struct {
@@ -211,7 +213,7 @@ func (s *server) control(w http.ResponseWriter, r *http.Request) {
 		}
 		writeJSON(w, http.StatusOK, out)
 	case action == "storage":
-		records, err := inst.inspect(r.URL.Query().Get("entity"))
+		records, err := inst.backend.inspect(r.Context(), r.URL.Query().Get("entity"))
 		if err != nil {
 			fail(w, http.StatusBadRequest, err)
 			return
@@ -227,13 +229,18 @@ func (s *server) control(w http.ResponseWriter, r *http.Request) {
 			fail(w, http.StatusBadRequest, err)
 			return
 		}
-		if err := inst.mutate(body.Entity, body.Where, body.Set); err != nil {
+		if err := inst.backend.mutate(r.Context(), body.Entity, body.Where, body.Set); err != nil {
 			fail(w, http.StatusBadRequest, err)
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 	case action == "events":
-		writeJSON(w, http.StatusOK, eventsJSON(inst.store.Snapshot().Events))
+		events, err := inst.backend.events(r.Context())
+		if err != nil {
+			fail(w, http.StatusInternalServerError, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, events)
 	case action == "logs":
 		writeJSON(w, http.StatusOK, inst.logs.Lines())
 	case action == "list-filtered":
@@ -284,15 +291,34 @@ func (s *server) build(ctx context.Context, cfg *config.Config, req createReques
 		env.NodeEnv = "production"
 	}
 	inst := &instance{
-		clock: auth.NewManualClock(), mailer: &auth.MemoryMailer{}, store: memory.New(),
+		clock: auth.NewManualClock(), mailer: &auth.MemoryMailer{},
 		logs: &auth.MemoryLogSink{}, fixtures: map[string]map[string]string{},
 	}
+	var err error
+	switch req.Store {
+	case "", "memory":
+		inst.backend = newMemoryBackend()
+	case "postgres":
+		if inst.backend, err = newPostgresBackend(ctx); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("unknown store %q", req.Store)
+	}
+	inst.store = inst.backend.store()
 	logger := auth.NewLogger(inst.logs)
+	built := false
+	defer func() {
+		if !built {
+			inst.backend.close()
+		}
+	}()
 	if err := inst.store.SyncRoles(ctx, auth.RoleDefinitions(cfg)); err != nil {
 		return nil, err
 	}
 	a, err := app.NewAuth(app.AuthOptions{
-		Config: cfg, Env: env, Store: inst.store, Mailer: inst.mailer, Clock: inst.clock, Logger: logger,
+		Config: cfg, Env: env, Store: inst.store, Mailer: inst.mailer, Clock: inst.clock,
+		RateLimitStore: inst.backend.rateLimitStore(), Logger: logger,
 	})
 	if err != nil {
 		return nil, err
@@ -360,6 +386,7 @@ func (s *server) build(ctx context.Context, cfg *config.Config, req createReques
 		return nil, err
 	}
 	inst.handler = router
+	built = true
 	return inst, nil
 }
 
@@ -409,5 +436,4 @@ func (inst *instance) mount(r *gin.Engine, a *ginauth.Auth, cfg *config.Config) 
 	r.GET("/__conformance/fault", func(c *gin.Context) {
 		panic(errors.New("SELECT * FROM auth_users failed at db.go:12:3"))
 	})
-	_ = httpx.RequestID
 }

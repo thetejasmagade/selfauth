@@ -1,6 +1,6 @@
 {
   "specVersion": "0.1",
-  "adapter": { "backend": "gin", "frontend": "none", "database": "memory", "orm": "none" },
+  "adapter": { "backend": "gin", "frontend": "none", "database": "postgresql", "orm": "none" },
   "authentication": {
     "methods": ["password"],
     "emailVerification": { "mode": "required", "tokenTtlMinutes": 1440 },

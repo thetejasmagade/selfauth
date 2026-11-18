@@ -199,6 +199,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.code == 'true'
+    services:
+      # Real database for the pgx store, the migrator and the conformance suite.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: selfauth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d selfauth_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/selfauth_test
+      SELFAUTH_REQUIRE_POSTGRES: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

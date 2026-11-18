@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"example.com/app/internal/auth"
+	"example.com/app/internal/store/memory"
 )
 
 func iso(t time.Time) string { return auth.ISO(t) }
@@ -25,8 +27,8 @@ func strPtr(s *string) any {
 
 // inspect returns the records of a logical entity (DATA_MODEL.md names) in the
 // JSON shape every driver exposes: camelCase fields, ISO dates, users with roles.
-func (inst *instance) inspect(entity string) ([]map[string]any, error) {
-	snap := inst.store.Snapshot()
+func (b *memoryBackend) inspect(_ context.Context, entity string) ([]map[string]any, error) {
+	snap := b.mem.Snapshot()
 	out := []map[string]any{}
 	switch entity {
 	case "user":
@@ -103,7 +105,7 @@ func eventsJSON(events []auth.EventRecord) []map[string]any {
 // mutate changes records directly, bypassing the service (conformance
 // mutateStorage). Only the fields conformance cases change are supported; an
 // unsupported request fails loudly rather than being ignored.
-func (inst *instance) mutate(entity string, where, set map[string]any) error {
+func (b *memoryBackend) mutate(_ context.Context, entity string, where, set map[string]any) error {
 	if entity != "user" {
 		return fmt.Errorf("mutateStorage supports entity \"user\" only (got %q)", entity)
 	}
@@ -121,7 +123,7 @@ func (inst *instance) mutate(entity string, where, set map[string]any) error {
 	if state == "" {
 		return fmt.Errorf("mutateStorage user: state is required")
 	}
-	inst.store.MutateUser(
+	b.mem.MutateUser(
 		func(u auth.UserRecord) bool {
 			if id, ok := where["id"]; ok && id != u.ID {
 				return false
@@ -135,3 +137,21 @@ func (inst *instance) mutate(entity string, where, set map[string]any) error {
 	)
 	return nil
 }
+
+func (b *memoryBackend) events(_ context.Context) ([]map[string]any, error) {
+	return eventsJSON(b.mem.Snapshot().Events), nil
+}
+
+// memoryBackend is the in-memory store with its test views.
+type memoryBackend struct {
+	mem  *memory.Store
+	rate *auth.MemoryRateLimitStore
+}
+
+func newMemoryBackend() *memoryBackend {
+	return &memoryBackend{mem: memory.New(), rate: auth.NewMemoryRateLimitStore()}
+}
+
+func (b *memoryBackend) store() auth.Store                   { return b.mem }
+func (b *memoryBackend) rateLimitStore() auth.RateLimitStore { return b.rate }
+func (b *memoryBackend) close()                              {}

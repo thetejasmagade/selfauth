@@ -10,7 +10,8 @@ type Clock interface{ Now() time.Time }
 
 type systemClock struct{}
 
-func (systemClock) Now() time.Time { return time.Now() }
+// Now is truncated to milliseconds, the precision of every stored and exposed date.
+func (systemClock) Now() time.Time { return time.Now().Truncate(time.Millisecond) }
 
 // SystemClock is the real clock.
 var SystemClock Clock = systemClock{}
