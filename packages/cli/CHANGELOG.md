@@ -1,5 +1,13 @@
 # @selfauth/cli
 
+## 0.15.1
+
+### Patch Changes
+
+- 97d49bf: Fix stale help text: `selfauth init --help` and `selfauth list` now say the generated frontend is in `client/` (not `web/`), and `list` no longer calls MongoDB planned.
+- @selfauth/migration@0.15.1
+  - @selfauth/spec@0.15.1
+
 ## 0.15.0
 
 ### Minor Changes
