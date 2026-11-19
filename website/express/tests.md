@@ -140,6 +140,16 @@ describe("notes", () => {
     );
   });
 
+  it("hides other people's notes", async () => {
+    const maya = await signUp(`owner-${Date.now()}@example.test`);
+    const other = await signUp(`snoop-${Date.now()}@example.test`);
+    const saved = await call("POST", "/api/notes", { text: "Private" }, maya);
+    const id = (saved.body as { note: { id: string } }).note.id;
+
+    assert.equal((await call("GET", `/api/notes/${id}`, undefined, maya)).status, 200);
+    assert.equal((await call("GET", `/api/notes/${id}`, undefined, other)).status, 404);
+  });
+
   it("rejects an empty note", async () => {
     const maya = await signUp(`empty-${Date.now()}@example.test`);
     const reply = await call("POST", "/api/notes", { text: "  " }, maya);
@@ -160,7 +170,7 @@ What's going on:
 - **`before`** builds the app once, exactly as `src/server.ts` does, but on the test database, with `MemoryMailer` instead of real email. `MemoryMailer` keeps every email in memory, so `mailer.lastTo(email)` hands you the verification token without anyone reading a terminal.
 - **`signUp`** does what you did with curl in chapter 2: register, verify, sign in. It returns the session cookie.
 - **Each test** uses fresh email addresses, so tests never trip over each other's data.
-- **The second test is the important one.** It proves that one user can't see another's notes. If someone later "simplifies" the query and drops the `where`, this test fails.
+- **The second and third tests are the important ones.** They prove that one user can't see another's notes, in the list or by id. If someone later "simplifies" the query and drops the `where`, the second test fails.
 
 ## Run them
 
@@ -169,9 +179,9 @@ npm test
 ```
 
 ```text
-# tests 10
+# tests 11
 # suites 2
-# pass 10
+# pass 11
 # fail 0
 ```
 
