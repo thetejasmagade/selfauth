@@ -68,6 +68,129 @@ The five kinds:
 
 `text` already holds the finished sentence including the link, so the simplest mailer just sends `subject` and `text` as they are.
 
+## Example: Resend
+
+[Resend](https://resend.com) has a plain HTTP API, so you don't need its SDK or any new dependency. Create an API key in your Resend dashboard, verify the domain you'll send from, and set two environment variables in production:
+
+```ini
+RESEND_API_KEY=re_...
+MAIL_FROM=Acme <login@mail.acme.com>
+```
+
+`MAIL_FROM` has to be an address on a domain you've verified with Resend. Their docs explain the DNS records, and how their test sender works while you're getting set up.
+
+I checked both versions below against a local fake server, to confirm the request they send (the URL path, the `Authorization` header and the JSON body) and that an error response becomes an error. I haven't called the real Resend API, so send yourself a test email before relying on it.
+
+::: code-group
+
+```ts [TypeScript: src/email/mailer.ts]
+import { DevConsoleMailer, type Mailer } from "../auth/index.ts";
+import type { Env } from "../config/env.ts";
+
+export function createMailer(env: Env): Mailer {
+  if (env.nodeEnv !== "production") return new DevConsoleMailer(env.nodeEnv);
+
+  const apiKey = process.env["RESEND_API_KEY"];
+  const from = process.env["MAIL_FROM"]; // for example: "Acme <login@mail.acme.com>"
+  if (!apiKey || !from) {
+    throw new Error("RESEND_API_KEY and MAIL_FROM are required in production");
+  }
+
+  return {
+    async send(m) {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        // m.text already holds the sentence and the link.
+        body: JSON.stringify({ from, to: [m.to], subject: m.subject, text: m.text }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) {
+        // Status only: never log the message, the link or the response body.
+        throw new Error(`Resend rejected the email (HTTP ${response.status})`);
+      }
+    },
+  };
+}
+```
+
+```go [Go: internal/email/mailer.go]
+// Package email provides the application's mailer.
+package email
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/you/my-api/internal/auth"
+	"github.com/you/my-api/internal/config"
+)
+
+var resendURL = "https://api.resend.com/emails"
+
+type resendMailer struct {
+	apiKey, from string
+	client       *http.Client
+}
+
+func (m resendMailer) Send(ctx context.Context, msg auth.EmailMessage) error {
+	// msg.Text already holds the sentence and the link.
+	body, err := json.Marshal(map[string]any{
+		"from": m.from, "to": []string{msg.To}, "subject": msg.Subject, "text": msg.Text,
+	})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, resendURL, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+m.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := m.client.Do(req)
+	if err != nil {
+		return errors.New("could not reach Resend") // never include the request: it holds the link
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return fmt.Errorf("Resend rejected the email (HTTP %d)", resp.StatusCode)
+	}
+	return nil
+}
+
+// NewMailer returns the mailer for env.
+func NewMailer(env config.Env) (auth.Mailer, error) {
+	if !env.Production() {
+		// Development: prints messages (including one-time links) to the console.
+		return auth.NewDevConsoleMailer(false)
+	}
+	apiKey, from := os.Getenv("RESEND_API_KEY"), os.Getenv("MAIL_FROM") // from: "Acme <login@mail.acme.com>"
+	if apiKey == "" || from == "" {
+		return nil, errors.New("RESEND_API_KEY and MAIL_FROM are required in production")
+	}
+	return resendMailer{apiKey: apiKey, from: from, client: &http.Client{Timeout: 10 * time.Second}}, nil
+}
+```
+
+:::
+
+Replace `github.com/you/my-api` with your module path. A few notes on what the code does:
+
+- The mailer only runs in production. In development you still get emails printed in the terminal, so you can work without sending anything.
+- It sends `m.text` as the plain-text body. That text already contains the link, so there's nothing to build.
+- It stops waiting after 10 seconds, so a slow provider can't hold up registration.
+- When Resend refuses an email, the error carries the status code only. The message, the link and Resend's response never reach your logs.
+- If you'd rather use Resend's own SDK, the shape is the same: call its send function from inside `send`, and throw if it reports an error.
+
 ## Example: SMTP in TypeScript
 
 This is illustrative. It uses the `nodemailer` package, which you install yourself (`npm install nodemailer` and `npm install -D @types/nodemailer`). Replace the whole of `src/email/mailer.ts` with:
