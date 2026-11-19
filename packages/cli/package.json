@@ -1,6 +1,6 @@
 {
   "name": "@selfauth/cli",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "SelfAuth CLI: generate project-local authentication you own, and manage its migrations.",
   "license": "MIT",
   "repository": {
