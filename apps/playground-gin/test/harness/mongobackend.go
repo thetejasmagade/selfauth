@@ -88,24 +88,54 @@ func jsonKey(k string) string {
 	return k
 }
 
+// asM reads an embedded document whichever Go type the driver decoded it into (bson.D by default).
+func asM(v any) (bson.M, bool) {
+	switch x := v.(type) {
+	case bson.M:
+		return x, true
+	case map[string]any:
+		return bson.M(x), true
+	case bson.D:
+		m := make(bson.M, len(x))
+		for _, e := range x {
+			m[e.Key] = e.Value
+		}
+		return m, true
+	}
+	return nil, false
+}
+
+// asA reads an array whichever Go type the driver decoded it into.
+func asA(v any) ([]any, bool) {
+	switch x := v.(type) {
+	case bson.A:
+		return x, true
+	case []any:
+		return x, true
+	}
+	return nil, false
+}
+
 func jsonBSON(v any) any {
+	if m, ok := asM(v); ok {
+		out := map[string]any{}
+		for k, e := range m {
+			out[k] = jsonBSON(e)
+		}
+		return out
+	}
+	if a, ok := asA(v); ok {
+		out := make([]any, len(a))
+		for i, e := range a {
+			out[i] = jsonBSON(e)
+		}
+		return out
+	}
 	switch x := v.(type) {
 	case bson.DateTime:
 		return auth.ISO(x.Time().UTC())
 	case time.Time:
 		return auth.ISO(x.UTC())
-	case bson.M:
-		out := map[string]any{}
-		for k, e := range x {
-			out[k] = jsonBSON(e)
-		}
-		return out
-	case bson.A:
-		out := make([]any, len(x))
-		for i, e := range x {
-			out[i] = jsonBSON(e)
-		}
-		return out
 	}
 	return v
 }
@@ -121,9 +151,9 @@ func (b *mongoBackend) inspect(ctx context.Context, entity string) ([]map[string
 		for _, d := range docs {
 			u := jsonDoc(d, "credential", "roles")
 			roles := []string{}
-			if arr, ok := d["roles"].(bson.A); ok {
+			if arr, ok := asA(d["roles"]); ok {
 				for _, r := range arr {
-					if m, ok := r.(bson.M); ok {
+					if m, ok := asM(r); ok {
 						roles = append(roles, fmt.Sprint(m["name"]))
 					}
 				}
@@ -137,7 +167,7 @@ func (b *mongoBackend) inspect(ctx context.Context, entity string) ([]map[string
 			return nil, err
 		}
 		for _, d := range docs {
-			c, _ := d["credential"].(bson.M)
+			c, _ := asM(d["credential"])
 			row := jsonDoc(c)
 			row["userId"], row["type"] = d["_id"], "password"
 			out = append(out, row)
