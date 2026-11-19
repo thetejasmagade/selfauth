@@ -6,7 +6,7 @@ keywords: [quick start, getting started, install, selfauth init, npx selfauth, r
 
 # Quick start
 
-You'll generate a project, start it and sign in, in about ten minutes. I'm using Express with the in-memory store because it needs nothing but Node.js. If you'd rather use [Gin](#variant-gin-go) or [Vue/React](#variant-with-a-frontend), those are at the bottom.
+Prefer to let your coding agent do this? The [AI skill](/ai-skill/) does it for you. Otherwise, you'll generate a project, start it and sign in, in about ten minutes. I'm using Express with the in-memory store because it needs nothing but Node.js. If you'd rather use [Gin](#variant-gin-go) or [Vue/React](#variant-with-a-frontend), those are at the bottom.
 
 The blocks labelled "Output" were copied from a real run of this version. Ids, tokens and timestamps change every time, so yours will differ.
 

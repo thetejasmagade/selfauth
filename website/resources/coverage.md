@@ -44,12 +44,12 @@ This page maps every implemented feature to the page that documents it. Planned 
 | | TypeScript server API | [Server API](/api/server) |
 | | Go server API | [Go and Gin](/api/go) |
 | | Frontend client | [Client API](/api/client) |
+| AI skill | Install, workflow, rules, prompts | [Use the AI skill](/ai-skill/), [Prompts that work](/ai-skill/prompts) |
 | Advanced | Security model | [Security model](/advanced/security) |
 | | Deployment | [Going to production](/advanced/production) |
 | | Existing projects, monorepos | [Existing projects](/advanced/existing-projects) |
 | | New database store | [Custom database store](/advanced/custom-store) |
 | | Deletion and retention | [Data retention](/advanced/data-retention) |
-| | Agent skill | [Coding agents](/advanced/agents) |
 | | Conformance levels | [Conformance and support](/advanced/conformance) |
 | | Leaving another system | [Moving from another auth system](/advanced/migrating) |
 | Help | Symptoms and fixes | [Troubleshooting](/troubleshooting) |

@@ -4,6 +4,7 @@ import { useData, useRoute, withBase } from "vitepress";
 
 // Section titles and the page each section opens on. Keep in step with the sidebar in config.mts.
 const sections: Record<string, { title: string; link: string }> = {
+  "ai-skill": { title: "AI skill", link: "/ai-skill/" },
   guide: { title: "Introduction", link: "/guide/what-is-selfauth" },
   "getting-started": { title: "Getting started", link: "/getting-started/quick-start" },
   structure: { title: "Project structure", link: "/structure/" },

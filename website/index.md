@@ -10,6 +10,9 @@ hero:
   tagline: One command puts login, sessions, roles and permissions into your own project. You can read every line, change what you like, and deploy it anywhere. Nothing phones home.
   actions:
     - theme: brand
+      text: Use the AI skill
+      link: /ai-skill/
+    - theme: alt
       text: Quick start
       link: /getting-started/quick-start
     - theme: alt
@@ -20,6 +23,10 @@ hero:
       link: /structure/
 
 features:
+  - title: Let your AI agent do it
+    details: Install the selfauth skill and ask Claude Code, Codex or Cursor to add login to your project. It uses the tested CLI instead of inventing auth code, and it checks its own work.
+    link: /ai-skill/
+    linkText: Use the AI skill
   - title: The code is yours
     details: SelfAuth is a code generator, not a service or a library. The files land in your repository, and they keep working even if SelfAuth goes away.
     link: /guide/what-is-selfauth
@@ -50,6 +57,7 @@ features:
 
 | If you want to... | Go to |
 | --- | --- |
+| Have your AI coding agent set it up | [Use the AI skill](/ai-skill/) |
 | Understand the idea in five minutes | [What is SelfAuth?](/guide/what-is-selfauth) |
 | Have a working app in ten minutes | [Quick start](/getting-started/quick-start) |
 | See which files you got and what each one does | [Project structure](/structure/) |

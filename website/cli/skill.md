@@ -32,4 +32,4 @@ npx selfauth skill install --agent claude
 
 Commit the folder so your whole team's agents use it. After upgrading the CLI, run `selfauth skill install --agent … --update` to keep the skill in step with the new commands.
 
-[Coding agents](/advanced/agents) explains what the skill makes the agent do.
+[Use the AI skill](/ai-skill/) explains what the skill makes the agent do and how to prompt it.
