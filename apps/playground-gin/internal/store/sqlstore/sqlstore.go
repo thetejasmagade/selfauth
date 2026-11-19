@@ -43,11 +43,34 @@ func Open(ctx context.Context, kind Kind, rawURL string) (*sql.DB, error) {
 	default:
 		return nil, fmt.Errorf("unsupported database %q", kind)
 	}
-	if err := db.PingContext(ctx); err != nil {
+	if err := pingRetryBusy(ctx, db, kind); err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("cannot reach the database: %w", err)
 	}
 	return db, nil
+}
+
+// pingRetryBusy connects. SQLite switches a new connection to WAL mode while it connects, and that
+// can fail at once with SQLITE_BUSY (busy_timeout is not consulted) when another process or
+// connection is writing, so a busy answer is retried for a few seconds.
+func pingRetryBusy(ctx context.Context, db *sql.DB, kind Kind) error {
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		err := db.PingContext(ctx)
+		if err == nil || kind != SQLite || !isBusy(err) || time.Now().After(deadline) {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(20 * time.Millisecond):
+		}
+	}
+}
+
+func isBusy(err error) bool {
+	m := err.Error()
+	return strings.Contains(m, "SQLITE_BUSY") || strings.Contains(m, "database is locked")
 }
 
 // mysqlConnector turns a mysql:// URL into driver settings. multiStatements is only for the
