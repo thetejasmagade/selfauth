@@ -13,18 +13,18 @@ const hostname = (
 
 const sidebar: DefaultTheme.Sidebar = [
   {
-    text: "Use the AI skill",
-    items: [
-      { text: "Install and how it works", link: "/ai-skill/" },
-      { text: "Prompts that work", link: "/ai-skill/prompts" },
-    ],
-  },
-  {
     text: "Introduction",
     items: [
       { text: "What is SelfAuth?", link: "/guide/what-is-selfauth" },
       { text: "How it works", link: "/guide/how-it-works" },
       { text: "Concepts and terms", link: "/guide/concepts" },
+    ],
+  },
+  {
+    text: "Use the AI skill",
+    items: [
+      { text: "Install and how it works", link: "/ai-skill/" },
+      { text: "Prompts that work", link: "/ai-skill/prompts" },
     ],
   },
   {
@@ -147,8 +147,8 @@ export default withMermaid(
       logo: "/logo.svg",
       siteTitle: "SelfAuth",
       nav: [
-        { text: "AI skill", link: "/ai-skill/", activeMatch: "/ai-skill/" },
         { text: "Guide", link: "/guide/what-is-selfauth", activeMatch: "/guide/" },
+        { text: "AI skill", link: "/ai-skill/", activeMatch: "/ai-skill/" },
         {
           text: "Getting started",
           link: "/getting-started/quick-start",
