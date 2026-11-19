@@ -21,7 +21,7 @@ import { GO_REFERENCE_MODULE } from "../src/templates.js";
 /**
  * `selfauth init --backend gin`: the Go reference application (apps/playground-gin, held to the
  * conformance suite on memory and PostgreSQL), copied into a new project with its module path
- * replaced. API only; PostgreSQL or in-memory.
+ * replaced. PostgreSQL or in-memory; with a frontend it becomes server/ + client/.
  */
 const REPO = fileURLToPath(new URL("../../../", import.meta.url));
 const REFERENCE = "apps/playground-gin";
@@ -128,8 +128,7 @@ describe("planInit --backend gin", () => {
     expect(manifest.files.length).toBe(files.length - 1);
   });
 
-  it("is API only, and only PostgreSQL or in-memory", async () => {
-    await expect(planInit(answers("postgresql", { frontend: "vue" }))).rejects.toThrow(/API only/);
+  it("only supports PostgreSQL or in-memory (for now)", async () => {
     await expect(planInit(answers("mysql"))).rejects.toThrow(/postgresql and memory/);
   });
 

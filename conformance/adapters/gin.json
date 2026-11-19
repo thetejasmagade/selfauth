@@ -28,13 +28,23 @@
     {
       "kind": "frontend",
       "id": "none",
-      "title": "API only (no generated frontend)"
+      "title": "API only"
+    },
+    {
+      "kind": "frontend",
+      "id": "vue",
+      "title": "Vue 3 (generated as client/ next to the Go server in server/; browser-tested against the Go server)"
+    },
+    {
+      "kind": "frontend",
+      "id": "react",
+      "title": "React (generated as client/ next to the Go server in server/; browser-tested against the Go server)"
     }
   ],
   "independentAudit": false,
   "limitations": [
     "Gin supports PostgreSQL and the in-memory store only. MySQL, SQLite and MongoDB are not implemented for Go.",
-    "API only: there is no generated frontend for Gin, and `selfauth add` does not work on existing Go projects (new projects only).",
+    "`selfauth add` does not work on existing Go projects (new projects only). A Vue or React frontend is generated as `client/` next to the Go server in `server/`, and the browser spec runs against the Go server on the in-memory store.",
     "PostgreSQL is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter (pool sizing, statement timeouts, behaviour under replica failover were chosen and tested, not audited).",
     "The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.",
     "The migration runner does not detect destructive statements (unlike `selfauth db plan` for Prisma projects): read every migration before applying it.",
@@ -177,7 +187,7 @@
         "apps/playground-gin/internal/auth/service_test.go",
         "apps/playground-gin/internal/app/app_test.go"
       ],
-      "finding": "Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Gin projects are API only, so rendering email-link pages is the frontend's job (the reference frontends are tested separately)."
+      "finding": "Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Rendering email-link pages is the frontend's job (the reference frontends are tested separately)."
     },
     {
       "requirement": "SEC-COOKIE-003",

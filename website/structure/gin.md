@@ -8,7 +8,7 @@ keywords: [gin, go, golang, directory structure, internal, cmd, pgx, migrations,
 
 `npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module in the usual Go layout: programs in `cmd/`, private packages in `internal/`.
 
-Gin projects are API only, with no generated frontend. They work with PostgreSQL or the in-memory store, and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work.
+Gin projects work with PostgreSQL or the in-memory store, and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work. Add `--frontend vue` or `--frontend react` and the Go module moves into `server/`, next to a `client/` frontend, as [described below](#with-a-frontend).
 
 ## The tree
 
@@ -113,3 +113,33 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 | `go run ./cmd/create-admin you@example.com` | Grants the admin role |
 | `go vet ./... && go test ./...` | Checks and tests |
 | `go build -o bin/server ./cmd/server` | Builds a binary |
+
+## With a frontend
+
+`npx selfauth init my-app --backend gin --frontend react --module github.com/you/my-app` creates the same shape as the Node full-stack projects: two packages and a thin root.
+
+```text
+my-app/
+├── server/                  # everything in the tree above, as a Go module
+│   ├── cmd/, internal/, db/migrations/
+│   ├── selfauth.config.json
+│   ├── .env.example         # copy to server/.env
+│   └── selfauth.manifest.json
+├── client/                  # the Vue or React app: see "Full stack: Vue or React"
+├── scripts/
+│   └── dev-server.mjs       # starts the Go server for `npm run dev`
+└── package.json             # npm workspace root (the client), with scripts for both
+```
+
+```bash
+cd my-app
+npm install                          # installs the client
+cp server/.env.example server/.env   # set DATABASE_URL if you use PostgreSQL
+npm run db:migrate && npm run db:seed
+npm run dev                          # the Go API on :3000 and the app together
+```
+
+The root scripts wrap the Go commands: `npm run dev`, `build`, `typecheck` (`go vet` plus the client's type check), `test` (`go test`), and, with PostgreSQL, `db:migrate`, `db:status`, `db:seed` and `db:create-admin`. The Go server reads the process environment and never a `.env` file, so `scripts/dev-server.mjs` loads `server/.env` before it starts the server. Your own routes still go in `server/internal/routes/routes.go`, and your pages in `client/src/pages/`.
+
+The browser test suite that runs against the Node backends runs against the Go server too, for both Vue and React.
+

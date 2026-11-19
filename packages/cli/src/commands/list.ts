@@ -31,7 +31,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "backend",
     id: "gin",
     label:
-      "Gin (Go): a Go port of the core, 90/90 conformance cases on PostgreSQL and in-memory; API only; new projects (`selfauth init --backend gin`)",
+      "Gin (Go): a Go port of the core, 90/90 conformance cases on PostgreSQL and in-memory; new projects, with or without a Vue or React frontend (`selfauth init --backend gin`)",
     production: false,
     add: false,
   },

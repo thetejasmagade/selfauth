@@ -9,7 +9,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "conformance": "vitest run",
     "go:build": "go build ./...",
-    "go:test": "go test ./..."
+    "go:test": "go test ./...",
+    "e2e:server": "APP_ENV=test go run ./test/e2e"
   },
   "devDependencies": {
     "@selfauth/conformance": "workspace:*",

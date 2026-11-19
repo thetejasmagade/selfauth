@@ -95,6 +95,11 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # The Go reference backend is one of the backends the browser spec runs against.
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/playground-gin/go.mod
+          cache-dependency-path: apps/playground-gin/go.sum
       - run: pnpm install --frozen-lockfile
       - uses: actions/cache@v4
         with:
@@ -261,7 +266,7 @@ jobs:
         run: pnpm --filter @selfauth/playground-gin conformance
 
   generated-gin-project:
-    name: Generated Gin project (${{ matrix.database }})
+    name: Generated Gin project (${{ matrix.database }}, ${{ matrix.frontend }})
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -269,6 +274,7 @@ jobs:
       fail-fast: false
       matrix:
         database: [memory, postgresql]
+        frontend: [none, vue, react]
     services:
       postgres:
         image: postgres:16
@@ -304,7 +310,7 @@ jobs:
           restore-keys: turbo-${{ github.job }}-
       - run: pnpm build --cache-dir=.turbo
       - name: Generate a Gin project outside the monorepo and exercise it
-        run: scripts/smoke-gin.sh ${{ matrix.database }}
+        run: scripts/smoke-gin.sh ${{ matrix.database }} ${{ matrix.frontend }}
 
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})

@@ -9,6 +9,7 @@ import {
   renderConfig,
   renderConfigJson,
   renderEnvExample,
+  renderGoDevServer,
   renderGoGitignore,
   isWorkspace,
   renderGitignore,
@@ -44,7 +45,7 @@ export interface PlannedFile {
   content: string;
 }
 
-/** Folder structure `init` (API only) and `add` generate (manifest `options.structure`). */
+/** Folder structure `init` (without a frontend) and `add` generate (manifest `options.structure`). */
 export const LAYOUT_STRUCTURE = 2;
 /** Full-stack `init`: a workspace of two packages, server/ and client/ (each with a manifest). */
 export const WORKSPACE_STRUCTURE = 3;
@@ -75,7 +76,10 @@ export async function templateFiles(
   const dialect =
     answers.backend !== "gin" && usesPrisma(answers.database) ? answers.database : null;
   const adapt = (target: string, content: string) => {
-    if (answers.backend === "gin") return adaptForGo(target, content, answers.module);
+    if (answers.backend === "gin")
+      return target.startsWith("web/")
+        ? withoutNotesExample(target, content)
+        : adaptForGo(target, content, answers.module);
     const derived = dialect ? adaptForDialect(dialect, target, content) : content;
     return layout === "add"
       ? adaptForAdd(target, derived, srcDir)
@@ -270,12 +274,9 @@ export async function planInit(
 
 /**
  * A Go (Gin) project: the Go application copied from the reference, plus its configuration,
- * environment example, README, .gitignore and manifest. API only (no frontend), no package.json.
+ * environment example, README, .gitignore and manifest. No package.json (a frontend makes it a workspace: planGinWorkspace).
  */
 async function planGin(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
-  if (answers.frontend !== "none") {
-    throw new Error("The Gin backend is API only for now: use --frontend none.");
-  }
   if (!BACKEND_DATABASES.gin.includes(answers.database)) {
     throw new Error(
       `The Gin backend supports ${BACKEND_DATABASES.gin.join(" and ")} (got '${answers.database}').`,
@@ -283,6 +284,7 @@ async function planGin(answers: InitAnswers, source: TemplateSource): Promise<Pl
   }
   const module = answers.module ?? answers.name;
   const withModule = { ...answers, module };
+  if (answers.frontend !== "none") return planGinWorkspace(withModule, source);
   const files = await templateFiles(withModule, source);
   files.push(
     { path: ".gitignore", template: "rendered:gitignore", content: renderGoGitignore() },
@@ -298,6 +300,84 @@ async function planGin(answers: InitAnswers, source: TemplateSource): Promise<Pl
     buildManifest(withModule, files, await ownedResources(answers.database, source, "gin")),
   );
   return files;
+}
+
+/**
+ * A Go (Gin) API with a Vue or React frontend: the same shape as the Node full-stack projects.
+ * The Go module is in server/, the frontend in client/, and a thin npm root runs both
+ * (`npm run dev`). Each package has its own manifest.
+ */
+async function planGinWorkspace(
+  answers: InitAnswers,
+  source: TemplateSource,
+): Promise<PlannedFile[]> {
+  const frontend = answers.frontend as Exclude<InitAnswers["frontend"], "none">;
+  const versions = await source.versions();
+
+  const server = await templateFiles(answers, source, "project", "src", "server");
+  server.push(
+    { path: ".gitignore", template: "rendered:gitignore", content: renderGoGitignore() },
+    { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
+    {
+      path: "selfauth.config.json",
+      template: "rendered:config",
+      content: renderConfigJson(buildConfig(answers)),
+    },
+  );
+  const serverManifest = buildManifest(
+    answers,
+    server,
+    await ownedResources(answers.database, source, "gin"),
+    "server",
+    "src",
+    WORKSPACE_STRUCTURE,
+  );
+
+  const client = await templateFiles(answers, source, "project", "src", "client");
+  client.push(
+    {
+      path: "package.json",
+      template: "rendered:web-package.json",
+      content: renderWebPackageJson(answers, frontendInfo(frontend), versions),
+    },
+    {
+      path: "tsconfig.json",
+      template: "rendered:web-tsconfig",
+      content: renderWebTsconfig(frontend),
+    },
+  );
+  const clientManifest = buildManifest(
+    // The manifest requires a database; the client has none.
+    { ...answers, database: "memory" },
+    client,
+    { tables: [], types: [], migrations: [] },
+    "client",
+    "src",
+    WORKSPACE_STRUCTURE,
+  );
+
+  const under = (dir: string, files: PlannedFile[]) =>
+    files.map((f) => ({ ...f, path: `${dir}/${f.path}` }));
+  return [
+    ...under("server", [...server, serverManifest]),
+    ...under("client", [...client, clientManifest]),
+    {
+      path: "package.json",
+      template: "rendered:root-package.json",
+      content: renderRootPackageJson(answers),
+    },
+    {
+      path: "scripts/dev-server.mjs",
+      template: "rendered:dev-server",
+      content: renderGoDevServer(answers.appBaseUrl),
+    },
+    {
+      path: ".gitignore",
+      template: "rendered:gitignore",
+      content: renderGitignore({ workspace: true }),
+    },
+    { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
+  ];
 }
 
 /**

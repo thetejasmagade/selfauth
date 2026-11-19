@@ -44,7 +44,7 @@ Supported integrations (selfauth init):
 
   Backend    express          Express 5 + TypeScript (reference implementation, 90/90 conformance cases)
              fastify          Fastify 5 + TypeScript (90/90 conformance cases, authorization level; `selfauth init --backend fastify`)
-             gin              Gin (Go): a Go port of the core, 90/90 conformance cases on PostgreSQL and in-memory; API only; new projects (`selfauth init --backend gin`)
+             gin              Gin (Go): a Go port of the core, 90/90 conformance cases on PostgreSQL and in-memory; new projects, with or without a Vue or React frontend (`selfauth init --backend gin`)
   Database   postgresql       PostgreSQL via Prisma 7 (migrations reviewed with `selfauth db plan`)
              mysql            MySQL 8 via Prisma 7 (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)
              mongodb          MongoDB 6+ via Mongoose 9 (its own store, not derived from SQL; authorization level; indexes via `selfauth db migrate`)

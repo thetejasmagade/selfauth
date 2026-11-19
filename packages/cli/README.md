@@ -40,7 +40,7 @@ adapter in `src/auth/fastify/`. `add` works on an existing Fastify project too.
 
 `npx selfauth init my-app --backend gin --database postgresql --module github.com/you/my-app`
 makes a Go project: a port of the same core behind a Gin adapter, with a PostgreSQL store (pgx) or the
-in-memory store. It is API only (no generated frontend) and for new projects (`add` does not apply
+in-memory store. With `--frontend vue|react` it becomes `server/` (the Go module) and `client/` (the frontend) in one npm root, like the Node projects. It is for new projects (`add` does not apply
 to Go). The files are plain Go source: `cmd/server`, `internal/auth` (the core), `internal/ginauth`
 (the adapter), `internal/store/{memory,postgres}`, your `internal/routes` and `internal/email`, and
 `selfauth.config.json`. Migrations are SQL files in `db/migrations`, applied with

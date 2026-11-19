@@ -14,7 +14,7 @@ selfauth init [dir] [options]
 
 ## Interactive or not
 
-Run it with no options in a terminal and it asks you everything: the folder, backend, database, frontend (not for Gin), permissions, the address of your frontend (API-only projects), the Go module path (Gin), and whether to run `npm install`. Use the arrow keys or type a number. If an answer is bad it tells you why and asks again. Ctrl-C cancels and writes nothing. Before writing anything it shows the list of files and asks you to confirm.
+Run it with no options in a terminal and it asks you everything: the folder, backend, database, frontend permissions, the address of your frontend (API-only projects), the Go module path (Gin), and whether to run `npm install`. Use the arrow keys or type a number. If an answer is bad it tells you why and asks again. Ctrl-C cancels and writes nothing. Before writing anything it shows the list of files and asks you to confirm.
 
 Each option below answers its question in advance, so you only get asked about what you left out. With `--yes`, or when there's no terminal (CI, scripts, agents), nothing is asked and the defaults fill in whatever you didn't give.
 
@@ -25,7 +25,7 @@ Each option below answers its question in advance, so you only get asked about w
 | `[dir]` | a folder name | asked, or `.` if the current folder is empty | Where to create the project. The folder name becomes the project name |
 | `--backend <framework>` | `express`, `fastify`, `gin` | `express` | The web framework |
 | `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Gin supports only `postgresql` and `memory` |
-| `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. Not available for Gin |
+| `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. With Gin the Go module moves into `server/` |
 | `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are not given to any role: see [Permissions and roles](/build/permissions-roles) |
 | `--app-base-url <url>` | an `http` or `https` address | `http://localhost:5173` | Frontend address used in email links |
 | `--module <path>` | a Go module path, such as `github.com/you/my-api` | the project name | Gin only. Used in `go.mod` and all imports |

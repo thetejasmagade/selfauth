@@ -14,7 +14,7 @@ keywords: [express vs fastify, gin, postgresql, sqlite, mysql, mongodb, vue, rea
 | --- | --- | --- | --- |
 | Express 5 | TypeScript | You know Express, or you have no preference | The reference implementation. Default. |
 | Fastify 5 | TypeScript | You prefer Fastify | Same core and behavior as Express, with a Fastify adapter. |
-| Gin | Go 1.26+ | Your team writes Go | A Go port of the same core. API only, new projects only, PostgreSQL or in-memory. |
+| Gin | Go 1.26+ | Your team writes Go | A Go port of the same core. New projects only. PostgreSQL or in-memory for now. |
 
 All three backends pass the same 90 conformance cases.
 
@@ -49,7 +49,7 @@ flowchart TD
 | `vue` | A Vue 3 + Vite app in `client/` with every account screen. |
 | `react` | A React + Vite app in `client/` with every account screen. |
 
-Gin doesn't generate a frontend, but a Vue or React app from `init --frontend` or `add-frontend` works fine against it. See [Frontend deployment](/configuration/frontend-deployment).
+Every frontend works with every backend. With Gin, the frontend is generated as `client/` next to the Go server in `server/`: see [Gin (Go) API](/structure/gin#with-a-frontend).
 
 ## A sensible first choice
 

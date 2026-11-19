@@ -85,10 +85,6 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
       );
       return 1;
     }
-    if (options.frontend !== undefined && options.frontend !== "none") {
-      fail("The Gin backend is API only for now: use --frontend none.");
-      return 1;
-    }
   }
   if (options.module !== undefined && options.backend !== "gin") {
     fail("--module is for the Gin backend (the Go module path).");
@@ -169,7 +165,7 @@ async function run(
             {
               value: "gin",
               label: "Gin (Go)",
-              hint: "a Go port of the core; API only; PostgreSQL or in-memory",
+              hint: "a Go port of the core; PostgreSQL or in-memory",
             },
           ],
           "express",
@@ -201,7 +197,7 @@ async function run(
         )
       : "postgresql")) as Database;
   const frontend = (options.frontend ??
-    (prompter && !gin
+    (prompter
       ? await prompter.select<Frontend>(
           "Which frontend?",
           [
@@ -243,12 +239,14 @@ async function run(
           })
         : projectName))
     : undefined;
-  const install = gin
-    ? false
-    : (options.install ??
-      (prompter
-        ? await prompter.confirm("Run npm install after creating the files?", true)
-        : false));
+  // A Go-only project has nothing for npm to install.
+  const install =
+    gin && frontend === "none"
+      ? false
+      : (options.install ??
+        (prompter
+          ? await prompter.confirm("Run npm install after creating the files?", true)
+          : false));
 
   const answers: InitAnswers = {
     name: projectName,
@@ -309,6 +307,23 @@ async function run(
   const cd = relative(process.cwd(), dir) || ".";
   say("\nNext steps:");
   if (cd !== ".") say(`  cd ${cd}`);
+  if (gin && frontend !== "none") {
+    if (!install) say("  npm install               # installs the client (and the root scripts)");
+    say(
+      "  cp server/.env.example server/.env" +
+        (hasDatabase(database) ? "   # set DATABASE_URL" : ""),
+    );
+    if (hasDatabase(database)) {
+      say("  npm run db:migrate && npm run db:seed   # read the migration first");
+    }
+    say(
+      `  npm run dev               # Go API and ${frontend} app together; open ${answers.appBaseUrl}`,
+    );
+    say(
+      "\nBefore production: implement NewMailer in server/internal/email/mailer.go, then run `npx selfauth doctor`.",
+    );
+    return 0;
+  }
   if (gin) {
     say(
       `  export SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}   # the server reads the environment, not .env`,

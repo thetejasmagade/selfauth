@@ -16,10 +16,14 @@ const frontends = [
   { name: "vue", pkg: "@selfauth/playground-vue" },
   { name: "react", pkg: "@selfauth/playground-react" },
 ];
-const backends = [
+const allBackends = [
   { name: "express", pkg: "@selfauth/playground" },
   { name: "fastify", pkg: "@selfauth/playground-fastify" },
+  { name: "gin", pkg: "@selfauth/playground-gin" },
 ];
+// E2E_BACKENDS=gin runs one backend only (handy when iterating on it).
+const wanted = process.env["E2E_BACKENDS"]?.split(",").map((b) => b.trim());
+const backends = wanted ? allBackends.filter((b) => wanted.includes(b.name)) : allBackends;
 
 let nextPort = 3100;
 const apps = backends.flatMap((backend) =>
