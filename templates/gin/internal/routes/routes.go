@@ -4,9 +4,9 @@ package routes
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/ginauth"
 	"selfauth-app/internal/store"
-	"github.com/gin-gonic/gin"
 )
 
 // Register mounts application routes. Examples of the guard styles:

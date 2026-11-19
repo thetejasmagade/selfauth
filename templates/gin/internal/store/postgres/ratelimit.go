@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"selfauth-app/internal/auth"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"selfauth-app/internal/auth"
 )
 
 // RateLimitStore is the shared PostgreSQL rate-limit store (SEC-RATE-006); one

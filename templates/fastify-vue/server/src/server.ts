@@ -37,7 +37,13 @@ try {
   });
   // Like Express, listen on every IPv4 interface. Set HOST to narrow it (127.0.0.1) or to use
   // IPv6 ("::"); Fastify itself defaults to localhost only, which is unreachable from a container.
-  await app.listen({ port: env.port, host: process.env["HOST"] ?? "0.0.0.0" });
+  try {
+    await app.listen({ port: env.port, host: process.env["HOST"] ?? "0.0.0.0" });
+  } catch (error) {
+    // A failed start (the port is taken, for example) gets one clear line, not a stack trace.
+    console.error(`Could not start on port ${env.port}: ${(error as Error).message}`);
+    process.exit(1);
+  }
   console.log(`Listening on http://localhost:${env.port}`);
 } catch (error) {
   if (error instanceof EnvError) {

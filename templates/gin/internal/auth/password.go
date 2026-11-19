@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"unicode/utf8"
 
-	"selfauth-app/internal/config"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/text/unicode/norm"
+	"selfauth-app/internal/config"
 )
 
 const (

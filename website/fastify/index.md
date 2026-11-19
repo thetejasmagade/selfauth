@@ -1,63 +1,33 @@
 ---
 title: Fastify guide
-description: Build the SelfAuth notes app on Fastify. How a Fastify project differs from Express, and where to start.
-keywords: [fastify, selfauth fastify, preHandler, fastify authentication]
+description: Build a small notes app with Fastify and SelfAuth from start to finish. Create the project, sign in, add endpoints, permissions, an admin view, a database table with migrations, a frontend page, tests and a production setup.
+keywords: [fastify, selfauth tutorial, notes app, fastify authentication, fastify permissions, prisma migration]
 ---
 
 # Fastify guide
 
-The step-by-step Fastify guide is being written next, chapter for chapter like the [Express guide](/express/). Until it's ready, follow the Express guide with a Fastify project. Nearly everything is the same. This page lists the differences.
+In this guide you'll build a small notes app on Fastify. People sign up, save notes and read their own. Admins can read everyone's notes. It's small enough to finish in an afternoon and touches every part you'll use in a real project.
 
-## Create the project
+You'll learn how to:
 
-```bash
-npx selfauth@latest init notes-app --backend fastify --database sqlite --frontend none
-```
+1. [Create your project](./create-project)
+2. [Run it and sign in for the first time](./run-and-sign-in)
+3. [Find your way around the files](./project-tour)
+4. [Add endpoints: public and signed-in](./endpoints)
+5. [Add permissions, and an admin-only one](./permissions)
+6. [Add a table with a migration](./add-a-table)
+7. [Build the notes endpoints](./notes-endpoints)
+8. [Change a table later](./change-a-table)
+9. [Add a frontend page](./frontend-page)
+10. [Test your endpoints](./tests)
+11. [Get ready for production](./production)
 
-Then install, migrate and seed exactly as in [chapter 1](/express/create-project), and start it with `npm run dev`.
+Do the chapters in order. Each one builds on the last and ends with a way to check it worked.
 
-## What's the same
+## Before you start
 
-- The configuration file, `src/config/selfauth.config.ts`, and everything in [chapter 5](/express/permissions).
-- The database: `prisma/schema.prisma`, `npx selfauth db generate`, `plan` and `migrate`, as in chapters [6](/express/add-a-table) and [8](/express/change-a-table).
-- The HTTP API, the curl commands, the frontend pages and the production checklist.
+You need Node.js 22.18 or newer (`node --version` tells you) and a terminal. The guide uses SQLite, which needs nothing else installed. Where PostgreSQL, MySQL or MongoDB need something different, you'll see a tab for them.
 
-## What's different: routes
+On Windows, the commands work in PowerShell. Where PowerShell needs a different spelling, the guide shows it.
 
-Your routes are in `src/routes/index.ts`, in `mountRoutes(app, auth, db)`, as in Express. Fastify writes guards as a `preHandler`, and `auth.context` takes the request instead of the response:
-
-```ts
-app.get("/api/hello", { preHandler: auth.requireAuth }, async (req) => {
-  return { hello: auth.context(req)!.user.email };
-});
-```
-
-The notes endpoints from [chapter 7](/express/notes-endpoints) become the code below. Put it at the end of `mountRoutes`, and import `HttpError` from `../http/errors.ts` at the top:
-
-```ts
-// The notes need a database. Without one (the in-memory store) they are left out.
-if (!db) return;
-
-app.post("/api/notes", { preHandler: auth.requirePermission("notes.create") }, async (req, reply) => {
-  const text = (req.body as { text?: unknown } | undefined)?.text;
-  if (typeof text !== "string" || text.trim() === "" || text.length > 2000) {
-    throw new HttpError(400, "VALIDATION_FAILED", "text is required, at most 2000 characters.");
-  }
-  const note = await db.note.create({ data: { ownerId: auth.context(req)!.userId, text } });
-  return reply.status(201).send({ note });
-});
-
-app.get("/api/notes", { preHandler: auth.requirePermission("notes.view") }, async (req) => {
-  const notes = await db.note.findMany({
-    where: { ownerId: auth.context(req)!.userId },
-    orderBy: { createdAt: "desc" },
-  });
-  return { notes };
-});
-
-app.get("/api/admin/notes", { preHandler: auth.requirePermission("notes.view_any") }, async () => {
-  return { notes: await db.note.findMany({ orderBy: { createdAt: "desc" } }) };
-});
-```
-
-The [server API reference](/reference/server-typescript) lists every Fastify guard.
+Don't know what a session or a permission is yet? [How it works](/start/how-it-works) explains the terms in five minutes.

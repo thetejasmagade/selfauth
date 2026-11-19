@@ -12,10 +12,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/config"
 	"selfauth-app/internal/httpx"
-	"github.com/gin-gonic/gin"
 )
 
 const (

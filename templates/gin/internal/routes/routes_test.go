@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/app"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/config"
@@ -16,7 +17,6 @@ import (
 	"selfauth-app/internal/routes"
 	"selfauth-app/internal/store"
 	"selfauth-app/internal/store/memory"
-	"github.com/gin-gonic/gin"
 )
 
 // The example route is guarded by authentication: anonymous requests are refused.

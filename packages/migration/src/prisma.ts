@@ -13,7 +13,8 @@ import type {
   ValidationReport,
 } from "./contract.js";
 import { readManifest, MANIFEST_FILE, type Manifest } from "./manifest.js";
-import { analyzeSql, createdObjects, type MigrationAuthor } from "./sql-analysis.js";
+import { analyzeSql, createdObjects } from "./sql-analysis.js";
+import { reviewMigrations } from "./review.js";
 
 export interface CommandResult {
   code: number;
@@ -214,48 +215,7 @@ export class PrismaMigrationAdapter implements MigrationAdapter {
       this.existingObjects(),
     ]);
     const pending = files.filter((f) => status.pending.includes(f.name));
-    // Ownership (DATA-MODEL-004) keeps SelfAuth's own migrations away from the application's
-    // tables, so a SelfAuth migration may only change what SelfAuth owns (plus what it creates).
-    // The developer's migrations are the other way round: their own tables are theirs to change,
-    // but SelfAuth's tables are not. Data-loss statements are reported for both.
-    const findings = pending.flatMap((f) => {
-      const created = createdObjects(f.content);
-      const author: MigrationAuthor = manifest?.ownedResources.migrations.includes(f.name)
-        ? "selfauth"
-        : "app";
-      const owned = manifest
-        ? {
-            tables: [
-              ...manifest.ownedResources.tables,
-              ...(author === "selfauth" ? created.tables : []),
-            ],
-            types: [
-              ...manifest.ownedResources.types,
-              ...(author === "selfauth" ? created.types : []),
-            ],
-          }
-        : undefined;
-      const conflicts = [
-        ...created.tables.filter((t) => existing?.tables.has(t)),
-        ...created.types.filter((t) => existing?.types.has(t)),
-      ].map((object) => ({
-        kind: "already_exists" as const,
-        severity: "destructive" as const,
-        object,
-        statement: `CREATE ${created.tables.includes(object) ? "TABLE" : "TYPE"} "${object}"`,
-        line: 0,
-      }));
-      return [...conflicts, ...analyzeSql(f.content, owned, author)].map((finding) => ({
-        ...finding,
-        migration: f.name,
-      }));
-    });
-    return {
-      pending,
-      findings,
-      requiresApproval: findings.length > 0,
-      blocked: findings.some((f) => f.kind === "already_exists"),
-    };
+    return reviewMigrations(pending, manifest, existing);
   }
 
   async generate(name: string): Promise<MigrationFile | null> {

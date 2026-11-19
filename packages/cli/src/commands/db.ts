@@ -1,5 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import {
+  PrismaMigrationAdapter,
+  reviewMigrations,
+  type Manifest,
+  type MigrationPlan,
+} from "@selfauth/migration";
 import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
 import { DATABASE_INFO, type Database } from "../templates.js";
 import { databaseDir, loadManifest } from "../project.js";
@@ -70,7 +77,12 @@ function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): nu
  * `plan` shows what it would apply. It is plain SQL files, so `validate`/`generate`/`rollback`
  * have nothing to orchestrate and say so.
  */
-async function goDb(dir: string, command: string, database: Database): Promise<number> {
+async function goDb(
+  dir: string,
+  command: string,
+  database: Database,
+  options: { manifest: Manifest; approveDestructive: boolean },
+): Promise<number> {
   if (!["status", "plan", "migrate"].includes(command)) {
     info(
       command === "validate"
@@ -95,25 +107,66 @@ async function goDb(dir: string, command: string, database: Database): Promise<n
     fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
     return 1;
   }
-  const args = ["run", "./cmd/migrate", command === "migrate" ? "up" : "status"];
-  if (command === "migrate" && process.env["APP_ENV"] === "production")
-    warn("Production database: make sure a recent backup exists.");
-  const result = spawnSync("go", args, {
-    cwd: dir,
-    env: { ...process.env, DATABASE_URL: found.url },
-    stdio: "inherit",
-  });
-  if (result.error) {
+  const env = { ...process.env, DATABASE_URL: found.url };
+  const goRun = (args: string[], capture: boolean) =>
+    spawnSync("go", ["run", "./cmd/migrate", ...args], {
+      cwd: dir,
+      env,
+      encoding: "utf8",
+      stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
+    });
+  const missingGo = (r: ReturnType<typeof goRun>) => {
+    if (!r.error) return false;
     fail("Could not run `go` (is Go installed and on your PATH?).");
+    return true;
+  };
+
+  // MongoDB has no SQL to review: status lists the indexes `migrate` would create.
+  if (database === "mongodb" || command === "status") {
+    if (command === "migrate" && process.env["APP_ENV"] === "production")
+      warn("Production database: make sure a recent backup exists.");
+    const result = goRun([command === "migrate" ? "up" : "status"], false);
+    if (missingGo(result)) return 1;
+    if (command === "plan")
+      info(
+        "MongoDB has no migrations: `selfauth db migrate` creates the indexes listed above and never drops one.",
+      );
+    return result.status ?? 1;
+  }
+
+  // SQL: the same review as Prisma projects, over the plain SQL files in db/migrations.
+  const status = goRun(["status"], true);
+  if (missingGo(status)) return 1;
+  if (status.status !== 0) {
+    if (status.stdout) say(indentOutput(status.stdout));
+    fail("Could not read the migration status (the message above says why).");
+    return status.status ?? 1;
+  }
+  const pendingLine = /^pending: \[(.*)\]$/m.exec(status.stdout ?? "");
+  const names = pendingLine?.[1]?.trim() ? pendingLine[1].trim().split(/\s+/) : [];
+  const pending = await Promise.all(
+    names.map(async (name) => {
+      const path = `db/migrations/${name}/migration.sql`;
+      return { name, path, content: await readFile(join(dir, path), "utf8") };
+    }),
+  );
+  const plan = reviewMigrations(pending, options.manifest);
+  printPlan(plan);
+  if (command === "plan") return 0;
+  if (plan.pending.length === 0) return 0;
+  if (plan.blocked) return 1;
+  if (plan.requiresApproval && !options.approveDestructive) {
+    fail(
+      "plan contains destructive or non-owned changes; review the findings and approve explicitly",
+    );
     return 1;
   }
-  if (command === "plan")
-    info(
-      database === "mongodb"
-        ? "MongoDB has no migrations: `selfauth db migrate` creates the indexes listed above and never drops one."
-        : "Read each pending migration.sql in db/migrations/ before running `selfauth db migrate`.",
-    );
-  return result.status ?? 1;
+  if (process.env["APP_ENV"] === "production")
+    warn("Production database: make sure a recent backup exists.");
+  const up = goRun(["up"], false);
+  if (missingGo(up)) return 1;
+  if (up.status === 0) ok("Migrations applied.");
+  return up.status ?? 1;
 }
 
 /** `selfauth db <command>` — orchestrates the project's native migration tool (Prisma Migrate). */
@@ -128,7 +181,10 @@ export async function db(
     return 1;
   }
   if (manifest.options?.backend === "gin" && manifest.database.type !== "memory") {
-    return goDb(dir, command, manifest.database.type as Database);
+    return goDb(dir, command, manifest.database.type as Database, {
+      manifest,
+      approveDestructive: Boolean(args.approveDestructive),
+    });
   }
   if (manifest.database.orm === "none") {
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);

@@ -78,7 +78,8 @@ npx selfauth db rollback
 | --- | --- | --- | --- | --- |
 | PostgreSQL, MySQL, SQLite (Prisma) | `prisma migrate status` | Analyses the SQL | `prisma migrate deploy` | Creates `prisma/migrations/<time>_<name>/migration.sql` |
 | MongoDB | Runs the index script in plan mode | Lists the indexes it would create | Creates missing indexes, never drops one | not applicable (`validate`, `rollback` and `generate` just explain this) |
-| Gin (Go) | Runs `go run ./cmd/migrate status` | Not analysed: read each `migration.sql` yourself | Runs `go run ./cmd/migrate up` | not applicable: write SQL by hand |
+| Gin (Go), PostgreSQL, MySQL, SQLite | Runs `go run ./cmd/migrate status` | Analyses the SQL in `db/migrations/`, the same way | Reviews, then runs `go run ./cmd/migrate up` | not applicable: write the SQL by hand |
+| Gin (Go), MongoDB | Lists the indexes `migrate` would create | The same | Runs `go run ./cmd/migrate up`, which creates missing indexes | not applicable |
 | In-memory | – | – | – | – |
 
 An in-memory project just says: `✗ database commands need a database: this project uses 'memory'.`

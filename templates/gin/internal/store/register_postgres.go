@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/stdlib"
 	"selfauth-app/internal/store/migrations"
 	"selfauth-app/internal/store/postgres"
-	"github.com/jackc/pgx/v5/stdlib"
 )
 
 func init() {

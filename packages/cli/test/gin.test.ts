@@ -16,6 +16,7 @@ import {
 } from "../src/index.js";
 import { init } from "../src/commands/init.js";
 import { INTEGRATIONS } from "../src/commands/list.js";
+import { sortGoImports } from "../src/plan.js";
 import { GO_REFERENCE_MODULE } from "../src/templates.js";
 
 /**
@@ -50,12 +51,15 @@ describe("planInit --backend gin", () => {
       expect(templated.length).toBeGreaterThanOrEqual(35);
       for (const f of templated) {
         const reference = await readFile(join(REPO, f.template.slice("gin:".length)), "utf8");
+        const renamed = reference
+          .replace("module example.com/app\n", "module github.com/acme/demo\n")
+          .replaceAll(`"${GO_REFERENCE_MODULE}/`, '"github.com/acme/demo/');
         expect(f.content, f.path).toBe(
-          f.path === "go.mod" || f.path.endsWith(".go")
-            ? reference
-                .replace("module example.com/app\n", "module github.com/acme/demo\n")
-                .replaceAll(`"${GO_REFERENCE_MODULE}/`, '"github.com/acme/demo/')
-            : reference,
+          f.path.endsWith(".go")
+            ? sortGoImports(renamed)
+            : f.path === "go.mod"
+              ? renamed
+              : reference,
         );
       }
       // No import of the reference module survives.
@@ -66,6 +70,35 @@ describe("planInit --backend gin", () => {
       expect(new Set(files.map((f) => f.path)).size).toBe(files.length);
     },
   );
+
+  it("writes gofmt-clean Go whatever the module name sorts like", async () => {
+    const { spawnSync } = await import("node:child_process");
+    if (spawnSync("gofmt", ["-h"]).error) return; // gofmt not installed: CI runs it
+    const dir = await mkdtemp(join(tmpdir(), "selfauth-gofmt-"));
+    for (const module of ["notes-app", "zzz/app", "aaa.example/app"]) {
+      const files = await planInit(answers("postgresql", { module }));
+      const { mkdir } = await import("node:fs/promises");
+      for (const f of files.filter((f) => f.path.endsWith(".go"))) {
+        const path = join(dir, module.replace(/\W/g, "_"), f.path);
+        await mkdir(join(path, ".."), { recursive: true });
+        await writeFile(path, f.content);
+      }
+      const result = spawnSync("gofmt", ["-l", join(dir, module.replace(/\W/g, "_"))], {
+        encoding: "utf8",
+      });
+      expect(result.stdout.trim(), module).toBe("");
+    }
+  });
+
+  it("sorts each import group by path, as gofmt does", () => {
+    expect(
+      sortGoImports(
+        'package x\n\nimport (\n\t"os"\n\t"context"\n\n\t"zz/app/b"\n\tauthx "zz/app/a"\n\t"github.com/x/y"\n)\n',
+      ),
+    ).toBe(
+      'package x\n\nimport (\n\t"context"\n\t"os"\n\n\t"github.com/x/y"\n\tauthx "zz/app/a"\n\t"zz/app/b"\n)\n',
+    );
+  });
 
   it("is a Go project: no Node files, no Prisma, no other backend", async () => {
     const paths = (await planInit(answers())).map((f) => f.path);

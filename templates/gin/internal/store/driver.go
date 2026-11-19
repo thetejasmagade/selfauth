@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/store/migrations"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // DB is your application's own access to the database, for your own tables or collections. It is

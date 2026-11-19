@@ -154,7 +154,7 @@
     {
       "path": "src/server.ts",
       "template": "fastify:apps/playground-fastify/src/server.ts",
-      "sha256": "b6393220d02074e9703d2df9826d78824c5b6c765b2622c59132ba93ce9fc4ae"
+      "sha256": "542077f8b01a634aad6a1149bd4780b5b0db9e526609922a0baeb92319d570ee"
     },
     {
       "path": "test/auth.smoke.test.ts",
