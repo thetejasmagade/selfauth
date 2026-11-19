@@ -26,6 +26,33 @@ describe.concurrent("SelfAuth conformance — Gin + in-memory store", () => {
   }
 });
 
+// SQLite needs no server, so it always runs. MySQL runs when TEST_MYSQL_URL names a server whose
+// user may create databases (every case gets its own).
+describe.concurrent("SelfAuth conformance — Gin + SQLite", () => {
+  const driver = ginDriver(harness.port, "sqlite");
+  for (const c of cases) {
+    it(`${c.id} [${c.level}] ${c.title}`, () => runCase(c, driver), 30_000);
+  }
+});
+
+describe
+  .runIf(process.env["TEST_MYSQL_URL"])
+  .concurrent("SelfAuth conformance — Gin + MySQL", () => {
+    const driver = ginDriver(harness.port, "mysql");
+    for (const c of cases) {
+      it(`${c.id} [${c.level}] ${c.title}`, () => runCase(c, driver), 30_000);
+    }
+  });
+
+describe
+  .runIf(process.env["TEST_MONGODB_URL"])
+  .concurrent("SelfAuth conformance — Gin + MongoDB", () => {
+    const driver = ginDriver(harness.port, "mongodb");
+    for (const c of cases) {
+      it(`${c.id} [${c.level}] ${c.title}`, () => runCase(c, driver), 30_000);
+    }
+  });
+
 describe
   .runIf(TEST_DATABASE_URL)
   .concurrent("SelfAuth conformance — Gin + PostgreSQL (pgx)", () => {

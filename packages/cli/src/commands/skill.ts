@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -70,14 +71,24 @@ export interface SkillOptions {
   agent?: string;
   dryRun?: boolean;
   update?: boolean;
+  /** Install into the user's home folder, so every project gets the skill. */
+  global?: boolean;
 }
 
-/** `selfauth skill install [dir]`: copy the `selfauth` agent skill into the project. */
+/**
+ * `selfauth skill install [dir]`: copy the `selfauth` agent skill into the project, or with
+ * `--global` into the user's home folder (`~/.claude/skills/…`, `~/.agents/skills/…`,
+ * `~/.cursor/skills/…`), where each agent finds user-level skills.
+ */
 export async function skillInstall(
   dirArg: string | undefined,
   opts: SkillOptions,
 ): Promise<number> {
-  const dir = resolve(dirArg ?? ".");
+  if (opts.global && dirArg !== undefined) {
+    fail("--global installs into your home folder; don't pass a project folder as well.");
+    return 1;
+  }
+  const dir = opts.global ? homedir() : resolve(dirArg ?? ".");
   const requested = (opts.agent ?? "claude").split(",").map((a) => a.trim());
   const agents = (requested.includes("all") ? Object.keys(AGENT_SKILL_DIRS) : requested) as Agent[];
   const unknown = agents.filter((a) => !(a in AGENT_SKILL_DIRS));
@@ -87,7 +98,7 @@ export async function skillInstall(
     );
     return 1;
   }
-  say(`SelfAuth skill install → ${dir}`);
+  say(`SelfAuth skill install → ${dir}${opts.global ? "  (global: every project)" : ""}`);
   const plans = await planSkillInstall(dir, agents);
   const files = await skillFiles();
   let blocked = false;
@@ -112,7 +123,11 @@ export async function skillInstall(
       await writeFile(path, files.get(rel)!);
     }
   }
-  ok("Skill installed. Ask your agent to add authentication; it will use the `selfauth` skill.");
+  ok(
+    opts.global
+      ? "Skill installed for your user account. Your agent will use it in every project; restart it to pick it up."
+      : "Skill installed. Ask your agent to add authentication; it will use the `selfauth` skill.",
+  );
   if (agents.includes("cursor") && agents.includes("claude"))
     info("Cursor also reads .claude/skills; one of the two copies is enough for Cursor.");
   return blocked ? 1 : 0;

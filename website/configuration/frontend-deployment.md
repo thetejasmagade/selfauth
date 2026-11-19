@@ -79,7 +79,7 @@ In token mode the header carries a token tied to the session (returned by `login
 
 ## Using Gin with a Vue or React app
 
-Gin has no generated frontend, but the Vue and React apps from `init --frontend` or `selfauth add-frontend` work against it. Point the dev proxy (`SELFAUTH_API_TARGET`) at the Go server and use one of the setups above.
+`selfauth init --backend gin --frontend vue|react` generates the frontend for you, as `client/` next to the Go server in `server/`, with the same-origin proxy already set up. To use an existing Vue or React app with Gin instead, add the auth module with `selfauth add-frontend`, point the dev proxy (`SELFAUTH_API_TARGET`) at the Go server, and use one of the setups above.
 
 ## Troubleshooting
 

@@ -8,7 +8,7 @@ keywords: [gin, go, golang, directory structure, internal, cmd, pgx, migrations,
 
 `npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module in the usual Go layout: programs in `cmd/`, private packages in `internal/`.
 
-Gin projects are API only, with no generated frontend. They work with PostgreSQL or the in-memory store, and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work.
+Gin projects work with every database (PostgreSQL, MySQL, SQLite, MongoDB or the in-memory store), and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work. Add `--frontend vue` or `--frontend react` and the Go module moves into `server/`, next to a `client/` frontend, as [described below](#with-a-frontend).
 
 ## The tree
 
@@ -47,11 +47,14 @@ my-api/
 │   │   └── routes.go                 #   the /auth routes
 │   ├── httpx/httpx.go                # request ids, error responses, JSON body limit
 │   └── store/
-│       ├── store.go                  # picks the store from DATABASE_URL
+│       ├── store.go, driver.go       # picks the store from DATABASE_URL
 │       ├── memory/                   # in-memory store
-│       ├── postgres/                 # pgx store + migration runner
+│       ├── postgres/                 # PostgreSQL only: pgx store + migration runner
+│       ├── sqlstore/                 # MySQL and SQLite only: database/sql store + runner
+│       ├── mongostore/               # MongoDB only: the official driver + index creation
+│       ├── register_<database>.go    # connects the store of your database
 │       └── storetest/                # shared tests every store must pass
-├── db/migrations/
+├── db/migrations/                    # SQL databases only (not MongoDB)
 │   └── 20261116085533_selfauth_init/migration.sql   # plain SQL: read it
 ├── selfauth.config.json              # ★ authentication and authorization settings
 ├── selfauth.manifest.json
@@ -69,11 +72,13 @@ my-api/
 flowchart LR
   env["config.LoadEnv"] --> cfg["config.Load(selfauth.config.json)"]
   cfg --> mail["email.NewMailer"]
-  mail --> st["store.New (memory or PostgreSQL)"]
+  mail --> st["store.New (memory, or the store of your database)"]
   st --> auth["app.NewAuth"]
   auth --> router["app.NewRouter + routes.Register"]
   router --> listen["http.Server.ListenAndServe"]
 ```
+
+Only the parts for **your** database are generated. A PostgreSQL project has `postgres/` and `register_postgres.go` and none of the others; the same goes for each database. Choosing a database never leaves another database's code in your project.
 
 ## Things that differ from the Node projects
 
@@ -83,7 +88,7 @@ flowchart LR
 | Environment | The process environment. A `.env` file is not loaded by the server. Export the variables, or use a tool such as direnv. |
 | Environment name | `APP_ENV` (`development`, `test`, `production`) instead of `NODE_ENV` |
 | Module path | The `--module` you passed. All imports use it, for example `github.com/you/my-api/internal/auth`. |
-| Migrations | `go run ./cmd/migrate status` and `up` (or `npx selfauth db status` and `migrate`). No ORM. |
+| Migrations | `go run ./cmd/migrate status` and `up` (or `npx selfauth db status` and `migrate`). No ORM. With MongoDB there are no migrations: `up` creates the missing indexes and never drops one. |
 | Request bodies | SelfAuth's middleware parses the JSON body once. In your handlers read it with `httpx.Body(c)`, not `c.ShouldBindJSON`. |
 | Tests | `go vet ./... && go test ./...` |
 
@@ -113,3 +118,33 @@ func Register(r *gin.Engine, a *ginauth.Auth) {
 | `go run ./cmd/create-admin you@example.com` | Grants the admin role |
 | `go vet ./... && go test ./...` | Checks and tests |
 | `go build -o bin/server ./cmd/server` | Builds a binary |
+
+## With a frontend
+
+`npx selfauth init my-app --backend gin --frontend react --module github.com/you/my-app` creates the same shape as the Node full-stack projects: two packages and a thin root.
+
+```text
+my-app/
+├── server/                  # everything in the tree above, as a Go module
+│   ├── cmd/, internal/, db/migrations/
+│   ├── selfauth.config.json
+│   ├── .env.example         # copy to server/.env
+│   └── selfauth.manifest.json
+├── client/                  # the Vue or React app: see "Full stack: Vue or React"
+├── scripts/
+│   └── dev-server.mjs       # starts the Go server for `npm run dev`
+└── package.json             # npm workspace root (the client), with scripts for both
+```
+
+```bash
+cd my-app
+npm install                          # installs the client
+cp server/.env.example server/.env   # set DATABASE_URL
+npm run db:migrate && npm run db:seed
+npm run dev                          # the Go API on :3000 and the app together
+```
+
+The root scripts wrap the Go commands: `npm run dev`, `build`, `typecheck` (`go vet` plus the client's type check), `test` (`go test`), and, with PostgreSQL, `db:migrate`, `db:status`, `db:seed` and `db:create-admin`. The Go server reads the process environment and never a `.env` file, so `scripts/dev-server.mjs` loads `server/.env` before it starts the server. Your own routes still go in `server/internal/routes/routes.go`, and your pages in `client/src/pages/`.
+
+The browser test suite that runs against the Node backends runs against the Go server too, for both Vue and React.
+

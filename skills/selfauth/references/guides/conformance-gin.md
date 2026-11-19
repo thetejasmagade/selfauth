@@ -26,7 +26,10 @@ The suite has 90 cases in total.
 | Store | Published level |
 | --- | --- |
 | memory | Authorization compliant |
+| mongodb | Authorization compliant |
+| mysql | Authorization compliant |
 | postgresql | Authorization compliant |
+| sqlite | Authorization compliant |
 
 **No independent security audit has been done.** Production-profile status is self-assessed from the sign-offs below. An outside review is required before 1.0.
 
@@ -38,8 +41,13 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | --- | --- | --- |
 | backend | `gin` | Gin 1.12 + Go (a Go port of the core) |
 | database | `postgresql` | PostgreSQL via pgx (the same migration SQL as the TypeScript apps; a small migration runner) (store `postgresql`) |
+| database | `mysql` | MySQL 8 or MariaDB via database/sql (the schema derived from the PostgreSQL reference; a small migration runner) (store `mysql`) |
+| database | `sqlite` | SQLite via database/sql and a pure-Go driver: one file on one host, no server (the schema derived from the PostgreSQL reference) (store `sqlite`) |
+| database | `mongodb` | MongoDB 6+ via the official driver (the same collections and documents as the TypeScript store; indexes, not migrations) (store `mongodb`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
-| frontend | `none` | API only (no generated frontend) |
+| frontend | `none` | API only |
+| frontend | `vue` | Vue 3 (generated as client/ next to the Go server in server/; browser-tested against the Go server) |
+| frontend | `react` | React (generated as client/ next to the Go server in server/; browser-tested against the Go server) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 
@@ -78,8 +86,8 @@ Every mandatory requirement is covered by a case or by another check; the build 
 
 ## Known limitations
 
-- Gin supports PostgreSQL and the in-memory store only. MySQL, SQLite and MongoDB are not implemented for Go.
-- API only: there is no generated frontend for Gin, and `selfauth add` does not work on existing Go projects (new projects only).
+- Every database is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter. MySQL, SQLite and MongoDB are held to the same 90 cases as PostgreSQL, on a real server (SQLite needs none).
+- `selfauth add` does not work on existing Go projects (new projects only). A Vue or React frontend is generated as `client/` next to the Go server in `server/`, and the browser spec runs against the Go server on the in-memory store.
 - PostgreSQL is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter (pool sizing, statement timeouts, behaviour under replica failover were chosen and tested, not audited).
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - The migration runner does not detect destructive statements (unlike `selfauth db plan` for Prisma projects): read every migration before applying it.
@@ -87,6 +95,8 @@ Every mandatory requirement is covered by a case or by another check; the build 
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement NewMailer before production, and the server refuses to start in production without one.
 - Production-profile status is not claimed for Gin: the adapter has had no review except its author's. The sign-offs below are self-assessed, and no independent security audit has been done.
+- SQLite is one file on one host: it keeps a single connection and its rate limits are not shared across application instances. Use PostgreSQL, MySQL or MongoDB to run several instances.
+- On MySQL a migration file that fails halfway leaves its earlier statements in place (MySQL commits DDL as it goes): restore from a backup, fix the file and run it again. MongoDB has no migrations; `migrate up` creates the missing indexes and never drops one.
 
 ## Sign-offs
 
@@ -112,7 +122,7 @@ Requirements proven by something other than a conformance case, and how.
 | SEC-HASH-006 | adapter-test | A test runs many password hashes at once and answers a request that needs none before they finish; every request is its own goroutine and concurrent hashes are bounded so memory cannot be exhausted. | `apps/playground-gin/internal/app/app_test.go` |
 | SEC-PWPOLICY-001 | schema-test | Config validation rejects minLength below 8. | `apps/playground-gin/internal/config/validate_test.go` |
 | SEC-PWPOLICY-005 | code-review | No setting or code path expires or rotates passwords; the password block of the configuration struct has only length, common-password and hashing keys, and a test rejects an added age key. | `apps/playground-gin/internal/config/validate_test.go`, `apps/playground-gin/internal/auth/password.go` |
-| SEC-TOKEN-005 | adapter-test | Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Gin projects are API only, so rendering email-link pages is the frontend's job (the reference frontends are tested separately). | `apps/playground-gin/internal/auth/service_test.go`, `apps/playground-gin/internal/app/app_test.go` |
+| SEC-TOKEN-005 | adapter-test | Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Rendering email-link pages is the frontend's job (the reference frontends are tested separately). | `apps/playground-gin/internal/auth/service_test.go`, `apps/playground-gin/internal/app/app_test.go` |
 | SEC-COOKIE-003 | adapter-test | NewAuth refuses an insecure session cookie and an http base URL when APP_ENV is production. | `apps/playground-gin/internal/app/app_test.go` |
 | SEC-REDIRECT-001 | code-review | The Gin backend never redirects: no handler issues a Location header, and trailing-slash and path-fixing redirects are disabled. Redirect handling after sign-in belongs to a frontend, which a Gin project does not generate. | `apps/playground-gin/internal/ginauth/routes.go`, `apps/playground-gin/internal/app/app.go` |
 | SEC-REDIRECT-001 | adapter-test | A test sends hostile redirect and next parameters and odd paths and asserts no response is a redirect or carries a Location header. | `apps/playground-gin/internal/app/app_test.go` |

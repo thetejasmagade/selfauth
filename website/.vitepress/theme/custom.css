@@ -50,3 +50,55 @@
     line-height: 34px;
   }
 }
+
+/* Prompts for the AI agent: wrap long lines instead of scrolling sideways, and keep the copy button. */
+.vp-doc div[class*="language-prompt"] pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-right: 64px; /* room for the copy button */
+}
+
+/* Diagram text must not inherit the article's paragraph spacing. */
+.vp-doc .mermaid p {
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* The logo in the home hero: a fixed, comfortable size instead of filling the column. */
+.VPHero .image-src {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 24%;
+}
+
+@media (min-width: 640px) {
+  .VPHero .image-src {
+    max-width: 260px;
+    max-height: 260px;
+  }
+}
+
+/* Home hero: a soft blue-to-violet glow behind the logo, and a gradient on the product name. */
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #3451b2 20%, #8b5cf6 90%);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #3b82f6 50%, #8b5cf6 50%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-home-hero-name-background: linear-gradient(120deg, #7aa2ff 20%, #c084fc 90%);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #2f7bff 50%, #9b5cf6 50%);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --vp-home-hero-image-filter: blur(56px);
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --vp-home-hero-image-filter: blur(68px);
+  }
+}

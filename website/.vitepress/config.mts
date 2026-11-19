@@ -21,6 +21,13 @@ const sidebar: DefaultTheme.Sidebar = [
     ],
   },
   {
+    text: "Use the AI skill",
+    items: [
+      { text: "Install and how it works", link: "/ai-skill/" },
+      { text: "Prompts that work", link: "/ai-skill/prompts" },
+    ],
+  },
+  {
     text: "Getting started",
     items: [
       { text: "Prerequisites", link: "/getting-started/prerequisites" },
@@ -92,7 +99,6 @@ const sidebar: DefaultTheme.Sidebar = [
       { text: "Existing projects", link: "/advanced/existing-projects" },
       { text: "Custom database store", link: "/advanced/custom-store" },
       { text: "Data retention", link: "/advanced/data-retention" },
-      { text: "Coding agents", link: "/advanced/agents" },
       { text: "Conformance and support", link: "/advanced/conformance" },
       { text: "Moving from another auth system", link: "/advanced/migrating" },
     ],
@@ -133,15 +139,25 @@ export default withMermaid(
       ["meta", { name: "twitter:card", content: "summary" }],
     ],
     sitemap: hostname ? { hostname } : undefined,
-    markdown: { lineNumbers: false },
+    markdown: {
+      lineNumbers: false,
+      // "prompt" blocks hold text to paste into an AI agent: plain text, with a copy button.
+      languages: [{ name: "prompt", scopeName: "source.prompt", patterns: [] }],
+    },
     // The mermaid library is large by design; it loads only on pages with diagrams.
     vite: { build: { chunkSizeWarningLimit: 3000 } },
-    mermaid: { theme: "neutral" },
+    // SVG text labels, so the page's paragraph spacing cannot clip text inside the boxes.
+    mermaid: {
+      theme: "neutral",
+      flowchart: { htmlLabels: false },
+      sequence: { useMaxWidth: true },
+    },
     themeConfig: {
       logo: "/logo.svg",
       siteTitle: "SelfAuth",
       nav: [
         { text: "Guide", link: "/guide/what-is-selfauth", activeMatch: "/guide/" },
+        { text: "AI skill", link: "/ai-skill/", activeMatch: "/ai-skill/" },
         {
           text: "Getting started",
           link: "/getting-started/quick-start",

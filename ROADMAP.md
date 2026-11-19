@@ -160,7 +160,7 @@ databases (Phase 6 CLI).
   in-memory store and a PostgreSQL store (pgx, the same migration SQL as the TypeScript apps, a
   small migration runner). All 90 conformance cases pass on both stores; a Go test harness hosts
   one isolated instance per case and a TypeScript driver runs the shared suite against it.
-- `selfauth init --backend gin` (API only; PostgreSQL or in-memory); template `gin/`; CI smoke-tests
+- `selfauth init --backend gin` (any database; with Vue or React as `server/` + `client/`, browser-tested against the Go server); template `gin/`; CI smoke-tests
   generated Gin projects. `selfauth doctor`, `validate`, `diff`, `upgrade` and `db` work on them.
   `selfauth add` does not apply to Go.
 - `conformance/adapters/gin.json` and the generated [`docs/conformance-gin.md`](docs/conformance-gin.md):

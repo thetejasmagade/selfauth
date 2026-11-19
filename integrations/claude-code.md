@@ -9,8 +9,9 @@ at startup and uses `selfauth` when a request matches its description, for
 example "add login to this app" or "protect the orders routes". You can also
 invoke it directly with `/selfauth`.
 
-For a personal install across all projects, copy the directory to
-`~/.claude/skills/selfauth/` instead.
+For a personal install across all projects, run
+`npx @selfauth/cli skill install --global --agent claude`, which writes
+`~/.claude/skills/selfauth/`.
 
 What the skill makes Claude do (see [SKILL.md](../skills/selfauth/SKILL.md)):
 

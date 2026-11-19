@@ -69,7 +69,7 @@ export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin"];
 export const BACKEND_DATABASES: Record<Backend, readonly Database[]> = {
   express: DATABASES,
   fastify: DATABASES,
-  gin: ["postgresql", "memory"],
+  gin: ["postgresql", "mysql", "sqlite", "mongodb", "memory"],
 };
 
 /** Backends that are Go projects (no package.json, npm or Prisma). */
@@ -100,7 +100,7 @@ export interface Selection {
 export interface RegistryFile {
   source: string;
   target: string;
-  when?: { database?: Database; frontend?: "none" | "any" };
+  when?: { database?: Database; databases?: Database[]; frontend?: "none" | "any" };
   layout?: "project" | "add";
   directory?: boolean;
 }
@@ -179,6 +179,8 @@ function applies(file: RegistryFile, sel: Selection): boolean {
   if (file.layout && file.layout !== (sel.layout ?? "project")) return false;
   const w = file.when;
   if (!w) return true;
+  // The Go project lists the databases each file belongs to: a store, its migration runner, its schema.
+  if (w.databases && !w.databases.includes(sel.database)) return false;
   // Registry entries marked `postgresql` are the Prisma files; other SQL databases derive them.
   if (w.database === "memory" && sel.database !== "memory") return false;
   if (w.database === "postgresql" && !usesPrisma(sel.database)) return false;

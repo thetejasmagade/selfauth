@@ -6,16 +6,16 @@ keywords: [postgresql, mysql, sqlite, mongodb, memory, prisma, mongoose, pgx, DA
 
 # What each database changes
 
-The authentication rules, routes and configuration are the same whichever database you pick. What changes is the store (the code that saves data), the schema files, and a few commands.
+Every backend works with every database, and the authentication rules, routes and configuration are the same whichever database you pick. What changes is the store (the code that saves data), the schema files, and a few commands.
 
 ## At a glance
 
 | Database | Library | `DATABASE_URL` example | Schema files | Apply schema | Server to run? |
 | --- | --- | --- | --- | --- | --- |
 | PostgreSQL | Prisma 7 (Gin: pgx) | `postgresql://user:password@localhost:5432/app` | `prisma/` (Gin: `db/migrations/`) | `npm run db:migrate` (Gin: `go run ./cmd/migrate up`) | Yes |
-| MySQL 8 / MariaDB | Prisma 7 | `mysql://user:password@localhost:3306/app` | `prisma/` | `npm run db:migrate` | Yes |
-| SQLite | Prisma 7 | `file:./app.db` | `prisma/` | `npm run db:migrate` | No |
-| MongoDB 6+ | Mongoose 9 | `mongodb://localhost:27017/app` | none | `npm run db:migrate` (creates indexes) | Yes |
+| MySQL 8 / MariaDB | Prisma 7 (Gin: database/sql) | `mysql://user:password@localhost:3306/app` | `prisma/` (Gin: `db/migrations/`) | `npm run db:migrate` (Gin: `go run ./cmd/migrate up`) | Yes |
+| SQLite | Prisma 7 (Gin: database/sql) | `file:./app.db` | `prisma/` (Gin: `db/migrations/`) | `npm run db:migrate` (Gin: `go run ./cmd/migrate up`) | No |
+| MongoDB 6+ | Mongoose 9 (Gin: the official driver) | `mongodb://localhost:27017/app` | none | `npm run db:migrate` (Gin: `go run ./cmd/migrate up`), which creates indexes | Yes |
 | In-memory | none | not set | none | none | No |
 
 `DATABASE_URL` goes in `.env` (`server/.env` in a full-stack project). If it's unset in development, the app uses memory. In production it won't start without it.

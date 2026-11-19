@@ -433,26 +433,34 @@
           "source": "apps/playground-gin/cmd/create-admin/main.go",
           "target": "cmd/create-admin/main.go",
           "when": {
-            "database": "postgresql"
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
           }
         },
         {
           "source": "apps/playground-gin/cmd/migrate/main.go",
           "target": "cmd/migrate/main.go",
           "when": {
-            "database": "postgresql"
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
           }
         },
         {
           "source": "apps/playground-gin/cmd/seed/main.go",
           "target": "cmd/seed/main.go",
           "when": {
-            "database": "postgresql"
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
           }
         },
         {
           "source": "apps/playground-gin/cmd/server/main.go",
           "target": "cmd/server/main.go"
+        },
+        {
+          "source": "apps/playground-gin/db/migrations",
+          "target": "db/migrations",
+          "directory": true,
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
         },
         {
           "source": "apps/playground-gin/go.mod",
@@ -551,6 +559,10 @@
           "target": "internal/config/env.go"
         },
         {
+          "source": "apps/playground-gin/internal/config/testdata/default.json",
+          "target": "internal/config/testdata/default.json"
+        },
+        {
           "source": "apps/playground-gin/internal/email/mailer.go",
           "target": "internal/email/mailer.go"
         },
@@ -575,6 +587,10 @@
           "target": "internal/routes/routes_test.go"
         },
         {
+          "source": "apps/playground-gin/internal/store/driver.go",
+          "target": "internal/store/driver.go"
+        },
+        {
           "source": "apps/playground-gin/internal/store/memory/memory.go",
           "target": "internal/store/memory/memory.go"
         },
@@ -583,40 +599,139 @@
           "target": "internal/store/memory/memory_test.go"
         },
         {
+          "source": "apps/playground-gin/internal/store/migrations/migrations.go",
+          "target": "internal/store/migrations/migrations.go"
+        },
+        {
+          "source": "apps/playground-gin/internal/store/mongostore/indexes.go",
+          "target": "internal/store/mongostore/indexes.go",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/mongostore/mongostore.go",
+          "target": "internal/store/mongostore/mongostore.go",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/mongostore/mongostore_test.go",
+          "target": "internal/store/mongostore/mongostore_test.go",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/mongostore/ratelimit.go",
+          "target": "internal/store/mongostore/ratelimit.go",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
           "source": "apps/playground-gin/internal/store/postgres/migrate.go",
-          "target": "internal/store/postgres/migrate.go"
+          "target": "internal/store/postgres/migrate.go",
+          "when": {
+            "databases": ["postgresql"]
+          }
         },
         {
           "source": "apps/playground-gin/internal/store/postgres/postgres.go",
-          "target": "internal/store/postgres/postgres.go"
+          "target": "internal/store/postgres/postgres.go",
+          "when": {
+            "databases": ["postgresql"]
+          }
         },
         {
           "source": "apps/playground-gin/internal/store/postgres/postgres_test.go",
-          "target": "internal/store/postgres/postgres_test.go"
+          "target": "internal/store/postgres/postgres_test.go",
+          "when": {
+            "databases": ["postgresql"]
+          }
         },
         {
           "source": "apps/playground-gin/internal/store/postgres/ratelimit.go",
-          "target": "internal/store/postgres/ratelimit.go"
+          "target": "internal/store/postgres/ratelimit.go",
+          "when": {
+            "databases": ["postgresql"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/register_mongodb.go",
+          "target": "internal/store/register_mongodb.go",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/register_mysql.go",
+          "target": "internal/store/register_mysql.go",
+          "when": {
+            "databases": ["mysql"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/register_postgres.go",
+          "target": "internal/store/register_postgres.go",
+          "when": {
+            "databases": ["postgresql"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/register_sqlite.go",
+          "target": "internal/store/register_sqlite.go",
+          "when": {
+            "databases": ["sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/sqlstore/dialect.go",
+          "target": "internal/store/sqlstore/dialect.go",
+          "when": {
+            "databases": ["mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/sqlstore/migrate.go",
+          "target": "internal/store/sqlstore/migrate.go",
+          "when": {
+            "databases": ["mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/sqlstore/ratelimit.go",
+          "target": "internal/store/sqlstore/ratelimit.go",
+          "when": {
+            "databases": ["mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/sqlstore/sqlstore.go",
+          "target": "internal/store/sqlstore/sqlstore.go",
+          "when": {
+            "databases": ["mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-gin/internal/store/sqlstore/sqlstore_test.go",
+          "target": "internal/store/sqlstore/sqlstore_test.go",
+          "when": {
+            "databases": ["mysql", "sqlite"]
+          }
         },
         {
           "source": "apps/playground-gin/internal/store/store.go",
           "target": "internal/store/store.go"
         },
         {
+          "source": "apps/playground-gin/internal/store/store_test.go",
+          "target": "internal/store/store_test.go"
+        },
+        {
           "source": "apps/playground-gin/internal/store/storetest/storetest.go",
           "target": "internal/store/storetest/storetest.go"
-        },
-        {
-          "source": "apps/playground-gin/db/migrations",
-          "target": "db/migrations",
-          "directory": true,
-          "when": {
-            "database": "postgresql"
-          }
-        },
-        {
-          "source": "apps/playground-gin/internal/config/testdata/default.json",
-          "target": "internal/config/testdata/default.json"
         }
       ],
       "dependencies": [],

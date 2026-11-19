@@ -5,6 +5,9 @@
   "specVersion": "0.1",
   "claims": {
     "postgresql": "authorization",
+    "mysql": "authorization",
+    "sqlite": "authorization",
+    "mongodb": "authorization",
     "memory": "authorization"
   },
   "supports": [
@@ -21,6 +24,24 @@
     },
     {
       "kind": "database",
+      "id": "mysql",
+      "title": "MySQL 8 or MariaDB via database/sql (the schema derived from the PostgreSQL reference; a small migration runner)",
+      "store": "mysql"
+    },
+    {
+      "kind": "database",
+      "id": "sqlite",
+      "title": "SQLite via database/sql and a pure-Go driver: one file on one host, no server (the schema derived from the PostgreSQL reference)",
+      "store": "sqlite"
+    },
+    {
+      "kind": "database",
+      "id": "mongodb",
+      "title": "MongoDB 6+ via the official driver (the same collections and documents as the TypeScript store; indexes, not migrations)",
+      "store": "mongodb"
+    },
+    {
+      "kind": "database",
       "id": "memory",
       "title": "In-memory (development and tests only)",
       "store": "memory"
@@ -28,20 +49,32 @@
     {
       "kind": "frontend",
       "id": "none",
-      "title": "API only (no generated frontend)"
+      "title": "API only"
+    },
+    {
+      "kind": "frontend",
+      "id": "vue",
+      "title": "Vue 3 (generated as client/ next to the Go server in server/; browser-tested against the Go server)"
+    },
+    {
+      "kind": "frontend",
+      "id": "react",
+      "title": "React (generated as client/ next to the Go server in server/; browser-tested against the Go server)"
     }
   ],
   "independentAudit": false,
   "limitations": [
-    "Gin supports PostgreSQL and the in-memory store only. MySQL, SQLite and MongoDB are not implemented for Go.",
-    "API only: there is no generated frontend for Gin, and `selfauth add` does not work on existing Go projects (new projects only).",
+    "Every database is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter. MySQL, SQLite and MongoDB are held to the same 90 cases as PostgreSQL, on a real server (SQLite needs none).",
+    "`selfauth add` does not work on existing Go projects (new projects only). A Vue or React frontend is generated as `client/` next to the Go server in `server/`, and the browser spec runs against the Go server on the in-memory store.",
     "PostgreSQL is claimed at authorization level, not production: the production profile has not been reviewed for the Go adapter (pool sizing, statement timeouts, behaviour under replica failover were chosen and tested, not audited).",
     "The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.",
     "The migration runner does not detect destructive statements (unlike `selfauth db plan` for Prisma projects): read every migration before applying it.",
     "Two implementations of the core now exist. The conformance suite detects drift in the behaviour it covers; behaviour outside the cases is covered by the Go unit tests and review. Known differences (trusted proxies as a list only, simple case folding of email addresses, trailing slashes) are listed in apps/playground-gin/README.md.",
     "Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).",
     "The mailer is a stub: you must implement NewMailer before production, and the server refuses to start in production without one.",
-    "Production-profile status is not claimed for Gin: the adapter has had no review except its author's. The sign-offs below are self-assessed, and no independent security audit has been done."
+    "Production-profile status is not claimed for Gin: the adapter has had no review except its author's. The sign-offs below are self-assessed, and no independent security audit has been done.",
+    "SQLite is one file on one host: it keeps a single connection and its rate limits are not shared across application instances. Use PostgreSQL, MySQL or MongoDB to run several instances.",
+    "On MySQL a migration file that fails halfway leaves its earlier statements in place (MySQL commits DDL as it goes): restore from a backup, fix the file and run it again. MongoDB has no migrations; `migrate up` creates the missing indexes and never drops one."
   ],
   "signoffs": [
     {
@@ -177,7 +210,7 @@
         "apps/playground-gin/internal/auth/service_test.go",
         "apps/playground-gin/internal/app/app_test.go"
       ],
-      "finding": "Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Gin projects are API only, so rendering email-link pages is the frontend's job (the reference frontends are tested separately)."
+      "finding": "Tests assert the verification link carries the token in the fragment (never a query string) and that responses send a no-referrer policy. Rendering email-link pages is the frontend's job (the reference frontends are tested separately)."
     },
     {
       "requirement": "SEC-COOKIE-003",

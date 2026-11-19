@@ -39,8 +39,8 @@ adapter in `src/auth/fastify/`. `add` works on an existing Fastify project too.
 ## Gin (Go)
 
 `npx selfauth init my-app --backend gin --database postgresql --module github.com/you/my-app`
-makes a Go project: a port of the same core behind a Gin adapter, with a PostgreSQL store (pgx) or the
-in-memory store. It is API only (no generated frontend) and for new projects (`add` does not apply
+makes a Go project: a port of the same core behind a Gin adapter, with the store of any database
+(PostgreSQL via pgx, MySQL and SQLite via database/sql, MongoDB via the official driver) or the in-memory store. With `--frontend vue|react` it becomes `server/` (the Go module) and `client/` (the frontend) in one npm root, like the Node projects. It is for new projects (`add` does not apply
 to Go). The files are plain Go source: `cmd/server`, `internal/auth` (the core), `internal/ginauth`
 (the adapter), `internal/store/{memory,postgres}`, your `internal/routes` and `internal/email`, and
 `selfauth.config.json`. Migrations are SQL files in `db/migrations`, applied with
@@ -92,7 +92,7 @@ repository (`selfauth add-frontend` for Vue and React):
 | `list` | Supported integrations |
 | `doctor [dir]` | Configuration and production-readiness checks |
 | `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |
-| `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--update`, `--dry-run` |
+| `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--global` (install for every project), `--update`, `--dry-run` |
 | `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates. `upgrade --reorganize` moves a project made with 0.3 or earlier into the grouped `src/` layout |
 | `db status\|plan\|migrate\|validate\|rollback\|generate` | Migration orchestration over Prisma Migrate |
 
@@ -102,6 +102,7 @@ repository (`selfauth add-frontend` for Vue and React):
 
 ```bash
 npx selfauth skill install --agent claude   # or codex, cursor, all
+npx selfauth skill install --global --agent claude   # for every project, in your home folder
 ```
 
 This installs the `selfauth` skill, which makes the agent use these commands

@@ -90,7 +90,7 @@ Every mandatory requirement is covered by a case or by another check; the build 
 - SQLite is a single file on one host. It is claimed at authorization level, not production: the production profile expects a shared store for rate limits across instances (SEC-RATE-006), and SQLite does not give you that across machines.
 - MySQL is claimed at authorization level, not production, until its production profile has been reviewed (isolation level, deadlock handling and collation were chosen and tested, not audited).
 - MongoDB is claimed at authorization level, not production, until its production profile has been reviewed. Atomicity uses single-document writes, conditional updates and compare-and-swap, not transactions, so it works on a standalone server and a replica set; no multi-document transaction is relied on.
-- Express 5, Fastify 5 and Gin (Go; API only, PostgreSQL or in-memory) are the supported backends (Phase 10 continues).
+- Express 5, Fastify 5 and Gin (Go; every database, with or without a Vue or React frontend) are the supported backends (Phase 10 continues).
 - The in-memory store loses data on restart and keeps rate limits per process. It is capped at authorization level and is not for production.
 - Email and password only. No OAuth, social login, MFA or passkeys (optional capabilities, not built).
 - The mailer is a stub: you must implement createMailer() before production, and the server refuses to start in production without one.

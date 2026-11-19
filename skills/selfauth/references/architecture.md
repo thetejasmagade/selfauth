@@ -30,7 +30,7 @@ src/
   routes/
     index.ts            the application's routes (edit; one protected example route)
   email/mailer.ts       email delivery (replace the dev mailer)
-  db/store.ts           chooses the data store (PostgreSQL or in-memory)
+  db/store.ts           chooses the data store (your database, or in-memory)
   http/                 errors.ts, request-id.ts
   app.ts, server.ts     the Express app and the entry point
   scripts/seed.ts, scripts/create-admin.ts    (PostgreSQL)

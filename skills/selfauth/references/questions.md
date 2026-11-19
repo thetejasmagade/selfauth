@@ -35,7 +35,7 @@ the generator is fetched from npm, once.
 
 **Which stacks are supported?** Express 5 or Fastify 5 + TypeScript (Node.js
 22.18 or newer), PostgreSQL, MySQL or SQLite through Prisma 7, MongoDB through Mongoose, or an in-memory store, and Vue or React frontends.
-A new Gin (Go) API project is supported too, with PostgreSQL (pgx) or the in-memory store and no frontend.
+A new Gin (Go) project is supported too, with any database (PostgreSQL, MySQL, SQLite or MongoDB, or the in-memory store) and with or without a Vue or React frontend.
 An existing Express or Fastify project can use `selfauth add`; a new one uses
 `selfauth init [--backend express|fastify|gin]`. Run `selfauth list` for the
 authoritative list.

@@ -120,6 +120,7 @@ program
   .command("install [dir]")
   .description("copy the skill into the project where your agent finds it")
   .option("--agent <list>", "claude | codex | cursor | all (comma-separated)", "claude")
+  .option("-g, --global", "install into your home folder, so every project has the skill")
   .option("--update", "replace skill files that differ from this CLI's version")
   .option("--dry-run", "show what would be written")
   .action(async (dir: string | undefined, opts) => exit(await skillInstall(dir, opts)));

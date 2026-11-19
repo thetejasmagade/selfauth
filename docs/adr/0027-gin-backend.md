@@ -66,8 +66,9 @@ language-neutral specification and conformance suite (ADR 0007) exist for.
   recorded in the manifest so `upgrade` rewrites it the same way. A test compares every generated
   file with the reference; the generated project is built, vetted and tested (and, with PostgreSQL,
   migrated, seeded and exercised end to end) by `scripts/smoke-gin.sh` in CI.
-- **API only, two databases.** A Go project has no generated frontend, and supports PostgreSQL and
-  the in-memory store. `selfauth add` does not apply to Go. `adapter.backend` accepts `gin` in the
+- **API only, two databases.** (Superseded: Go projects now support every database and a Vue or React
+  frontend, composed by the CLI from the same parts as the other backends.) A Go project had no generated
+  frontend, and supported PostgreSQL and the in-memory store. `selfauth add` does not apply to Go. `adapter.backend` accepts `gin` in the
   configuration schema, and then `orm` must be `none`.
 - **The configuration is validated in Go.** The server enforces the specification's bounds at
   start-up (strict decoding plus the schema's ranges and cross-field rules), with tests that reject
