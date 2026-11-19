@@ -7,6 +7,9 @@ keywords: [authentication, authorization, express, fastify, gin, vue, react, pos
 hero:
   name: SelfAuth
   text: Authentication. Fully yours.
+  image:
+    src: /logo.svg
+    alt: SelfAuth logo
   tagline: One command puts login, sessions, roles and permissions into your own project. You can read every line, change what you like, and deploy it anywhere. Nothing phones home.
   actions:
     - theme: brand
