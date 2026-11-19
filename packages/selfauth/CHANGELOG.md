@@ -1,5 +1,14 @@
 # selfauth
 
+## 0.16.0
+
+### Patch Changes
+
+- Updated dependencies [8afd018]
+- Updated dependencies [f690bcc]
+- Updated dependencies [2f5390f]
+  - @selfauth/cli@0.16.0
+
 ## 0.15.1
 
 ### Patch Changes
