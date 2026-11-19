@@ -50,3 +50,10 @@
     line-height: 34px;
   }
 }
+
+/* Prompts for the AI agent: wrap long lines instead of scrolling sideways, and keep the copy button. */
+.vp-doc div[class*="language-prompt"] pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-right: 64px; /* room for the copy button */
+}

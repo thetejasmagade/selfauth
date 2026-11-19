@@ -6,61 +6,85 @@ keywords: [prompts, ai prompts, claude code prompts, add login, protect routes, 
 
 # Prompts that work
 
-With the [skill installed](./), you can talk to your agent normally. A few specifics help it make good choices, mainly your stack, your database and the permissions you'll need. These are starting points to adapt.
+With the [skill installed](./), you can talk to your agent normally. A few specifics help it make good choices, mainly your stack, your database and the permissions you'll need. These are starting points to adapt. Each one has a copy button.
 
 ## Start a new project
 
-> Create a new Express API in `my-app` with SelfAuth. Use PostgreSQL and a React frontend. The permissions I need are `orders.view` and `orders.create`.
+```prompt
+Create a new Express API in my-app with SelfAuth. Use PostgreSQL and a React frontend. The permissions I need are orders.view and orders.create.
+```
 
 The agent will pick `selfauth init`, show you the plan, and ask before writing. If you leave something out (the database, say) it asks, or uses the defaults and tells you.
 
 For Go:
 
-> Make a new Gin API called `shop-api` with SelfAuth on PostgreSQL. The Go module is `github.com/acme/shop-api`.
+```prompt
+Make a new Gin API called shop-api with SelfAuth on PostgreSQL. The Go module is github.com/acme/shop-api.
+```
 
 ## Add authentication to an existing project
 
-> Add SelfAuth to this project. Use the in-memory store for now, I'll move to PostgreSQL later.
+```prompt
+Add SelfAuth to this project. Use the in-memory store for now, I'll move to PostgreSQL later.
+```
 
-> This repo already has some login code. Show me what you find before you change anything.
+```prompt
+This repo already has some login code. Show me what you find before you change anything.
+```
 
 The second one is a good habit for any project with existing auth. The agent lists each file and line, then waits for your decision.
 
 ## Protect your own routes
 
-> Protect the `/api/orders` routes. Users should only see their own orders, and support staff with `orders.view_any` can see everyone's.
+```prompt
+Protect the /api/orders routes. Users should only see their own orders, and support staff with orders.view_any can see everyone's.
+```
 
 This maps onto [Resources and ownership](/build/resource-ownership). The agent should use the ownership policy and list filter, and it should take the owner from the session rather than the request body. Check that it did.
 
-> Require the `reports.manage` permission for the reports endpoints, and give it to the admin role.
+```prompt
+Require the reports.manage permission for the reports endpoints, and give it to the admin role.
+```
 
 ## Work with roles and permissions
 
-> Add a `support` role that can view all orders but not create any. Update the seed too.
+```prompt
+Add a support role that can view all orders but not create any. Update the seed too.
+```
 
 Roles live in the configuration, and the seed writes them to the database. A good agent edits the config and tells you to run the seed, or runs it if you've said it can. See [Permissions and roles](/build/permissions-roles).
 
 ## Frontend
 
-> Add an Orders page at `/orders` that only users with `orders.view` can open, and show the create form only to users with `orders.create`.
+```prompt
+Add an Orders page at /orders that only users with orders.view can open, and show the create form only to users with orders.create.
+```
 
 That's the walkthrough in [Add a frontend page](/build/frontend-pages).
 
 ## Check and upgrade
 
-> Check whether this project's SelfAuth setup is healthy and ready for production.
+```prompt
+Check whether this project's SelfAuth setup is healthy and ready for production.
+```
 
 The agent runs `doctor` and `validate` and explains the warnings.
 
-> Upgrade SelfAuth to the latest version. Show me what would change first, and don't touch the files I edited.
+```prompt
+Upgrade SelfAuth to the latest version. Show me what would change first, and don't touch the files I edited.
+```
 
 It should run `selfauth diff`, then `upgrade`, then walk you through any `.selfauth-new` proposals. See [`diff` and `upgrade`](/cli/upgrade).
 
 ## Ask questions
 
-> Does SelfAuth support JWTs?
+```prompt
+Does SelfAuth support JWTs?
+```
 
-> What happens to a user's sessions when they change their password?
+```prompt
+What happens to a user's sessions when they change their password?
+```
 
 Questions don't change your code. The agent answers from the docs and the specification.
 

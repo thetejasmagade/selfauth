@@ -139,7 +139,11 @@ export default withMermaid(
       ["meta", { name: "twitter:card", content: "summary" }],
     ],
     sitemap: hostname ? { hostname } : undefined,
-    markdown: { lineNumbers: false },
+    markdown: {
+      lineNumbers: false,
+      // "prompt" blocks hold text to paste into an AI agent: plain text, with a copy button.
+      languages: [{ name: "prompt", scopeName: "source.prompt", patterns: [] }],
+    },
     // The mermaid library is large by design; it loads only on pages with diagrams.
     vite: { build: { chunkSizeWarningLimit: 3000 } },
     mermaid: { theme: "neutral" },
