@@ -61,13 +61,13 @@ for (const k of known) {
 // 3. CLI commands and options
 const bin = read(join(repo, "packages/cli/src/bin.ts"));
 const cliText = [
-  "cli/index.md",
-  "cli/init.md",
-  "cli/add.md",
-  "cli/inspect.md",
-  "cli/upgrade.md",
-  "cli/db.md",
-  "cli/skill.md",
+  "reference/cli/index.md",
+  "reference/cli/init.md",
+  "reference/cli/add.md",
+  "reference/cli/inspect.md",
+  "reference/cli/upgrade.md",
+  "reference/cli/db.md",
+  "reference/cli/skill.md",
 ]
   .map(text)
   .join("\n");
@@ -76,11 +76,12 @@ for (const m of bin.matchAll(/\.command\("([a-z-]+)/g))
 for (const m of bin.matchAll(/\.option\(\s*"(?:-[a-z], )?(--[a-z-]+)/g))
   if (!cliText.includes(m[1])) problems.push(`CLI option not documented: ${m[1]}`);
 for (const m of bin.matchAll(/\["([a-z]+)", "/g))
-  if (!text("cli/db.md").includes(m[1])) problems.push(`db subcommand not documented: ${m[1]}`);
+  if (!text("reference/cli/db.md").includes(m[1]))
+    problems.push(`db subcommand not documented: ${m[1]}`);
 
 // 4. Configuration keys
 const spec = read(join(repo, "packages/spec/specs/CONFIGURATION_SPEC.md"));
-const confText = text("configuration/config-file.md");
+const confText = text("reference/config-file.md");
 for (const m of spec.matchAll(/^\| `([a-zA-Z.<>]+)` \|/gm)) {
   const key = m[1];
   if (key.includes("<op>") || key === "specVersion") continue;
@@ -91,18 +92,18 @@ for (const m of spec.matchAll(/^\| `([a-zA-Z.<>]+)` \|/gm)) {
 
 // 5. HTTP routes
 const httpDocs = read(join(repo, "docs/api/http.md"));
-const httpText = text("api/http.md");
+const httpText = text("reference/http.md");
 for (const m of httpDocs.matchAll(/^\| `((?:GET|POST|DELETE) \/auth[^`]*)`/gm))
   if (!httpText.includes(m[1])) problems.push(`HTTP route not documented: ${m[1]}`);
 
 // 6. Error codes
 const errors = read(join(repo, "packages/spec/specs/ERRORS.md"));
-const errText = text("api/errors.md");
+const errText = text("reference/errors.md");
 for (const m of errors.matchAll(/^\| `([A-Z_]+)` \|/gm))
   if (!errText.includes(m[1])) problems.push(`error code not documented: ${m[1]}`);
 
 // 7. Environment variables
-const envText = text("configuration/environment.md");
+const envText = text("reference/environment.md");
 const envNames = new Set();
 for (const f of ["templates/express/src/config/env.ts", "templates/gin/internal/config/env.go"])
   for (const m of read(join(repo, f)).matchAll(

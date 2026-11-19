@@ -3,9 +3,9 @@ package ginauth
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/httpx"
-	"github.com/gin-gonic/gin"
 )
 
 // authed returns the session context or an UNAUTHENTICATED error.

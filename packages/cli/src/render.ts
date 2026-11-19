@@ -259,6 +259,11 @@ export function renderGoGitignore(): string {
     "*.test",
     "*.out",
     "*.log",
+    // SQLite database files: never commit data.
+    "*.db",
+    "*.db-journal",
+    "*.db-shm",
+    "*.db-wal",
     "",
   ].join("\n");
 }
@@ -358,11 +363,12 @@ function renderGoRootPackageJson(answers: InitAnswers): string {
   };
   if (hasDatabase(answers.database)) {
     Object.assign(scripts, {
-      "db:migrate": "cd server && go run ./cmd/migrate up",
-      "db:status": "cd server && go run ./cmd/migrate status",
-      "db:seed": "cd server && go run ./cmd/seed",
+      // Like `npm run dev`, these load server/.env first: the Go commands read the environment.
+      "db:migrate": "node scripts/dev-server.mjs migrate up",
+      "db:status": "node scripts/dev-server.mjs migrate status",
+      "db:seed": "node scripts/dev-server.mjs seed",
       // Arguments after `npm run db:create-admin --` are appended to the command.
-      "db:create-admin": "cd server && go run ./cmd/create-admin",
+      "db:create-admin": "node scripts/dev-server.mjs create-admin",
     });
   }
   return `${JSON.stringify(
@@ -385,8 +391,10 @@ function renderGoRootPackageJson(answers: InitAnswers): string {
  * and never a .env file, so this loads server/.env (and gives the development defaults) first.
  */
 export function renderGoDevServer(appBaseUrl: string): string {
-  return `// Starts the Go server for \`npm run dev\`. The server reads the process environment, not a .env
-// file, so this loads server/.env first (copy server/.env.example to server/.env).
+  return `// Runs a command of the Go server with server/.env loaded: \`npm run dev\` starts the server
+// (go run ./cmd/server), and \`node scripts/dev-server.mjs seed\` runs go run ./cmd/seed, and so on.
+// The Go commands read the process environment, not a .env file, so this loads it first (copy
+// server/.env.example to server/.env).
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 
@@ -394,7 +402,9 @@ if (existsSync("server/.env")) process.loadEnvFile("server/.env");
 process.env.APP_ENV ??= "development";
 process.env.SELFAUTH_APP_BASE_URL ??= "${checkedBaseUrl(appBaseUrl)}";
 
-const child = spawn("go", ["run", "./cmd/server"], {
+const [command = "server", ...args] = process.argv.slice(2);
+if (!/^[a-z][a-z-]*$/.test(command)) throw new Error(\`unknown command: \${command}\`);
+const child = spawn("go", ["run", \`./cmd/\${command}\`, ...args], {
   cwd: "server",
   stdio: "inherit",
   env: process.env,
@@ -405,6 +415,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(
 `;
 }
 
+/** .gitignore of a TypeScript project, or of the root of a full-stack one. */
 export function renderGitignore(options: { workspace?: boolean } = {}): string {
   return [
     "node_modules/",
@@ -415,6 +426,11 @@ export function renderGitignore(options: { workspace?: boolean } = {}): string {
     // A pattern with a slash in the middle is anchored to the .gitignore's folder.
     options.workspace ? "**/src/generated/" : "src/generated/",
     "*.log",
+    // SQLite database files (the development database and test.db): never commit data.
+    "*.db",
+    "*.db-journal",
+    "*.db-shm",
+    "*.db-wal",
     "",
   ].join("\n");
 }

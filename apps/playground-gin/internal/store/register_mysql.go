@@ -17,6 +17,7 @@ func init() {
 			return Connection{
 				Store:          sqlstore.New(db, sqlstore.MySQL),
 				RateLimitStore: sqlstore.NewRateLimitStore(db, sqlstore.MySQL),
+				DB:             DB{SQL: db},
 				Close:          func() { _ = db.Close() },
 			}, nil
 		},

@@ -14,6 +14,7 @@ import type {
 } from "./contract.js";
 import { readManifest, MANIFEST_FILE, type Manifest } from "./manifest.js";
 import { analyzeSql, createdObjects } from "./sql-analysis.js";
+import { reviewMigrations } from "./review.js";
 
 export interface CommandResult {
   code: number;
@@ -214,36 +215,7 @@ export class PrismaMigrationAdapter implements MigrationAdapter {
       this.existingObjects(),
     ]);
     const pending = files.filter((f) => status.pending.includes(f.name));
-    // SelfAuth may only modify what it owns; objects a pending migration creates count as owned by it.
-    const findings = pending.flatMap((f) => {
-      const created = createdObjects(f.content);
-      const owned = manifest
-        ? {
-            tables: [...manifest.ownedResources.tables, ...created.tables],
-            types: [...manifest.ownedResources.types, ...created.types],
-          }
-        : undefined;
-      const conflicts = [
-        ...created.tables.filter((t) => existing?.tables.has(t)),
-        ...created.types.filter((t) => existing?.types.has(t)),
-      ].map((object) => ({
-        kind: "already_exists" as const,
-        severity: "destructive" as const,
-        object,
-        statement: `CREATE ${created.tables.includes(object) ? "TABLE" : "TYPE"} "${object}"`,
-        line: 0,
-      }));
-      return [...conflicts, ...analyzeSql(f.content, owned)].map((finding) => ({
-        ...finding,
-        migration: f.name,
-      }));
-    });
-    return {
-      pending,
-      findings,
-      requiresApproval: findings.length > 0,
-      blocked: findings.some((f) => f.kind === "already_exists"),
-    };
+    return reviewMigrations(pending, manifest, existing);
   }
 
   async generate(name: string): Promise<MigrationFile | null> {
@@ -290,6 +262,16 @@ export class PrismaMigrationAdapter implements MigrationAdapter {
           "the database already has tables but no Prisma migration history (P3005). Baseline it first: " +
           "create a migration for the existing schema with `prisma migrate diff --from-empty --to-config-datasource --script`, " +
           "mark it applied with `prisma migrate resolve --applied <name>`, then migrate again. See https://pris.ly/d/migrate-baseline",
+        plan,
+        output,
+      };
+    }
+    if (/database is locked|SQLITE_BUSY/i.test(output)) {
+      return {
+        applied: false,
+        reason:
+          "the SQLite database is locked: another program has it open, usually the running server. " +
+          "Stop it (Ctrl+C in its terminal), run the migration again, then start it again",
         plan,
         output,
       };

@@ -44,6 +44,7 @@ func NewRouter(o Options) (*gin.Engine, error) {
 	if o.Logger != nil {
 		r.Use(httpx.RequestLog(o.Logger))
 	}
+	r.Use(httpx.HandlerErrors(o.Logger))
 	r.Use(httpx.JSONBody(o.Config.HTTP.BodyLimitBytes)) // SEC-HTTP-003
 	r.Use(o.Auth.Middleware()...)
 

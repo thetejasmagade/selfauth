@@ -2,18 +2,30 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/store/migrations"
 )
 
-// Connection is an open database: the store, the shared rate-limit store and how to close it.
+// DB is your application's own access to the database, for your own tables or collections. It is
+// the same connection SelfAuth uses: SQL is set for PostgreSQL, MySQL and SQLite, Mongo for
+// MongoDB. Both are nil on the in-memory store.
+type DB struct {
+	SQL   *sql.DB
+	Mongo *mongo.Database
+}
+
+// Connection is an open database: the store, the shared rate-limit store, your application's
+// handle on the same database, and how to close it.
 type Connection struct {
 	Store          auth.Store
 	RateLimitStore auth.RateLimitStore
+	DB             DB
 	Close          func()
 }
 

@@ -24,6 +24,15 @@ const manifest = {
   ownedResources: { tables: ["auth_users"], types: [], migrations: ["20260101000000_init"] },
 };
 
+/** A manifest that also lists these migrations as shipped by SelfAuth (an upgrade's, say). */
+const withSelfAuthMigrations = (...names: string[]) => ({
+  ...manifest,
+  ownedResources: {
+    ...manifest.ownedResources,
+    migrations: [...manifest.ownedResources.migrations, ...names],
+  },
+});
+
 function fakePrisma(
   statusOutput: string,
   statusCode = 1,
@@ -49,7 +58,7 @@ describe("PrismaMigrationAdapter", () => {
         "20260101000000_init": `CREATE TABLE "auth_users" (id uuid);`,
         "20260102000000_add": `ALTER TABLE "auth_users" ADD COLUMN "x" text;`,
       },
-      manifest,
+      withSelfAuthMigrations("20260102000000_add"),
     );
     const { run, calls } = fakePrisma(pendingOutput(["20260102000000_add"]));
     const adapter = new PrismaMigrationAdapter({ cwd, run });
@@ -87,7 +96,7 @@ describe("PrismaMigrationAdapter", () => {
         "20260101000000_init": `CREATE TABLE "auth_users" (id uuid);`,
         "20260102000000_drop": `ALTER TABLE "auth_users" DROP COLUMN "email";`,
       },
-      manifest,
+      withSelfAuthMigrations("20260102000000_drop"),
     );
     const { run, calls } = fakePrisma(pendingOutput(["20260102000000_drop"]));
     const adapter = new PrismaMigrationAdapter({ cwd, run });
@@ -98,13 +107,13 @@ describe("PrismaMigrationAdapter", () => {
     expect((await adapter.migrate({ approveDestructive: true })).applied).toBe(true);
   });
 
-  it("requires approval for changes to tables SelfAuth does not own", async () => {
+  it("requires approval when a SelfAuth migration changes a table SelfAuth does not own", async () => {
     const cwd = await project(
       {
         "20260101000000_init": `CREATE TABLE "auth_users" (id uuid);`,
         "20260102000000_touch": `ALTER TABLE "orders" ADD COLUMN "user_id" uuid;`,
       },
-      manifest,
+      withSelfAuthMigrations("20260102000000_touch"),
     );
     const adapter = new PrismaMigrationAdapter({
       cwd,
@@ -154,6 +163,54 @@ describe("PrismaMigrationAdapter", () => {
     const result = await adapter.migrate({ approveDestructive: true });
     expect(result.applied).toBe(false);
     expect(result.reason).toMatch(/already exist/);
+  });
+
+  describe("ownership (DATA-MODEL-004)", () => {
+    async function planOf(sql: string, name = "20260201000000_mine") {
+      const cwd = await project(
+        { "20260101000000_init": `CREATE TABLE "auth_users" (id text);`, [name]: sql },
+        manifest,
+      );
+      const { run } = fakePrisma(pendingOutput([name]));
+      return new PrismaMigrationAdapter({ cwd, run }).plan();
+    }
+
+    it("needs no approval for the developer adding to their own table", async () => {
+      const plan = await planOf(`ALTER TABLE "notes" ADD COLUMN "title" TEXT;`);
+      expect(plan.findings).toEqual([]);
+      expect(plan.requiresApproval).toBe(false);
+    });
+
+    it("needs approval when the developer drops a column of their own table", async () => {
+      const plan = await planOf(`ALTER TABLE "notes" DROP COLUMN "title";`);
+      expect(plan.findings.map((f) => f.kind)).toEqual(["drop_column"]);
+      expect(plan.requiresApproval).toBe(true);
+    });
+
+    it("needs approval when the developer changes a SelfAuth table", async () => {
+      const plan = await planOf(`ALTER TABLE "auth_users" ADD COLUMN "nickname" TEXT;`);
+      expect(plan.findings.map((f) => f.kind)).toEqual(["selfauth_table"]);
+      expect(plan.requiresApproval).toBe(true);
+    });
+  });
+
+  it("explains a locked SQLite database instead of a bare failure", async () => {
+    const cwd = await project(
+      { "20260101000000_init": `CREATE TABLE "auth_users" (id text);` },
+      manifest,
+    );
+    const run: CommandRunner = async (args) => {
+      if (args[1] === "status")
+        return { code: 1, stdout: pendingOutput(["20260101000000_init"]), stderr: "" };
+      if (args[1] === "diff") return { code: 0, stdout: "", stderr: "" };
+      return { code: 1, stdout: "", stderr: "Error: SQLite database error\ndatabase is locked" };
+    };
+    const result = await new PrismaMigrationAdapter({ cwd, run }).migrate({
+      approveDestructive: false,
+    });
+    expect(result.applied).toBe(false);
+    expect(result.reason).toMatch(/locked.*Stop it/);
+    expect(result.output).toMatch(/database is locked/);
   });
 
   it("reports that rollback is not automatic", async () => {

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/store/postgres"
 	"selfauth-app/internal/store/storetest"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const migrationsDir = "../../../db/migrations"

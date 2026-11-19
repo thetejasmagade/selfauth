@@ -3,11 +3,11 @@ package app
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/config"
 	"selfauth-app/internal/ginauth"
 	"selfauth-app/internal/httpx"
-	"github.com/gin-gonic/gin"
 )
 
 // Options configure the router.
@@ -44,6 +44,7 @@ func NewRouter(o Options) (*gin.Engine, error) {
 	if o.Logger != nil {
 		r.Use(httpx.RequestLog(o.Logger))
 	}
+	r.Use(httpx.HandlerErrors(o.Logger))
 	r.Use(httpx.JSONBody(o.Config.HTTP.BodyLimitBytes)) // SEC-HTTP-003
 	r.Use(o.Auth.Middleware()...)
 

@@ -83,6 +83,18 @@ func Recovery(logger *auth.Logger) gin.HandlerFunc {
 	}
 }
 
+// HandlerErrors answers 500 for a handler that reported an error with c.Error and wrote nothing,
+// so a failed database query never becomes an empty 200. The error goes to the server log only,
+// redacted (SEC-LOG-002).
+func HandlerErrors(logger *auth.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		if len(c.Errors) > 0 && !c.Writer.Written() {
+			Internal(c, logger, c.Errors.Last().Err)
+		}
+	}
+}
+
 // RequestLog logs one line per request. Path only: query strings and bodies are
 // never logged (SEC-LOG-001).
 func RequestLog(logger *auth.Logger) gin.HandlerFunc {

@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { runCommand } from "../run.js";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { basename, relative, resolve } from "node:path";
@@ -297,9 +297,9 @@ async function run(
 
   if (install) {
     say("\nInstalling dependencies (npm install)…");
-    const result = spawnSync("npm", ["install"], { cwd: dir, stdio: "inherit" });
-    if (result.status !== 0) {
-      fail("npm install failed; run it yourself after fixing the problem.");
+    const result = runCommand(["npm", "install"], dir);
+    if (!result.ok) {
+      fail(`npm install failed (${result.reason}); run it yourself after fixing the problem.`);
       return 1;
     }
   }

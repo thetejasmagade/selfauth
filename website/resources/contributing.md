@@ -44,7 +44,7 @@ pnpm docs:check     # checks the docs against the source code
 
 Import the repository in Vercel and set the Root Directory to `website`. `website/vercel.json` supplies the rest: the VitePress preset, `pnpm install --frozen-lockfile`, `pnpm docs:build` and the `.vitepress/dist` output. Leave "Include source files outside of the Root Directory" switched on, because the changelog page reads `packages/cli/CHANGELOG.md`. Canonical URLs and the sitemap use the production domain Vercel provides, or `DOCS_HOSTNAME` if you set it.
 
-[Documentation coverage](./coverage) explains how pages are kept in step with the code, and how to add one.
+`pnpm docs:check` keeps the reference pages in step with the code: every CLI command and option, configuration key, HTTP route, error code and environment variable must be documented, and every page must be in the sidebar. Every command in the framework guides was run against a freshly generated project; when you change a guide, run its steps again.
 
 ## Pull requests
 

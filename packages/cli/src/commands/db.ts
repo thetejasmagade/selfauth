@@ -1,20 +1,55 @@
 import { spawnSync } from "node:child_process";
-import { PrismaMigrationAdapter, type MigrationPlan } from "@selfauth/migration";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import {
+  PrismaMigrationAdapter,
+  reviewMigrations,
+  type Manifest,
+  type MigrationPlan,
+} from "@selfauth/migration";
 import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
 import { DATABASE_INFO, type Database } from "../templates.js";
 import { databaseDir, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
+/** The last lines of a tool's output, indented, for a failure message. */
+export function indentOutput(output: string, lines = 15): string {
+  const kept = output.trim().split("\n").slice(-lines);
+  return kept.map((line) => `    ${line}`).join("\n");
+}
+
+/** What a finding means, in a sentence a person can act on. */
+const FINDING_TEXT: Record<string, string> = {
+  drop_table:
+    "deletes a table and its rows (SQLite does this to rebuild a table when a column is dropped: check the SQL copies the data first)",
+  drop_column: "deletes a column and the data in it",
+  drop_type: "deletes a database type",
+  drop_schema: "deletes a whole schema or database",
+  truncate: "empties a table",
+  delete: "deletes rows",
+  alter_column_type: "changes a column's type; existing values may not convert",
+  set_not_null: "makes a column required; it fails if any row is empty there",
+  rename: "renames something; code and data that use the old name break",
+  drop_constraint: "removes a rule the database was enforcing",
+  drop_index: "removes an index; queries may get slower",
+  selfauth_table: "changes a table SelfAuth owns (auth_…); that can break `selfauth upgrade`",
+  not_owned: "a SelfAuth migration changes a table SelfAuth does not own",
+  already_exists: "creates something that is already in the database",
+};
+
 function printPlan(plan: MigrationPlan) {
   if (plan.pending.length === 0) return ok("No pending migrations.");
   say(`Pending migrations (${plan.pending.length}):`);
   for (const m of plan.pending) say(`  • ${m.name}  (${m.path})`);
-  if (plan.findings.length === 0) return ok("No destructive or non-owned changes.");
+  if (plan.findings.length === 0)
+    return ok("Nothing here loses data or touches SelfAuth's tables.");
   say("\nChanges that need explicit approval:");
   for (const f of plan.findings) {
     warn(
       `[${f.severity}] ${f.kind} ${f.object ?? ""} — ${f.migration}${f.line ? `:${f.line}` : ""}`,
     );
+    const text = FINDING_TEXT[f.kind];
+    if (text) say(`      ${text}`);
   }
   if (plan.blocked)
     fail("Blocked: objects already exist in the database. Nothing will be applied.");
@@ -42,7 +77,12 @@ function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): nu
  * `plan` shows what it would apply. It is plain SQL files, so `validate`/`generate`/`rollback`
  * have nothing to orchestrate and say so.
  */
-async function goDb(dir: string, command: string, database: Database): Promise<number> {
+async function goDb(
+  dir: string,
+  command: string,
+  database: Database,
+  options: { manifest: Manifest; approveDestructive: boolean },
+): Promise<number> {
   if (!["status", "plan", "migrate"].includes(command)) {
     info(
       command === "validate"
@@ -67,25 +107,66 @@ async function goDb(dir: string, command: string, database: Database): Promise<n
     fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
     return 1;
   }
-  const args = ["run", "./cmd/migrate", command === "migrate" ? "up" : "status"];
-  if (command === "migrate" && process.env["APP_ENV"] === "production")
-    warn("Production database: make sure a recent backup exists.");
-  const result = spawnSync("go", args, {
-    cwd: dir,
-    env: { ...process.env, DATABASE_URL: found.url },
-    stdio: "inherit",
-  });
-  if (result.error) {
+  const env = { ...process.env, DATABASE_URL: found.url };
+  const goRun = (args: string[], capture: boolean) =>
+    spawnSync("go", ["run", "./cmd/migrate", ...args], {
+      cwd: dir,
+      env,
+      encoding: "utf8",
+      stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
+    });
+  const missingGo = (r: ReturnType<typeof goRun>) => {
+    if (!r.error) return false;
     fail("Could not run `go` (is Go installed and on your PATH?).");
+    return true;
+  };
+
+  // MongoDB has no SQL to review: status lists the indexes `migrate` would create.
+  if (database === "mongodb" || command === "status") {
+    if (command === "migrate" && process.env["APP_ENV"] === "production")
+      warn("Production database: make sure a recent backup exists.");
+    const result = goRun([command === "migrate" ? "up" : "status"], false);
+    if (missingGo(result)) return 1;
+    if (command === "plan")
+      info(
+        "MongoDB has no migrations: `selfauth db migrate` creates the indexes listed above and never drops one.",
+      );
+    return result.status ?? 1;
+  }
+
+  // SQL: the same review as Prisma projects, over the plain SQL files in db/migrations.
+  const status = goRun(["status"], true);
+  if (missingGo(status)) return 1;
+  if (status.status !== 0) {
+    if (status.stdout) say(indentOutput(status.stdout));
+    fail("Could not read the migration status (the message above says why).");
+    return status.status ?? 1;
+  }
+  const pendingLine = /^pending: \[(.*)\]$/m.exec(status.stdout ?? "");
+  const names = pendingLine?.[1]?.trim() ? pendingLine[1].trim().split(/\s+/) : [];
+  const pending = await Promise.all(
+    names.map(async (name) => {
+      const path = `db/migrations/${name}/migration.sql`;
+      return { name, path, content: await readFile(join(dir, path), "utf8") };
+    }),
+  );
+  const plan = reviewMigrations(pending, options.manifest);
+  printPlan(plan);
+  if (command === "plan") return 0;
+  if (plan.pending.length === 0) return 0;
+  if (plan.blocked) return 1;
+  if (plan.requiresApproval && !options.approveDestructive) {
+    fail(
+      "plan contains destructive or non-owned changes; review the findings and approve explicitly",
+    );
     return 1;
   }
-  if (command === "plan")
-    info(
-      database === "mongodb"
-        ? "MongoDB has no migrations: `selfauth db migrate` creates the indexes listed above and never drops one."
-        : "Read each pending migration.sql in db/migrations/ before running `selfauth db migrate`.",
-    );
-  return result.status ?? 1;
+  if (process.env["APP_ENV"] === "production")
+    warn("Production database: make sure a recent backup exists.");
+  const up = goRun(["up"], false);
+  if (missingGo(up)) return 1;
+  if (up.status === 0) ok("Migrations applied.");
+  return up.status ?? 1;
 }
 
 /** `selfauth db <command>` — orchestrates the project's native migration tool (Prisma Migrate). */
@@ -100,7 +181,10 @@ export async function db(
     return 1;
   }
   if (manifest.options?.backend === "gin" && manifest.database.type !== "memory") {
-    return goDb(dir, command, manifest.database.type as Database);
+    return goDb(dir, command, manifest.database.type as Database, {
+      manifest,
+      approveDestructive: Boolean(args.approveDestructive),
+    });
   }
   if (manifest.database.orm === "none") {
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);
@@ -159,6 +243,8 @@ export async function db(
         if (result.applied) ok("Migrations applied.");
         else
           (result.reason === "no pending migrations" ? info : fail)(result.reason ?? "not applied");
+        // The tool's own words say why it failed: show them rather than only "failed".
+        if (!result.applied && result.output.trim()) say(indentOutput(result.output));
         return result.applied || result.reason === "no pending migrations" ? 0 : 1;
       }
       case "generate": {

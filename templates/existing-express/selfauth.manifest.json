@@ -144,7 +144,7 @@
     {
       "path": "src/selfauth/db/store.ts",
       "template": "express:apps/playground/src/db/store.ts",
-      "sha256": "760ed52b193d5cbbe3b33409c23cde60880c0e8e9989016d3a217df5183052d0"
+      "sha256": "4c5547d4493d2debd0d10ad937c3dfad1a54e46e42aa83f436a45608cfe9c52c"
     },
     {
       "path": "src/selfauth/auth/stores/prisma.ts",

@@ -148,8 +148,26 @@ export function adaptForGo(target: string, content: string, module: string | und
     return adapted;
   }
   return target.endsWith(".go")
-    ? content.replaceAll(`"${GO_REFERENCE_MODULE}/`, `"${module}/`)
+    ? sortGoImports(content.replaceAll(`"${GO_REFERENCE_MODULE}/`, `"${module}/`))
     : content;
+}
+
+/**
+ * Sorts each group of an `import ( … )` block by import path, as gofmt does. Renaming the module
+ * changes where the project's own imports sort (`notes-app/…` comes after `github.com/…`), so
+ * without this a generated project would not be gofmt-clean.
+ */
+export function sortGoImports(content: string): string {
+  return content.replace(/^import \(\n([\s\S]*?)\n\)/m, (_block, body: string) => {
+    const path = (line: string) => /"([^"]+)"/.exec(line)?.[1] ?? line;
+    const groups = body.split(/\n[ \t]*\n/).map((group) =>
+      group
+        .split("\n")
+        .sort((a, b) => (path(a) < path(b) ? -1 : path(a) > path(b) ? 1 : 0))
+        .join("\n"),
+    );
+    return `import (\n${groups.join("\n\n")}\n)`;
+  });
 }
 
 /**

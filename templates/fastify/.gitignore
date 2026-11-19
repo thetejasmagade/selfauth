@@ -5,3 +5,7 @@ dist/
 !.env.example
 src/generated/
 *.log
+*.db
+*.db-journal
+*.db-shm
+*.db-wal

@@ -154,22 +154,22 @@
     {
       "path": "src/server.ts",
       "template": "express:apps/playground/src/server.ts",
-      "sha256": "b7d74e3175935235175ec3d38fe5d871bc67e9b7de4c2b4a873a714c32450a46"
+      "sha256": "ae24b9309fddb99c7ad10ad22acb796cfb564cdbd7933d7b1d44391bb496e202"
     },
     {
       "path": "test/auth.smoke.test.ts",
       "template": "express:packages/cli/template-variants/smoke.test.ts",
-      "sha256": "592a2c5e18a0534280f800333eb84ed59452d21ebd59b995ea533c27eecb6495"
+      "sha256": "a3747f95489faab6c9a3a0cac4ff74b76c933aad7dc1a76d1f3acf452f4f27e9"
     },
     {
       "path": "src/routes/index.ts",
       "template": "express:packages/cli/template-variants/routes.ts",
-      "sha256": "5ac418c6dc1c703544434b40c551ea38682264f58578c38540151f7e200a52e5"
+      "sha256": "84c7d4e88f2213785cf91c936dc5e482edaaccd2ccf553075606390aa95b23dd"
     },
     {
       "path": "src/db/store.ts",
       "template": "express:apps/playground/src/db/store.ts",
-      "sha256": "760ed52b193d5cbbe3b33409c23cde60880c0e8e9989016d3a217df5183052d0"
+      "sha256": "4c5547d4493d2debd0d10ad937c3dfad1a54e46e42aa83f436a45608cfe9c52c"
     },
     {
       "path": "src/auth/stores/prisma.ts",

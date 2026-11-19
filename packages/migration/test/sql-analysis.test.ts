@@ -76,6 +76,50 @@ describe("analyzeSql", () => {
   });
 });
 
+describe("analyzeSql for the application's own migrations", () => {
+  const owned = { tables: ["auth_users"], types: ["auth_account_state"] };
+  const mine = (sql: string) =>
+    analyzeSql(sql, owned, "app").map((f) => `${f.kind}:${f.object ?? ""}`);
+
+  it("lets the developer add to their own tables without approval", () => {
+    expect(
+      mine(
+        `CREATE TABLE "notes" (id text);
+         CREATE INDEX "notes_owner_idx" ON "notes"("owner_id");
+         ALTER TABLE "notes" ADD COLUMN "title" TEXT;
+         INSERT INTO "notes" VALUES ('a');`,
+      ),
+    ).toEqual([]);
+  });
+
+  it("still flags data loss in the developer's own tables", () => {
+    expect(mine(`ALTER TABLE "notes" DROP COLUMN "title";`)).toEqual(["drop_column:notes"]);
+    expect(mine(`DROP TABLE "notes";`)).toEqual(["drop_table:notes"]);
+    expect(mine(`ALTER TABLE "notes" ALTER COLUMN "n" TYPE INTEGER;`)).toEqual([
+      "alter_column_type:notes",
+    ]);
+  });
+
+  it("flags the developer changing a SelfAuth table", () => {
+    expect(
+      mine(
+        `ALTER TABLE "auth_users" ADD COLUMN "nickname" TEXT;
+         CREATE INDEX "i" ON "auth_users"("email");`,
+      ),
+    ).toEqual(["selfauth_table:auth_users", "selfauth_table:auth_users"]);
+    expect(mine(`DROP TABLE "auth_users";`)).toEqual([
+      "drop_table:auth_users",
+      "selfauth_table:auth_users",
+    ]);
+  });
+
+  it("does not flag a table the same migration creates", () => {
+    expect(
+      mine(`CREATE TABLE "auth_users" (id text); CREATE INDEX "i" ON "auth_users"("id");`),
+    ).toEqual([]);
+  });
+});
+
 describe("createdObjects", () => {
   it("lists created tables and types", () => {
     expect(

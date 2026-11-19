@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { runCommand } from "../run.js";
 import { basename, posix, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { detectSourceLayout } from "../layout.js";
@@ -150,8 +150,9 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   if (options.install) {
     for (const cmd of commands) {
       say(`\n$ ${cmd.join(" ")}`);
-      if (spawnSync(cmd[0]!, cmd.slice(1), { cwd: dir, stdio: "inherit" }).status !== 0) {
-        fail("Installing dependencies failed; run the command yourself.");
+      const result = runCommand(cmd, dir);
+      if (!result.ok) {
+        fail(`Installing dependencies failed (${result.reason}); run the command yourself.`);
         return 1;
       }
     }

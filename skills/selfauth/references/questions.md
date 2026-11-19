@@ -165,9 +165,10 @@ repository; don't open a public issue.
 ## Database
 
 **How do migrations work?** `selfauth db plan` shows the SQL and flags
-destructive changes and changes to tables SelfAuth doesn't own. `selfauth db
-migrate` applies them through Prisma Migrate and refuses destructive plans
-unless the developer approved them. Nothing migrates at app start-up.
+changes that lose data and changes to SelfAuth's own tables. `selfauth db
+migrate` applies them through Prisma Migrate and refuses plans with findings
+unless the developer approved them. Adding tables and columns of their own needs
+no approval. Nothing migrates at app start-up.
 → [guides/database.md](guides/database.md), [migration-rules](migration-rules.md)
 
 **Will it touch my existing tables?** No. It owns only the `auth_*` tables and

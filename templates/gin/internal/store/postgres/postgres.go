@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"selfauth-app/internal/auth"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"selfauth-app/internal/auth"
 )
 
 // Options configure the connection pool.

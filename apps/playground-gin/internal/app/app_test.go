@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -361,5 +362,29 @@ func TestCSRFSecretRotation(t *testing.T) {
 	dropped := build(newSecret, nil)
 	if got := call(dropped, body.CSRFToken); got != http.StatusForbidden {
 		t.Fatalf("a token signed with a dropped secret must be refused: %d", got)
+	}
+}
+
+// A handler that reports an error with c.Error and writes nothing must answer a 500 envelope,
+// never an empty 200, and must not leak the error to the client (SEC-LOG-002).
+func TestHandlerErrorBecomesInternalError(t *testing.T) {
+	cfg := testConfig(t, nil)
+	base, _ := url.Parse("https://app.example.test")
+	store := memory.New()
+	_ = store.SyncRoles(context.Background(), auth.RoleDefinitions(cfg))
+	a, err := NewAuth(AuthOptions{Config: cfg, Env: config.Env{NodeEnv: "test", AppBaseURL: base}, Store: store, Mailer: &auth.MemoryMailer{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	router, _ := NewRouter(Options{Config: cfg, Auth: a, Mount: func(r *gin.Engine, a *ginauth.Auth) {
+		r.GET("/api/broken", func(c *gin.Context) { _ = c.Error(errors.New("db password=secret unreachable")) })
+	}})
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/broken", nil))
+	if rec.Code != http.StatusInternalServerError || !strings.Contains(rec.Body.String(), `"INTERNAL_ERROR"`) {
+		t.Fatalf("got %d %s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "secret") {
+		t.Fatal("the error must not reach the client")
 	}
 }

@@ -6,14 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"selfauth-app/internal/app"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/config"
 	"selfauth-app/internal/email"
+	"selfauth-app/internal/ginauth"
 	"selfauth-app/internal/routes"
 	"selfauth-app/internal/store"
 )
@@ -55,7 +58,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: routes.Register})
+	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: func(r *gin.Engine, a *ginauth.Auth) {
+		routes.Register(r, a, stores.DB)
+	}})
 	if err != nil {
 		return err
 	}
@@ -68,8 +73,13 @@ func run() error {
 		WriteTimeout:      60 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}
+	// Bind first, so "Listening" is only printed once the port is really ours.
+	listener, err := net.Listen("tcp", server.Addr)
+	if err != nil {
+		return fmt.Errorf("could not start on port %d: %w", env.Port, err)
+	}
 	log.Printf("Listening on http://localhost:%d", env.Port)
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil

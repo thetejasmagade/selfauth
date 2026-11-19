@@ -9,10 +9,19 @@ import {
   MongooseAuthStore,
   MongooseRateLimitStore,
 } from "../auth/stores/mongoose.ts";
+import type { Connection } from "mongoose";
+
+/**
+ * Your application's own access to the database, for your own collections: the same Mongoose
+ * connection SelfAuth uses. Define models with `db.model(...)`.
+ */
+export type Database = Connection;
 
 export interface Stores {
   store: AuthStore;
   rateLimitStore?: RateLimitStore;
+  /** Your routes' database client; undefined while running on the in-memory store. */
+  db?: Database;
   close(): Promise<void>;
 }
 
@@ -55,5 +64,5 @@ export async function createStores(config: SelfAuthConfig): Promise<Stores> {
     }
   }
   console.log("Using MongoDB (Mongoose) store.");
-  return { store, rateLimitStore, close: () => connection.close() };
+  return { store, rateLimitStore, db: connection, close: () => connection.close() };
 }
