@@ -8,14 +8,287 @@
   "headers": [
     {
       "source": "/assets/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/guide/what-is-selfauth",
+      "destination": "/start/what-is-selfauth",
+      "permanent": true
+    },
+    {
+      "source": "/guide/how-it-works",
+      "destination": "/start/how-it-works",
+      "permanent": true
+    },
+    {
+      "source": "/guide/concepts",
+      "destination": "/start/how-it-works",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/prerequisites",
+      "destination": "/start/pick-your-stack",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/choose-your-stack",
+      "destination": "/start/pick-your-stack",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/quick-start",
+      "destination": "/express/create-project",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/first-flow",
+      "destination": "/express/run-and-sign-in",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/next-steps",
+      "destination": "/express/",
+      "permanent": true
+    },
+    {
+      "source": "/structure",
+      "destination": "/express/project-tour",
+      "permanent": true
+    },
+    {
+      "source": "/structure/",
+      "destination": "/express/project-tour",
+      "permanent": true
+    },
+    {
+      "source": "/structure/express",
+      "destination": "/express/project-tour",
+      "permanent": true
+    },
+    {
+      "source": "/structure/fastify",
+      "destination": "/fastify/",
+      "permanent": true
+    },
+    {
+      "source": "/structure/gin",
+      "destination": "/gin/",
+      "permanent": true
+    },
+    {
+      "source": "/structure/full-stack",
+      "destination": "/express/frontend-page",
+      "permanent": true
+    },
+    {
+      "source": "/structure/databases",
+      "destination": "/start/pick-your-stack",
+      "permanent": true
+    },
+    {
+      "source": "/build/add-api-route",
+      "destination": "/express/endpoints",
+      "permanent": true
+    },
+    {
+      "source": "/build/protect-routes",
+      "destination": "/express/endpoints",
+      "permanent": true
+    },
+    {
+      "source": "/build/permissions-roles",
+      "destination": "/express/permissions",
+      "permanent": true
+    },
+    {
+      "source": "/build/resource-ownership",
+      "destination": "/express/notes-endpoints",
+      "permanent": true
+    },
+    {
+      "source": "/build/frontend-pages",
+      "destination": "/express/frontend-page",
+      "permanent": true
+    },
+    {
+      "source": "/build/database-changes",
+      "destination": "/express/add-a-table",
+      "permanent": true
+    },
+    {
+      "source": "/build/email",
+      "destination": "/express/production",
+      "permanent": true
+    },
+    {
+      "source": "/build/tests",
+      "destination": "/express/tests",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/production",
+      "destination": "/express/production",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/security",
+      "destination": "/start/how-it-works",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/existing-projects",
+      "destination": "/reference/cli/add",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/custom-store",
+      "destination": "/reference/server-typescript",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/data-retention",
+      "destination": "/express/production",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/conformance",
+      "destination": "/start/what-is-selfauth",
+      "permanent": true
+    },
+    {
+      "source": "/advanced/migrating",
+      "destination": "/start/what-is-selfauth",
+      "permanent": true
+    },
+    {
+      "source": "/resources/coverage",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/ai-skill",
+      "destination": "/ai/",
+      "permanent": true
+    },
+    {
+      "source": "/ai-skill/",
+      "destination": "/ai/",
+      "permanent": true
+    },
+    {
+      "source": "/ai-skill/prompts",
+      "destination": "/ai/prompts",
+      "permanent": true
+    },
+    {
+      "source": "/cli",
+      "destination": "/reference/cli/",
+      "permanent": true
+    },
+    {
+      "source": "/cli/",
+      "destination": "/reference/cli/",
+      "permanent": true
+    },
+    {
+      "source": "/cli/init",
+      "destination": "/reference/cli/init",
+      "permanent": true
+    },
+    {
+      "source": "/cli/add",
+      "destination": "/reference/cli/add",
+      "permanent": true
+    },
+    {
+      "source": "/cli/inspect",
+      "destination": "/reference/cli/inspect",
+      "permanent": true
+    },
+    {
+      "source": "/cli/upgrade",
+      "destination": "/reference/cli/upgrade",
+      "permanent": true
+    },
+    {
+      "source": "/cli/db",
+      "destination": "/reference/cli/db",
+      "permanent": true
+    },
+    {
+      "source": "/cli/skill",
+      "destination": "/reference/cli/skill",
+      "permanent": true
+    },
+    {
+      "source": "/configuration/config-file",
+      "destination": "/reference/config-file",
+      "permanent": true
+    },
+    {
+      "source": "/configuration/environment",
+      "destination": "/reference/environment",
+      "permanent": true
+    },
+    {
+      "source": "/configuration/frontend-deployment",
+      "destination": "/reference/frontend-deployment",
+      "permanent": true
+    },
+    {
+      "source": "/api/http",
+      "destination": "/reference/http",
+      "permanent": true
+    },
+    {
+      "source": "/api/errors",
+      "destination": "/reference/errors",
+      "permanent": true
+    },
+    {
+      "source": "/api/server",
+      "destination": "/reference/server-typescript",
+      "permanent": true
+    },
+    {
+      "source": "/api/go",
+      "destination": "/reference/server-go",
+      "permanent": true
+    },
+    {
+      "source": "/api/client",
+      "destination": "/reference/client",
+      "permanent": true
+    },
+    {
+      "source": "/troubleshooting",
+      "destination": "/help/troubleshooting",
+      "permanent": true
+    },
+    {
+      "source": "/faq",
+      "destination": "/help/faq",
+      "permanent": true
     }
   ]
 }

@@ -224,7 +224,7 @@
     {
       "path": ".gitignore",
       "template": "rendered:gitignore",
-      "sha256": "1ef1d89066862c1c1c273244088f5d2e18b9c7a36bcb4fd8bed53ec494c0dde7"
+      "sha256": "1c8444ad1615ecfa7e5b9132e750b07438218d9c9fe9adcc0f31a98c93ae443c"
     },
     {
       "path": ".env.example",

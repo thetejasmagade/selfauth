@@ -5,6 +5,12 @@ import { DATABASE_INFO, type Database } from "../templates.js";
 import { databaseDir, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
+/** The last lines of a tool's output, indented, for a failure message. */
+export function indentOutput(output: string, lines = 15): string {
+  const kept = output.trim().split("\n").slice(-lines);
+  return kept.map((line) => `    ${line}`).join("\n");
+}
+
 function printPlan(plan: MigrationPlan) {
   if (plan.pending.length === 0) return ok("No pending migrations.");
   say(`Pending migrations (${plan.pending.length}):`);
@@ -159,6 +165,8 @@ export async function db(
         if (result.applied) ok("Migrations applied.");
         else
           (result.reason === "no pending migrations" ? info : fail)(result.reason ?? "not applied");
+        // The tool's own words say why it failed: show them rather than only "failed".
+        if (!result.applied && result.output.trim()) say(indentOutput(result.output));
         return result.applied || result.reason === "no pending migrations" ? 0 : 1;
       }
       case "generate": {

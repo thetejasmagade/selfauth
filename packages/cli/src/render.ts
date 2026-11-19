@@ -259,6 +259,11 @@ export function renderGoGitignore(): string {
     "*.test",
     "*.out",
     "*.log",
+    // SQLite database files: never commit data.
+    "*.db",
+    "*.db-journal",
+    "*.db-shm",
+    "*.db-wal",
     "",
   ].join("\n");
 }
@@ -415,6 +420,11 @@ export function renderGitignore(options: { workspace?: boolean } = {}): string {
     // A pattern with a slash in the middle is anchored to the .gitignore's folder.
     options.workspace ? "**/src/generated/" : "src/generated/",
     "*.log",
+    // SQLite database files (the development database and test.db): never commit data.
+    "*.db",
+    "*.db-journal",
+    "*.db-shm",
+    "*.db-wal",
     "",
   ].join("\n");
 }

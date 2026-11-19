@@ -294,6 +294,16 @@ export class PrismaMigrationAdapter implements MigrationAdapter {
         output,
       };
     }
+    if (/database is locked|SQLITE_BUSY/i.test(output)) {
+      return {
+        applied: false,
+        reason:
+          "the SQLite database is locked: another program has it open, usually the running server. " +
+          "Stop it (Ctrl+C in its terminal), run the migration again, then start it again",
+        plan,
+        output,
+      };
+    }
     return { applied: false, reason: "prisma migrate deploy failed", plan, output };
   }
 

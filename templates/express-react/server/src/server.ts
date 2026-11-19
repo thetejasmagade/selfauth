@@ -35,7 +35,12 @@ try {
     logger: createLogger(),
     mount: (app, auth) => mountRoutes(app, auth, db),
   });
-  app.listen(env.port, () => {
+  app.listen(env.port, (error) => {
+    // Express 5 reports a failed start here (the port is taken, for example), not by throwing.
+    if (error) {
+      console.error(`Could not start on port ${env.port}: ${error.message}`);
+      process.exit(1);
+    }
     console.log(`Listening on http://localhost:${env.port}`);
   });
 } catch (error) {

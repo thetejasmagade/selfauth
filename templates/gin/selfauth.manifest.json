@@ -285,7 +285,7 @@
     {
       "path": ".gitignore",
       "template": "rendered:gitignore",
-      "sha256": "e324328b3fdb15b81555e6d622c9b9cdb135b24d70fd6ac9f6b36c75c60f067d"
+      "sha256": "c12cbe94eb547580c12f936ab067b3a1dff0bd893a8cb7965cc79098749a79f2"
     },
     {
       "path": ".env.example",

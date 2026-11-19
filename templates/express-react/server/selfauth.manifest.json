@@ -154,7 +154,7 @@
     {
       "path": "src/server.ts",
       "template": "express:apps/playground/src/server.ts",
-      "sha256": "5518f5deaf5901e942f0c74e5023085c667dcf26c441d388ae3591742370e2df"
+      "sha256": "ae24b9309fddb99c7ad10ad22acb796cfb564cdbd7933d7b1d44391bb496e202"
     },
     {
       "path": "test/auth.smoke.test.ts",
