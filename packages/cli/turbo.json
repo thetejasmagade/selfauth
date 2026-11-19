@@ -5,7 +5,10 @@
     "build": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/apps/playground/**",
+        "$TURBO_ROOT$/apps/playground-fastify/**",
+        "$TURBO_ROOT$/apps/playground-gin/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
         "$TURBO_ROOT$/skills/selfauth/**"
@@ -15,6 +18,8 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/apps/playground/**",
+        "$TURBO_ROOT$/apps/playground-fastify/**",
+        "$TURBO_ROOT$/apps/playground-gin/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
         "$TURBO_ROOT$/skills/**",
