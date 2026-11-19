@@ -106,6 +106,9 @@ describe("evaluateLevels", () => {
 
 describe.each([
   ["memory", true],
+  ["sqlite", true],
+  ["mysql", Boolean(process.env["TEST_MYSQL_URL"])],
+  ["mongodb", Boolean(process.env["TEST_MONGODB_URL"])],
   ["postgresql", Boolean(TEST_DATABASE_URL)],
 ] as const)("published level — %s store", (store, available) => {
   it.runIf(available)(
@@ -115,7 +118,7 @@ describe.each([
       try {
         const results = await runSuite(
           cases,
-          ginDriver(harness.port, store === "memory" ? "memory" : "postgres"),
+          ginDriver(harness.port, store === "postgresql" ? "postgres" : store),
         );
         const failed = results.filter((r) => !r.passed).map((r) => `${r.id}: ${r.error}`);
         expect(failed).toEqual([]);

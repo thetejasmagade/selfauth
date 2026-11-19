@@ -2,7 +2,10 @@ import type { Driver, DriverFactory, HttpRequest } from "@selfauth/conformance";
 import { send } from "./harness.ts";
 
 /** Conformance driver for the Gin reference application (Go). See test/harness/main.go. */
-export function ginDriver(port: number, store: "memory" | "postgres"): DriverFactory {
+export function ginDriver(
+  port: number,
+  store: "memory" | "postgres" | "sqlite" | "mysql" | "mongodb",
+): DriverFactory {
   return async ({ config, environment, given }) => {
     const control = async (method: string, path: string, body?: unknown) => {
       const res = await send(

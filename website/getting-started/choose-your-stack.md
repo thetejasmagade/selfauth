@@ -14,7 +14,7 @@ keywords: [express vs fastify, gin, postgresql, sqlite, mysql, mongodb, vue, rea
 | --- | --- | --- | --- |
 | Express 5 | TypeScript | You know Express, or you have no preference | The reference implementation. Default. |
 | Fastify 5 | TypeScript | You prefer Fastify | Same core and behavior as Express, with a Fastify adapter. |
-| Gin | Go 1.26+ | Your team writes Go | A Go port of the same core. New projects only. PostgreSQL or in-memory for now. |
+| Gin | Go 1.26+ | Your team writes Go | A Go port of the same core. New projects only. Works with every database. |
 
 All three backends pass the same 90 conformance cases.
 

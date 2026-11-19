@@ -165,7 +165,7 @@ async function run(
             {
               value: "gin",
               label: "Gin (Go)",
-              hint: "a Go port of the core; PostgreSQL or in-memory",
+              hint: "a Go port of the core; any database",
             },
           ],
           "express",
@@ -267,7 +267,7 @@ async function run(
   }
 
   say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${gin ? "pgx" : database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${gin ? (database === "postgresql" ? "pgx" : database === "mongodb" ? "mongo-driver" : "database/sql") : database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {

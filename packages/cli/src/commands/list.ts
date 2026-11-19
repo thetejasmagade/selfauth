@@ -31,14 +31,14 @@ export const INTEGRATIONS: Integration[] = [
     kind: "backend",
     id: "gin",
     label:
-      "Gin (Go): a Go port of the core, 90/90 conformance cases on PostgreSQL and in-memory; new projects, with or without a Vue or React frontend (`selfauth init --backend gin`)",
+      "Gin (Go): a Go port of the core, 90/90 conformance cases on every database; new projects, with or without a Vue or React frontend (`selfauth init --backend gin`)",
     production: false,
     add: false,
   },
   {
     kind: "database",
     id: "postgresql",
-    label: "PostgreSQL via Prisma 7 (migrations reviewed with `selfauth db plan`)",
+    label: "PostgreSQL via Prisma 7, or pgx for Gin (migrations reviewed with `selfauth db plan`)",
     production: true,
     add: true,
   },
@@ -46,7 +46,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "database",
     id: "mysql",
     label:
-      "MySQL 8 via Prisma 7 (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
+      "MySQL 8 via Prisma 7, or database/sql for Gin (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
     production: true,
     add: true,
   },
@@ -54,7 +54,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "database",
     id: "mongodb",
     label:
-      "MongoDB 6+ via Mongoose 9 (its own store, not derived from SQL; authorization level; indexes via `selfauth db migrate`)",
+      "MongoDB 6+ via Mongoose 9, or the official driver for Gin (its own store, not derived from SQL; authorization level; indexes via `selfauth db migrate`)",
     production: true,
     add: true,
   },
@@ -62,7 +62,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "database",
     id: "sqlite",
     label:
-      "SQLite via Prisma 7: one file on one host, no server to run (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
+      "SQLite via Prisma 7, or database/sql for Gin: one file on one host, no server to run (derived from the PostgreSQL reference; 90/90 conformance cases, authorization level)",
     production: true,
     add: true,
   },
@@ -108,7 +108,7 @@ export function list(options: { json?: boolean } = {}): number {
     say(`  ${title.padEnd(10)} ${i.id.padEnd(16)} ${i.label}`);
   }
   say(
-    "\nExisting Express or Fastify + TypeScript projects: `selfauth add` (new files only, ADR 0019).\nGin supports PostgreSQL and in-memory only, no frontend, and new projects only.",
+    "\nExisting Express or Fastify + TypeScript projects: `selfauth add` (new files only, ADR 0019).\nEvery backend works with every database and every frontend. Gin is for new projects only (`add` does not apply to Go).",
   );
   say(`Planned, not available yet: ${PLANNED.join("; ")}.`);
   return 0;

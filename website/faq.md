@@ -84,7 +84,7 @@ Not with a generated adapter. A frontend of any kind can call the [HTTP API](/ap
 
 ### Which databases?
 
-PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Gin supports PostgreSQL and in-memory.
+PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Every database works with Express, Fastify and Gin.
 
 ### Can I use it with an ORM other than Prisma?
 

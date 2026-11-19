@@ -8,7 +8,7 @@ keywords: [gin, go, golang, directory structure, internal, cmd, pgx, migrations,
 
 `npx selfauth init my-api --backend gin --database postgresql --module github.com/you/my-api` creates a Go module in the usual Go layout: programs in `cmd/`, private packages in `internal/`.
 
-Gin projects work with PostgreSQL or the in-memory store, and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work. Add `--frontend vue` or `--frontend react` and the Go module moves into `server/`, next to a `client/` frontend, as [described below](#with-a-frontend).
+Gin projects work with every database (PostgreSQL, MySQL, SQLite, MongoDB or the in-memory store), and only for new projects, so `selfauth add` doesn't apply to Go. You need Go 1.26 or newer. `doctor`, `validate`, `diff` and `upgrade` all work. Add `--frontend vue` or `--frontend react` and the Go module moves into `server/`, next to a `client/` frontend, as [described below](#with-a-frontend).
 
 ## The tree
 
@@ -47,11 +47,14 @@ my-api/
 │   │   └── routes.go                 #   the /auth routes
 │   ├── httpx/httpx.go                # request ids, error responses, JSON body limit
 │   └── store/
-│       ├── store.go                  # picks the store from DATABASE_URL
+│       ├── store.go, driver.go       # picks the store from DATABASE_URL
 │       ├── memory/                   # in-memory store
-│       ├── postgres/                 # pgx store + migration runner
+│       ├── postgres/                 # PostgreSQL only: pgx store + migration runner
+│       ├── sqlstore/                 # MySQL and SQLite only: database/sql store + runner
+│       ├── mongostore/               # MongoDB only: the official driver + index creation
+│       ├── register_<database>.go    # connects the store of your database
 │       └── storetest/                # shared tests every store must pass
-├── db/migrations/
+├── db/migrations/                    # SQL databases only (not MongoDB)
 │   └── 20261116085533_selfauth_init/migration.sql   # plain SQL: read it
 ├── selfauth.config.json              # ★ authentication and authorization settings
 ├── selfauth.manifest.json
@@ -69,11 +72,13 @@ my-api/
 flowchart LR
   env["config.LoadEnv"] --> cfg["config.Load(selfauth.config.json)"]
   cfg --> mail["email.NewMailer"]
-  mail --> st["store.New (memory or PostgreSQL)"]
+  mail --> st["store.New (memory, or the store of your database)"]
   st --> auth["app.NewAuth"]
   auth --> router["app.NewRouter + routes.Register"]
   router --> listen["http.Server.ListenAndServe"]
 ```
+
+Only the parts for **your** database are generated. A PostgreSQL project has `postgres/` and `register_postgres.go` and none of the others; the same goes for each database. Choosing a database never leaves another database's code in your project.
 
 ## Things that differ from the Node projects
 
@@ -83,7 +88,7 @@ flowchart LR
 | Environment | The process environment. A `.env` file is not loaded by the server. Export the variables, or use a tool such as direnv. |
 | Environment name | `APP_ENV` (`development`, `test`, `production`) instead of `NODE_ENV` |
 | Module path | The `--module` you passed. All imports use it, for example `github.com/you/my-api/internal/auth`. |
-| Migrations | `go run ./cmd/migrate status` and `up` (or `npx selfauth db status` and `migrate`). No ORM. |
+| Migrations | `go run ./cmd/migrate status` and `up` (or `npx selfauth db status` and `migrate`). No ORM. With MongoDB there are no migrations: `up` creates the missing indexes and never drops one. |
 | Request bodies | SelfAuth's middleware parses the JSON body once. In your handlers read it with `httpx.Body(c)`, not `c.ShouldBindJSON`. |
 | Tests | `go vet ./... && go test ./...` |
 
@@ -134,7 +139,7 @@ my-app/
 ```bash
 cd my-app
 npm install                          # installs the client
-cp server/.env.example server/.env   # set DATABASE_URL if you use PostgreSQL
+cp server/.env.example server/.env   # set DATABASE_URL
 npm run db:migrate && npm run db:seed
 npm run dev                          # the Go API on :3000 and the app together
 ```

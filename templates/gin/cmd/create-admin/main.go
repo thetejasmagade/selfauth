@@ -2,7 +2,7 @@
 // first administrator can only be created by a developer-run command like this
 // one, never through the API (AUTHZ-ADMIN-005):
 //
-//	DATABASE_URL=postgres://... go run ./cmd/create-admin you@example.com
+//	DATABASE_URL=... go run ./cmd/create-admin you@example.com
 package main
 
 import (
@@ -13,7 +13,8 @@ import (
 	"time"
 
 	"selfauth-app/internal/auth"
-	"selfauth-app/internal/store/postgres"
+	"selfauth-app/internal/config"
+	"selfauth-app/internal/store"
 )
 
 func main() {
@@ -29,32 +30,40 @@ func run() error {
 		return errors.New("usage: DATABASE_URL=... create-admin <email>")
 	}
 	email := os.Args[1]
-	ctx := context.Background()
-	db, err := postgres.Open(ctx, postgres.Options{URL: url})
+	path := os.Getenv("SELFAUTH_CONFIG")
+	if path == "" {
+		path = "selfauth.config.json"
+	}
+	cfg, err := config.Load(path)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-	store := postgres.New(db)
+	ctx := context.Background()
+	conn, err := store.Connect(ctx, cfg.Adapter.Database, url)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	db := conn.Store
 
-	user, err := store.FindUserByEmail(ctx, auth.NormalizeEmail(email))
+	user, err := db.FindUserByEmail(ctx, auth.NormalizeEmail(email))
 	if err != nil {
 		return err
 	}
 	if user == nil || user.State != auth.StateActive {
 		return errors.New("no active account with that email: register and verify it first")
 	}
-	if ok, err := store.RoleExists(ctx, auth.AdminRole); err != nil {
+	if ok, err := db.RoleExists(ctx, auth.AdminRole); err != nil {
 		return err
 	} else if !ok {
 		return errors.New("the admin role does not exist yet: run the seed command first")
 	}
 	now := time.Now().Truncate(time.Millisecond)
-	if err := store.AddUserRole(ctx, user.ID, auth.AdminRole, nil, now); err != nil {
+	if err := db.AddUserRole(ctx, user.ID, auth.AdminRole, nil, now); err != nil {
 		return err
 	}
 	agent := "selfauth create-admin"
-	if err := store.RecordEvent(ctx, auth.EventRecord{
+	if err := db.RecordEvent(ctx, auth.EventRecord{
 		ID: auth.NewID(), Type: "role.assigned", Outcome: "success", OccurredAt: now,
 		UserID: &user.ID, UserAgent: &agent, Metadata: map[string]any{"role": "admin", "via": "cli"},
 	}); err != nil {

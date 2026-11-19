@@ -36,6 +36,7 @@ import (
 	"example.com/app/internal/auth"
 	"example.com/app/internal/config"
 	"example.com/app/internal/ginauth"
+	"example.com/app/internal/store/sqlstore"
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,7 +65,7 @@ type given struct {
 }
 
 type createRequest struct {
-	// Store is "memory" (default) or "postgres" (needs TEST_DATABASE_URL).
+	// Store is "memory" (default), "postgres" (needs TEST_DATABASE_URL), "sqlite", "mysql" (needs TEST_MYSQL_URL) or "mongodb" (needs TEST_MONGODB_URL).
 	Store       string          `json:"store"`
 	Config      json.RawMessage `json:"config"`
 	Environment string          `json:"environment"`
@@ -300,6 +301,14 @@ func (s *server) build(ctx context.Context, cfg *config.Config, req createReques
 		inst.backend = newMemoryBackend()
 	case "postgres":
 		if inst.backend, err = newPostgresBackend(ctx); err != nil {
+			return nil, err
+		}
+	case "mongodb":
+		if inst.backend, err = newMongoBackend(ctx); err != nil {
+			return nil, err
+		}
+	case "sqlite", "mysql":
+		if inst.backend, err = newSQLBackend(ctx, sqlstore.Kind(req.Store)); err != nil {
 			return nil, err
 		}
 	default:

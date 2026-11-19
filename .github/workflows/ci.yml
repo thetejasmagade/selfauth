@@ -238,6 +238,10 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/selfauth_test
       SELFAUTH_REQUIRE_POSTGRES: "1"
+      # MySQL and MongoDB: every test case gets its own database on these servers.
+      TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/selfauth_test
+      TEST_MONGODB_URL: mongodb://127.0.0.1:27017/selfauth_test
+      SELFAUTH_REQUIRE_MONGODB: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -256,6 +260,19 @@ jobs:
           key: turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: turbo-${{ github.job }}-
       - run: pnpm build --cache-dir=.turbo
+      - name: Start MySQL (installed on the runner image, off by default)
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS selfauth_test"
+      - name: Start MongoDB
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
       - name: Format, vet and unit tests
         working-directory: apps/playground-gin
         run: |
@@ -273,8 +290,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [memory, postgresql]
-        frontend: [none, vue, react]
+        # Every database and every frontend is generated with Gin; the pieces are independent, so
+        # the pairs below cover each of them (and several crosses) without the full product.
+        include:
+          - { database: memory, frontend: none }
+          - { database: postgresql, frontend: none }
+          - { database: mysql, frontend: none }
+          - { database: sqlite, frontend: none }
+          - { database: mongodb, frontend: none }
+          - { database: memory, frontend: vue }
+          - { database: mysql, frontend: vue }
+          - { database: mongodb, frontend: vue }
+          - { database: postgresql, frontend: react }
+          - { database: sqlite, frontend: react }
     services:
       postgres:
         image: postgres:16
@@ -290,7 +318,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      SMOKE_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/smoke
+      SMOKE_DATABASE_URL: ${{ matrix.database == 'mysql' && 'mysql://root:root@127.0.0.1:3306/smoke' || matrix.database == 'mongodb' && 'mongodb://127.0.0.1:27017/smoke' || 'postgresql://selfauth:selfauth@localhost:5432/smoke' }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -302,6 +330,21 @@ jobs:
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.database == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
+      - name: Start MongoDB
+        if: matrix.database == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
       - run: pnpm install --frozen-lockfile
       - uses: actions/cache@v4
         with:

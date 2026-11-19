@@ -96,13 +96,24 @@ export async function templateFiles(
   })) {
     const stack = entry.target.startsWith("web/") ? answers.frontend : backend;
     // A derived database has its own migration (generated from its schema, scripts/sync-dialects.mjs).
+    // The Go project keeps its schema in db/migrations: PostgreSQL's own, or the one derived for MySQL / SQLite.
+    const goDialect =
+      answers.backend === "gin" &&
+      entry.target === "db/migrations" &&
+      isDerivedDialect(answers.database)
+        ? answers.database
+        : null;
     const entrySource =
       dialect && isDerivedDialect(dialect) && entry.target === "prisma/migrations"
         ? registry.dialects[dialect].migrations
-        : entry.source;
+        : goDialect
+          ? registry.dialects[goDialect].migrations
+          : entry.source;
     if (entry.directory) {
       for (const rel of await source.listDirectory(entrySource)) {
         if (isDemoFile(`${entry.target}/${rel}`)) continue;
+        // Prisma's lock file means nothing to the Go migration runner.
+        if (goDialect && rel === "migration_lock.toml") continue;
         const path = place(rebase(`${entry.target}/${rel}`));
         if (path === null) continue;
         files.push({

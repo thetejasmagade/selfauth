@@ -506,8 +506,26 @@ export function renderLayout(answers: InitAnswers): string {
   return rows.map(([name, note]) => (note ? `${name.padEnd(width)}${note}` : name)).join("\n");
 }
 
+/** Layout lines that differ with the database: the schema folder and the store packages. */
+function goStoreLayout(answers: InitAnswers) {
+  const database = answers.database;
+  const packages: Record<string, string> = {
+    postgresql: "postgres",
+    mysql: "sqlstore",
+    sqlite: "sqlstore",
+    mongodb: "mongostore",
+  };
+  return {
+    // MongoDB has indexes instead of a schema folder.
+    sql: database === "postgresql" || database === "mysql" || database === "sqlite",
+    label: database === "memory" ? "" : DATABASE_INFO[database].label,
+    stores: database === "memory" ? "memory" : `memory, ${packages[database]}`,
+  };
+}
+
 function renderGoWorkspaceReadme(answers: InitAnswers): string {
   const pg = hasDatabase(answers.database);
+  const layout = goStoreLayout(answers);
   const run = [
     "npm install                    # installs the client",
     `cp server/.env.example server/.env${pg ? "   # then set DATABASE_URL" : ""}`,
@@ -544,10 +562,10 @@ Email (verification, password reset) is printed to the console in development. B
 \`\`\`text
 server/                       the Go API (Gin)
   cmd/server/main.go          starts the server
-${pg ? "  cmd/migrate, cmd/seed,      apply migrations, synchronize roles, grant the first admin\n    cmd/create-admin\n  db/migrations/            the PostgreSQL schema\n" : ""}  internal/
+${pg ? `  cmd/migrate, cmd/seed,      ${layout.sql ? "apply migrations" : "create indexes"}, synchronize roles, grant the first admin\n    cmd/create-admin\n${layout.sql ? `  db/migrations/            the ${layout.label} schema\n` : ""}` : ""}  internal/
     auth/                     SelfAuth's core: the rules, no HTTP (the tested security code)
     ginauth/                  the Gin binding: cookies, CORS, CSRF, the /auth routes, guards
-    store/                    data stores (memory${pg ? ", postgres" : ""})
+    store/                    data stores (${layout.stores})
     email/mailer.go           plug in your email provider here
     routes/routes.go          your routes: guard them with a.RequirePermission(...)
     config/, app/, httpx/     configuration, wiring, request ids and errors
@@ -581,6 +599,7 @@ npx selfauth diff       # what a newer SelfAuth release would change
 function renderGoReadme(answers: InitAnswers): string {
   if (isWorkspace(answers)) return renderGoWorkspaceReadme(answers);
   const pg = hasDatabase(answers.database);
+  const layout = goStoreLayout(answers);
   const env = [
     "export APP_ENV=development",
     `export SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}`,
@@ -590,8 +609,8 @@ function renderGoReadme(answers: InitAnswers): string {
     ...env,
     ...(pg
       ? [
-          "go run ./cmd/migrate status   # applied and pending migrations",
-          "go run ./cmd/migrate up       # read the migration first; take a backup in production",
+          `go run ./cmd/migrate status   # ${layout.sql ? "applied and pending migrations" : "the indexes still to create"}`,
+          `go run ./cmd/migrate up       # ${layout.sql ? "read the migration first; take a backup in production" : "creates the missing indexes; never drops one"}`,
           "go run ./cmd/seed             # roles from selfauth.config.json",
         ]
       : []),
@@ -617,11 +636,11 @@ ${pg ? `\nCreate the first administrator after registering and verifying: \`go r
 
 \`\`\`text
 cmd/server/main.go          starts the server
-${pg ? "cmd/migrate, cmd/seed,     apply migrations, synchronize roles, grant the first admin\n  cmd/create-admin\ndb/migrations/            the PostgreSQL schema\n" : ""}internal/
+${pg ? `cmd/migrate, cmd/seed,     ${layout.sql ? "apply migrations" : "create indexes"}, synchronize roles, grant the first admin\n  cmd/create-admin\n${layout.sql ? `db/migrations/            the ${layout.label} schema\n` : ""}` : ""}internal/
   auth/                     SelfAuth's core: the rules, no HTTP (the tested security code)
   ginauth/                  the Gin binding: cookies, CORS, CSRF, the /auth routes, guards
   httpx/                    request ids, error responses, body limit
-  store/                    data stores (memory${pg ? ", postgres" : ""})
+  store/                    data stores (${layout.stores})
   email/mailer.go           plug in your email provider here
   routes/routes.go          your routes: guard them with a.RequirePermission(...)
   config/                   selfauth.config.json and the environment

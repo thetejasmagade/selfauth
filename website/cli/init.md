@@ -24,7 +24,7 @@ Each option below answers its question in advance, so you only get asked about w
 | --- | --- | --- | --- |
 | `[dir]` | a folder name | asked, or `.` if the current folder is empty | Where to create the project. The folder name becomes the project name |
 | `--backend <framework>` | `express`, `fastify`, `gin` | `express` | The web framework |
-| `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Gin supports only `postgresql` and `memory` |
+| `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Works with every backend |
 | `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. With Gin the Go module moves into `server/` |
 | `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are not given to any role: see [Permissions and roles](/build/permissions-roles) |
 | `--app-base-url <url>` | an `http` or `https` address | `http://localhost:5173` | Frontend address used in email links |

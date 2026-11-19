@@ -10,7 +10,7 @@ const base = {
 };
 
 describe.each(["vue", "react"] as const)("init --backend gin --frontend %s", (frontend) => {
-  for (const database of ["memory", "postgresql"] as const) {
+  for (const database of ["memory", "postgresql", "mysql", "sqlite", "mongodb"] as const) {
     it(`plans server/, client/ and a workspace root (${database})`, async () => {
       const appBaseUrl = frontend === "vue" ? "http://localhost:5173" : "http://localhost:5174";
       const files = await planInit({ ...base, database, frontend, appBaseUrl });
@@ -30,8 +30,9 @@ describe.each(["vue", "react"] as const)("init --backend gin --frontend %s", (fr
         .join("\n");
       expect(imports).toContain('"github.com/acme/shop/internal/auth"');
       expect(imports).not.toContain("example.com/app");
+      // A schema folder for the SQL databases only: MongoDB has indexes, the in-memory store nothing.
       expect(paths.some((p) => p.startsWith("server/db/migrations/"))).toBe(
-        database === "postgresql",
+        ["postgresql", "mysql", "sqlite"].includes(database),
       );
 
       // The frontend is under client/, without the notes demo the reference app carries.
@@ -46,7 +47,7 @@ describe.each(["vue", "react"] as const)("init --backend gin --frontend %s", (fr
       expect(root.workspaces).toEqual(["client"]);
       expect(root.scripts.dev).toContain("dev:server");
       expect(root.scripts["dev:server"]).toBe("node scripts/dev-server.mjs");
-      expect("db:migrate" in root.scripts).toBe(database === "postgresql");
+      expect("db:migrate" in root.scripts).toBe(database !== "memory");
       const dev = files.find((f) => f.path === "scripts/dev-server.mjs")!.content;
       expect(dev).toContain(`"${appBaseUrl}"`);
       expect(dev).toContain("server/.env");
@@ -71,10 +72,4 @@ describe.each(["vue", "react"] as const)("init --backend gin --frontend %s", (fr
       expect(client.files.every((f: { path: string }) => !f.path.startsWith("client/"))).toBe(true);
     });
   }
-
-  it("still refuses a database Gin has no store for", async () => {
-    await expect(
-      planInit({ ...base, database: "mongodb", frontend, appBaseUrl: "http://localhost:5173" }),
-    ).rejects.toThrow(/Gin backend supports/);
-  });
 });

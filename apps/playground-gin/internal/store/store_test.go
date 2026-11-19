@@ -22,9 +22,10 @@ func load(t *testing.T, database string) *config.Config {
 	return cfg
 }
 
-// CONF-FILE-004: the schema describes every adapter; this one implements only some of it.
-func TestUnsupportedDatabasesAreRefused(t *testing.T) {
-	for _, db := range []string{"mysql", "sqlite", "mongodb"} {
+// CONF-FILE-004: the schema describes every adapter; a project only contains the databases it was
+// generated with.
+func TestUnknownDatabasesAreRefused(t *testing.T) {
+	for _, db := range []string{"oracle", "cassandra"} {
 		if _, err := New(context.Background(), load(t, db), config.Env{NodeEnv: "development"}); err == nil {
 			t.Errorf("database %q accepted", db)
 		}
@@ -33,7 +34,11 @@ func TestUnsupportedDatabasesAreRefused(t *testing.T) {
 
 func TestMemoryStoreIsNotUsedInProduction(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
-	for _, db := range []string{"memory", "postgresql"} {
+	names := []string{"memory"}
+	for name := range drivers {
+		names = append(names, name)
+	}
+	for _, db := range names {
 		if _, err := New(context.Background(), load(t, db), config.Env{NodeEnv: "production"}); err == nil {
 			t.Errorf("%s without DATABASE_URL started in production", db)
 		}
@@ -42,8 +47,10 @@ func TestMemoryStoreIsNotUsedInProduction(t *testing.T) {
 
 func TestDevelopmentFallsBackToMemory(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
-	s, err := New(context.Background(), load(t, "postgresql"), config.Env{NodeEnv: "development"})
-	if err != nil || s.Store == nil {
-		t.Fatalf("%v", err)
+	for name := range drivers {
+		s, err := New(context.Background(), load(t, name), config.Env{NodeEnv: "development"})
+		if err != nil || s.Store == nil {
+			t.Fatalf("%s: %v", name, err)
+		}
 	}
 }

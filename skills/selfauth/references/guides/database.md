@@ -13,17 +13,27 @@ migration in every PostgreSQL template:
 
 ## Go (Gin)
 
-A Gin project keeps the same PostgreSQL migration SQL in `db/migrations/<name>/migration.sql`
-(byte-identical to the TypeScript apps, so a database can move between them) and has no ORM: the
-store talks to the tables with pgx. A small runner applies the files: `go run ./cmd/migrate status`
-lists applied and pending migrations and `go run ./cmd/migrate up` applies the pending ones, each
-in its own transaction. It records a checksum, refuses a migration that was edited after it was
-applied, and takes an advisory lock so two deploys cannot race. It never runs at application
-start-up. `selfauth db status|plan|migrate` call it for you. It does not analyze migrations for
-destructive statements the way `selfauth db plan` does for Prisma projects: read each new
-`migration.sql` before applying it, and take a backup in production. `go run ./cmd/seed`
-synchronizes roles and permissions; `go run ./cmd/create-admin you@example.com` grants the first
-administrator.
+A Gin project has no ORM, and every database works: PostgreSQL through pgx, MySQL and SQLite through
+`database/sql`, MongoDB through the official driver. Only the store of the database you chose is in
+your project (`internal/store/postgres/`, `sqlstore/` or `mongostore/`, plus its `register_<database>.go`).
+
+The SQL databases keep their schema in `db/migrations/<name>/migration.sql`. It is the same SQL as the
+TypeScript apps use for that database (byte-identical for PostgreSQL), so a database can move between
+the two. A small runner applies the files: `go run ./cmd/migrate status` lists applied and pending
+migrations and `go run ./cmd/migrate up` applies the pending ones. It records a checksum, refuses a
+migration that was edited after it was applied, and serializes concurrent runs (a PostgreSQL advisory
+lock, a MySQL named lock, one SQLite write transaction). On PostgreSQL and SQLite each file runs in a
+transaction; MySQL commits DDL as it goes, so a file that fails halfway leaves its earlier statements in
+place. It never runs at application start-up. `selfauth db status|plan|migrate` call it for you. It
+does not analyze migrations for destructive statements the way `selfauth db plan` does for Prisma
+projects: read each new `migration.sql` before applying it, and take a backup in production.
+
+MongoDB has no migrations. `go run ./cmd/migrate up` creates the missing indexes and never drops one;
+the server refuses to start without them, because the unique email index is what keeps accounts unique.
+The collections and documents are the same as the TypeScript store's.
+
+`go run ./cmd/seed` synchronizes roles and permissions, and `go run ./cmd/create-admin you@example.com`
+grants the first administrator, on every database.
 
 ## Other databases
 

@@ -2,7 +2,7 @@
 // into the database (AUTHZ-RBAC-005). Run it after migrating and whenever the
 // configured roles change:
 //
-//	DATABASE_URL=postgres://... go run ./cmd/seed
+//	DATABASE_URL=... go run ./cmd/seed
 package main
 
 import (
@@ -13,7 +13,7 @@ import (
 
 	"example.com/app/internal/auth"
 	"example.com/app/internal/config"
-	"example.com/app/internal/store/postgres"
+	"example.com/app/internal/store"
 )
 
 func main() {
@@ -37,13 +37,13 @@ func run() error {
 		return err
 	}
 	ctx := context.Background()
-	db, err := postgres.Open(ctx, postgres.Options{URL: url})
+	conn, err := store.Connect(ctx, cfg.Adapter.Database, url)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer conn.Close()
 	roles := auth.RoleDefinitions(cfg)
-	if err := postgres.New(db).SyncRoles(ctx, roles); err != nil {
+	if err := conn.Store.SyncRoles(ctx, roles); err != nil {
 		return err
 	}
 	names := make([]string, 0, len(roles))

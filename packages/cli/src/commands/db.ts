@@ -42,7 +42,7 @@ function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): nu
  * `plan` shows what it would apply. It is plain SQL files, so `validate`/`generate`/`rollback`
  * have nothing to orchestrate and say so.
  */
-async function goDb(dir: string, command: string): Promise<number> {
+async function goDb(dir: string, command: string, database: Database): Promise<number> {
   if (!["status", "plan", "migrate"].includes(command)) {
     info(
       command === "validate"
@@ -62,7 +62,7 @@ async function goDb(dir: string, command: string): Promise<number> {
     );
     return 1;
   }
-  const problems = databaseUrlProblems(found.url, "postgresql");
+  const problems = databaseUrlProblems(found.url, database);
   if (problems.length) {
     fail(`DATABASE_URL (from ${found.source}) cannot be used: ${problems.join("; ")}.`);
     return 1;
@@ -80,7 +80,11 @@ async function goDb(dir: string, command: string): Promise<number> {
     return 1;
   }
   if (command === "plan")
-    info("Read each pending migration.sql in db/migrations/ before running `selfauth db migrate`.");
+    info(
+      database === "mongodb"
+        ? "MongoDB has no migrations: `selfauth db migrate` creates the indexes listed above and never drops one."
+        : "Read each pending migration.sql in db/migrations/ before running `selfauth db migrate`.",
+    );
   return result.status ?? 1;
 }
 
@@ -96,7 +100,7 @@ export async function db(
     return 1;
   }
   if (manifest.options?.backend === "gin" && manifest.database.type !== "memory") {
-    return goDb(dir, command);
+    return goDb(dir, command, manifest.database.type as Database);
   }
   if (manifest.database.orm === "none") {
     fail(`database commands need a database: this project uses '${manifest.database.type}'.`);

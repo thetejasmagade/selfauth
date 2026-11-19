@@ -1,7 +1,7 @@
 // Command migrate applies the SQL migrations in db/migrations.
 //
-//	DATABASE_URL=postgres://... go run ./cmd/migrate status
-//	DATABASE_URL=postgres://... go run ./cmd/migrate up
+//	DATABASE_URL=... go run ./cmd/migrate status
+//	DATABASE_URL=... go run ./cmd/migrate up
 //
 // It never runs at application startup (DATA-MODEL-003). Read a new migration
 // before you apply it; there is no automatic rollback, so take a backup first.
@@ -13,7 +13,8 @@ import (
 	"fmt"
 	"os"
 
-	"selfauth-app/internal/store/postgres"
+	"selfauth-app/internal/config"
+	"selfauth-app/internal/store"
 )
 
 func main() {
@@ -34,19 +35,19 @@ func run() error {
 	if url == "" {
 		return fmt.Errorf("DATABASE_URL is required")
 	}
+	path := os.Getenv("SELFAUTH_CONFIG")
+	if path == "" {
+		path = "selfauth.config.json"
+	}
+	cfg, err := config.Load(path)
+	if err != nil {
+		return err
+	}
+	database := cfg.Adapter.Database
 	ctx := context.Background()
-	migrations, err := postgres.LoadMigrations(*dir)
-	if err != nil {
-		return err
-	}
-	db, err := postgres.Open(ctx, postgres.Options{URL: url})
-	if err != nil {
-		return err
-	}
-	defer db.Close()
 
 	if command == "status" {
-		st, err := postgres.Status(ctx, db, migrations)
+		st, err := store.MigrationStatus(ctx, database, url, *dir)
 		if err != nil {
 			return err
 		}
@@ -56,7 +57,7 @@ func run() error {
 	if os.Getenv("APP_ENV") == "production" {
 		fmt.Println("Production database: make sure a recent backup exists.")
 	}
-	ran, err := postgres.Migrate(ctx, db, migrations)
+	ran, err := store.Migrate(ctx, database, url, *dir)
 	if err != nil {
 		return err
 	}

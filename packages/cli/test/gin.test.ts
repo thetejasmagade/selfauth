@@ -21,7 +21,7 @@ import { GO_REFERENCE_MODULE } from "../src/templates.js";
 /**
  * `selfauth init --backend gin`: the Go reference application (apps/playground-gin, held to the
  * conformance suite on memory and PostgreSQL), copied into a new project with its module path
- * replaced. PostgreSQL or in-memory; with a frontend it becomes server/ + client/.
+ * replaced. Any database; with a frontend it becomes server/ + client/.
  */
 const REPO = fileURLToPath(new URL("../../../", import.meta.url));
 const REFERENCE = "apps/playground-gin";
@@ -128,8 +128,50 @@ describe("planInit --backend gin", () => {
     expect(manifest.files.length).toBe(files.length - 1);
   });
 
-  it("only supports PostgreSQL or in-memory (for now)", async () => {
-    await expect(planInit(answers("mysql"))).rejects.toThrow(/postgresql and memory/);
+  it("is composed per database: only that database's store, runner and schema are generated", async () => {
+    const stores = {
+      postgresql: ["internal/store/postgres/postgres.go", "internal/store/register_postgres.go"],
+      mysql: ["internal/store/sqlstore/sqlstore.go", "internal/store/register_mysql.go"],
+      sqlite: ["internal/store/sqlstore/sqlstore.go", "internal/store/register_sqlite.go"],
+      mongodb: ["internal/store/mongostore/mongostore.go", "internal/store/register_mongodb.go"],
+    } as const;
+    const all = new Set(Object.values(stores).flat());
+    for (const database of ["postgresql", "mysql", "sqlite", "mongodb", "memory"] as const) {
+      const paths = (await planInit(answers(database))).map((f) => f.path);
+      const mine: readonly string[] = database === "memory" ? [] : stores[database];
+      for (const path of all)
+        expect(paths.includes(path), `${database}: ${path}`).toBe(mine.includes(path));
+      // The shared parts are always there.
+      expect(paths).toContain("internal/store/store.go");
+      expect(paths).toContain("internal/store/driver.go");
+      expect(paths).toContain("internal/store/memory/memory.go");
+      expect(paths.includes("cmd/migrate/main.go")).toBe(database !== "memory");
+    }
+  });
+
+  it("writes the schema derived for MySQL and SQLite as db/migrations", async () => {
+    const mysql = await planInit(answers("mysql"));
+    const sqlite = await planInit(answers("sqlite"));
+    const sql = (files: { path: string; content: string }[]) =>
+      files.find((f) => /^db\/migrations\/[^/]+\/migration\.sql$/.test(f.path))!.content;
+    expect(sql(mysql)).toContain("CHAR(36)");
+    expect(sql(sqlite)).toContain('"auth_users"');
+    expect(sql(sqlite)).not.toContain("CHAR(36)");
+    // Prisma's lock file means nothing to the Go runner.
+    expect([...mysql, ...sqlite].some((f) => f.path.endsWith("migration_lock.toml"))).toBe(false);
+    // MongoDB has no schema folder.
+    expect((await planInit(answers("mongodb"))).some((f) => f.path.startsWith("db/"))).toBe(false);
+  });
+
+  it("points DATABASE_URL at the chosen database", async () => {
+    for (const [database, prefix] of [
+      ["mysql", "mysql://"],
+      ["sqlite", "file:"],
+      ["mongodb", "mongodb://"],
+    ] as const) {
+      const env = text(await planInit(answers(database)), ".env.example");
+      expect(env).toContain(`DATABASE_URL=${prefix}`);
+    }
   });
 
   it("describes the Go project in its README, .env.example and .gitignore", async () => {
