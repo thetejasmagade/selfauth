@@ -12,8 +12,11 @@ import (
 	"selfauth-app/internal/app"
 	"selfauth-app/internal/auth"
 	"selfauth-app/internal/config"
+	"selfauth-app/internal/ginauth"
 	"selfauth-app/internal/routes"
+	"selfauth-app/internal/store"
 	"selfauth-app/internal/store/memory"
+	"github.com/gin-gonic/gin"
 )
 
 // The example route is guarded by authentication: anonymous requests are refused.
@@ -30,17 +33,19 @@ func TestHelloRequiresAuthentication(t *testing.T) {
 	cfg.Authentication.EmailVerification.Mode = "off"
 	cfg.Authentication.Registration.SignInAfterRegistration = true
 	base, _ := url.Parse("https://app.example.test")
-	store := memory.New()
-	if err := store.SyncRoles(context.Background(), auth.RoleDefinitions(cfg)); err != nil {
+	mem := memory.New()
+	if err := mem.SyncRoles(context.Background(), auth.RoleDefinitions(cfg)); err != nil {
 		t.Fatal(err)
 	}
 	a, err := app.NewAuth(app.AuthOptions{
-		Config: cfg, Env: config.Env{NodeEnv: "test", AppBaseURL: base}, Store: store, Mailer: &auth.MemoryMailer{},
+		Config: cfg, Env: config.Env{NodeEnv: "test", AppBaseURL: base}, Store: mem, Mailer: &auth.MemoryMailer{},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Mount: routes.Register})
+	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Mount: func(r *gin.Engine, a *ginauth.Auth) {
+		routes.Register(r, a, store.DB{})
+	}})
 	if err != nil {
 		t.Fatal(err)
 	}

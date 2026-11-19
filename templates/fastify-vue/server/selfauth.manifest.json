@@ -154,22 +154,22 @@
     {
       "path": "src/server.ts",
       "template": "fastify:apps/playground-fastify/src/server.ts",
-      "sha256": "65a129db4d034921cfef4c62a761d58eb2c2c0611342046f8caf222e364e9477"
+      "sha256": "b6393220d02074e9703d2df9826d78824c5b6c765b2622c59132ba93ce9fc4ae"
     },
     {
       "path": "test/auth.smoke.test.ts",
       "template": "fastify:packages/cli/template-variants/smoke.fastify.test.ts",
-      "sha256": "df532bde772f5b4f368ea3a1b17df3d3e571137f120069e6ebb5441b0bf72933"
+      "sha256": "9fe104ed5bcf70ef89e2fc70dc5c2e7a1c020b7bdfcd54c70470d167614e7526"
     },
     {
       "path": "src/routes/index.ts",
       "template": "fastify:packages/cli/template-variants/routes.fastify.ts",
-      "sha256": "d6f14740dc9c5dee57748bc496f3b64fb8db2129da8176f7c1822a6883d6609a"
+      "sha256": "fc43bb5a84666049de4c76e79776e14412138b1837c1acd9e7e8973ad33e415f"
     },
     {
       "path": "src/db/store.ts",
       "template": "fastify:apps/playground-fastify/src/db/store.ts",
-      "sha256": "760ed52b193d5cbbe3b33409c23cde60880c0e8e9989016d3a217df5183052d0"
+      "sha256": "4c5547d4493d2debd0d10ad937c3dfad1a54e46e42aa83f436a45608cfe9c52c"
     },
     {
       "path": "src/auth/stores/prisma.ts",

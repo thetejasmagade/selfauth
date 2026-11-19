@@ -60,7 +60,7 @@
     {
       "path": "cmd/server/main.go",
       "template": "gin:apps/playground-gin/cmd/server/main.go",
-      "sha256": "c410783be42c9f067f35cdea798097967de46f781e04a08aa14be2c2c9efaeb5"
+      "sha256": "1e98301a5f1eaef3dd25c495d87000950b9e8617c4fba70beba6c7624579b3e9"
     },
     {
       "path": "db/migrations/20261116085533_selfauth_init/migration.sql",
@@ -215,17 +215,17 @@
     {
       "path": "internal/routes/routes.go",
       "template": "gin:apps/playground-gin/internal/routes/routes.go",
-      "sha256": "0cd90108026670df8ad656c07480d3f4cbe8acdeddfbeec79109cbe3a72143cb"
+      "sha256": "a89d6717f7020562d93243d3dd73d81c2f08e45edf3c628bb65fdc62b13bc767"
     },
     {
       "path": "internal/routes/routes_test.go",
       "template": "gin:apps/playground-gin/internal/routes/routes_test.go",
-      "sha256": "305c1ab9dd28e1334bac68106942e969218d13bbc0b7b7ee9e7f433aac6c8cb3"
+      "sha256": "563f2e8642ca23396c8aeea33808b21199aefb9efa966f8915337c38ee0d082a"
     },
     {
       "path": "internal/store/driver.go",
       "template": "gin:apps/playground-gin/internal/store/driver.go",
-      "sha256": "cd9fbaebb67eb8320177373bbeb658bec2ffd5a5ad8bd062ffb2df7381aced28"
+      "sha256": "b7f7590c28ea9367c81caa36ac53e85df7970eaaa4bbdadb73ae9e5e505e3a63"
     },
     {
       "path": "internal/store/memory/memory.go",
@@ -265,12 +265,12 @@
     {
       "path": "internal/store/register_postgres.go",
       "template": "gin:apps/playground-gin/internal/store/register_postgres.go",
-      "sha256": "9da7c6f3203d4cbbb7b229ed48a75b13a439748b78662e4916a44eaa8f124bb4"
+      "sha256": "e14fd4d998a5688b4e89c3a8d298c247d4c3028aae4471f8d2b40451f153a64e"
     },
     {
       "path": "internal/store/store.go",
       "template": "gin:apps/playground-gin/internal/store/store.go",
-      "sha256": "593798617fb36ea0ee8f6036bfa6ea766657d4faf6f7c8d7154ed7aaeecf69a3"
+      "sha256": "d31bfa2142ddeca370fb0081cc6f2e3345bd7e5d374b1e36e9938c932cdb6088"
     },
     {
       "path": "internal/store/store_test.go",

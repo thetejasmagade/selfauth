@@ -37,7 +37,12 @@ before(async () => {
     nodeEnv: "test",
     requestId: getRequestId,
   });
-  const server = createApp({ env, config, auth, mount: mountRoutes }).listen(0, "127.0.0.1");
+  const server = createApp({
+    env,
+    config,
+    auth,
+    mount: (app, a) => mountRoutes(app, a, undefined),
+  }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   close = () => new Promise((resolve) => server.close(() => resolve()));

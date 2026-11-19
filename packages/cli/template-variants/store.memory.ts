@@ -4,9 +4,14 @@ import type { RateLimitStore } from "../auth/core/rate-limit.ts";
 import type { AuthStore } from "../auth/core/store.ts";
 import type { SelfAuthConfig } from "../auth/types.ts";
 
+/** The in-memory store has no database of its own, so routes get `undefined`. */
+export type Database = never;
+
 export interface Stores {
   store: AuthStore;
   rateLimitStore?: RateLimitStore;
+  /** Your routes' database client; undefined while running on the in-memory store. */
+  db?: Database;
   close(): Promise<void>;
 }
 

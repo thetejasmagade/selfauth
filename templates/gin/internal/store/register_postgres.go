@@ -5,6 +5,7 @@ import (
 
 	"selfauth-app/internal/store/migrations"
 	"selfauth-app/internal/store/postgres"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 func init() {
@@ -14,7 +15,14 @@ func init() {
 			if err != nil {
 				return Connection{}, err
 			}
-			return Connection{Store: postgres.New(db), RateLimitStore: postgres.NewRateLimitStore(db), Close: db.Close}, nil
+			// Your routes get database/sql on the same pool, like the other SQL databases.
+			sqlDB := stdlib.OpenDBFromPool(db)
+			return Connection{
+				Store:          postgres.New(db),
+				RateLimitStore: postgres.NewRateLimitStore(db),
+				DB:             DB{SQL: sqlDB},
+				Close:          func() { _ = sqlDB.Close(); db.Close() },
+			}, nil
 		},
 		Status: func(ctx context.Context, url, dir string) (migrations.Status, error) {
 			all, err := migrations.Load(dir)

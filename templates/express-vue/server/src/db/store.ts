@@ -8,10 +8,19 @@ import {
   PrismaAuthStore,
   PrismaRateLimitStore,
 } from "../auth/stores/prisma.ts";
+import type { PrismaClient } from "../generated/prisma/client.ts";
+
+/**
+ * Your application's own access to the database, for your own tables: the same Prisma client
+ * SelfAuth uses. Add models to prisma/schema.prisma, migrate, and use them as `db.<model>`.
+ */
+export type Database = PrismaClient;
 
 export interface Stores {
   store: AuthStore;
   rateLimitStore?: RateLimitStore;
+  /** Your routes' database client; undefined while running on the in-memory store. */
+  db?: Database;
   close(): Promise<void>;
 }
 
@@ -43,5 +52,10 @@ export async function createStores(config: SelfAuthConfig): Promise<Stores> {
     }
   }
   console.log("Using PostgreSQL (Prisma) store.");
-  return { store, rateLimitStore: new PrismaRateLimitStore(db), close: () => db.$disconnect() };
+  return {
+    store,
+    rateLimitStore: new PrismaRateLimitStore(db),
+    db,
+    close: () => db.$disconnect(),
+  };
 }

@@ -15,7 +15,7 @@ try {
   // Plain-http local development cannot use Secure / __Host- cookies.
   const config = env.nodeEnv === "production" ? baseConfig : localDevelopmentConfig(baseConfig);
   const mailer = createMailer(env);
-  const { store, rateLimitStore } = await createStores(config);
+  const { store, rateLimitStore, db } = await createStores(config);
 
   const auth = createAuth({
     config,
@@ -28,7 +28,13 @@ try {
     ...(env.csrfSecret ? { csrfSecret: env.csrfSecret } : {}),
     ...(env.csrfSecretPrevious ? { csrfSecretPrevious: env.csrfSecretPrevious } : {}),
   });
-  const app = createApp({ env, config, auth, logger: createLogger(), mount: mountRoutes });
+  const app = createApp({
+    env,
+    config,
+    auth,
+    logger: createLogger(),
+    mount: (app, auth) => mountRoutes(app, auth, db),
+  });
   app.listen(env.port, () => {
     console.log(`Listening on http://localhost:${env.port}`);
   });

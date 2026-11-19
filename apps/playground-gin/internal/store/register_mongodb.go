@@ -28,7 +28,7 @@ func init() {
 				closeClient()
 				return Connection{}, fmt.Errorf("the database is missing indexes (%s): run `go run ./cmd/migrate up` first", strings.Join(missing, ", "))
 			}
-			return Connection{Store: mongostore.New(db), RateLimitStore: mongostore.NewRateLimitStore(db), Close: closeClient}, nil
+			return Connection{Store: mongostore.New(db), RateLimitStore: mongostore.NewRateLimitStore(db), DB: DB{Mongo: db}, Close: closeClient}, nil
 		},
 		Status: func(ctx context.Context, url, _ string) (migrations.Status, error) {
 			client, db, err := mongostore.Open(ctx, url)

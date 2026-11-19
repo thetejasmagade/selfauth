@@ -14,8 +14,10 @@ import (
 	"example.com/app/internal/auth"
 	"example.com/app/internal/config"
 	"example.com/app/internal/email"
+	"example.com/app/internal/ginauth"
 	"example.com/app/internal/routes"
 	"example.com/app/internal/store"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -55,7 +57,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: routes.Register})
+	router, err := app.NewRouter(app.Options{Config: cfg, Auth: a, Logger: logger, Mount: func(r *gin.Engine, a *ginauth.Auth) {
+		routes.Register(r, a, stores.DB)
+	}})
 	if err != nil {
 		return err
 	}

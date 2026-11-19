@@ -36,7 +36,7 @@ before(async () => {
     nodeEnv: "test",
     requestId: getRequestId,
   });
-  const app = createApp({ env, config, auth, mount: mountRoutes });
+  const app = createApp({ env, config, auth, mount: (app, a) => mountRoutes(app, a, undefined) });
   baseUrl = await app.listen({ port: 0, host: "127.0.0.1" });
   close = () => app.close();
 });

@@ -17,7 +17,9 @@ import (
 type Stores struct {
 	Store          auth.Store
 	RateLimitStore auth.RateLimitStore
-	Close          func()
+	// DB is for your own routes' tables; empty on the in-memory store.
+	DB    DB
+	Close func()
 }
 
 // New creates the store for cfg. With a database configured it uses DATABASE_URL; without one it
@@ -63,5 +65,5 @@ func open(ctx context.Context, cfg *config.Config, database, url string) (Stores
 		}
 	}
 	log.Printf("Using %s store.", database)
-	return Stores{Store: conn.Store, RateLimitStore: conn.RateLimitStore, Close: conn.Close}, nil
+	return Stores{Store: conn.Store, RateLimitStore: conn.RateLimitStore, DB: conn.DB, Close: conn.Close}, nil
 }

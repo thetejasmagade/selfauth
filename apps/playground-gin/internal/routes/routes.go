@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"example.com/app/internal/ginauth"
+	"example.com/app/internal/store"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,9 +17,16 @@ import (
 //   - a.ProtectedRoutes(group): a group that denies every route lacking a guard.
 //
 // Route guards run on the server for every request (AUTHZ-CORE-002).
-func Register(r *gin.Engine, a *ginauth.Auth) {
+//
+// db is the database SelfAuth uses, for your own tables: db.SQL on PostgreSQL, MySQL and SQLite,
+// db.Mongo on MongoDB. Both are nil while the app runs on the in-memory store.
+func Register(r *gin.Engine, a *ginauth.Auth, db store.DB) {
 	api := r.Group("/api")
 	api.GET("/hello", a.RequireAuth(), func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"hello": a.Context(c).User.Email})
+		database := "in-memory"
+		if db.SQL != nil || db.Mongo != nil {
+			database = "connected"
+		}
+		c.JSON(http.StatusOK, gin.H{"hello": a.Context(c).User.Email, "database": database})
 	})
 }
