@@ -77,10 +77,10 @@ npx selfauth db plan
 ```text
 Pending migrations (1):
   • 20261116085533_selfauth_init  (prisma/migrations/20261116085533_selfauth_init/migration.sql)
-  ✓ No destructive or non-owned changes.
+  ✓ Nothing here loses data or touches SelfAuth's tables.
 ```
 
-A *migration* is a file of SQL that changes the database. This one creates SelfAuth's tables: users, sessions, roles and so on. `plan` reads it and tells you whether it would delete or change anything that already exists. Nothing does, so apply it:
+A *migration* is a file of SQL that changes the database. This one creates SelfAuth's tables: users, sessions, roles and so on. `plan` reads it and tells you whether it would lose any data. It wouldn't, so apply it:
 
 ```bash
 npx selfauth db migrate

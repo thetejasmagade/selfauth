@@ -19,7 +19,7 @@ function printPlan(plan: Awaited<ReturnType<typeof adapter.plan>>) {
   console.log(`Pending migrations (${plan.pending.length}):`);
   for (const m of plan.pending) console.log(`  • ${m.name}  (${m.path})`);
   if (plan.findings.length === 0)
-    return console.log("\nNo destructive or non-owned changes found.");
+    return console.log("\nNothing here loses data or touches SelfAuth's tables.");
   console.log("\nChanges that need explicit approval:");
   for (const f of plan.findings) {
     console.log(

@@ -76,7 +76,8 @@ for (const m of bin.matchAll(/\.command\("([a-z-]+)/g))
 for (const m of bin.matchAll(/\.option\(\s*"(?:-[a-z], )?(--[a-z-]+)/g))
   if (!cliText.includes(m[1])) problems.push(`CLI option not documented: ${m[1]}`);
 for (const m of bin.matchAll(/\["([a-z]+)", "/g))
-  if (!text("reference/cli/db.md").includes(m[1])) problems.push(`db subcommand not documented: ${m[1]}`);
+  if (!text("reference/cli/db.md").includes(m[1]))
+    problems.push(`db subcommand not documented: ${m[1]}`);
 
 // 4. Configuration keys
 const spec = read(join(repo, "packages/spec/specs/CONFIGURATION_SPEC.md"));

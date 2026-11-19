@@ -135,6 +135,12 @@ another shared store (Redis) instead.
 - **[DATA-MODEL-004]** (MUST NOT) Adapters MUST NOT modify or drop tables,
   collections, columns, or indexes they do not own (per the SelfAuth manifest)
   without explicit developer approval.
+
+  This binds what the adapter ships. It does not make the developer's own changes
+  to their own tables suspect: a migration the developer wrote may create and
+  extend their tables without approval. A migration the developer wrote that
+  modifies a table the manifest lists as SelfAuth's, and any migration that loses
+  data, still requires approval.
 - **[DATA-MODEL-005]** (SHOULD) Document databases MAY embed `UserRole` in the
   user document and `RolePermission` in the role document; they SHOULD keep
   credentials and sessions in separate collections.

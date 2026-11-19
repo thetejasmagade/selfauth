@@ -234,8 +234,10 @@ Use this shape. Be exact; never round "mostly works" up to "done".
 `selfauth db status|plan|migrate|validate|rollback|generate` wrap Prisma
 Migrate, with safety analysis on top:
 
-- `db plan` flags destructive SQL (drops, type changes) and changes to tables
-  SelfAuth doesn't own. Show the findings verbatim.
+- `db plan` flags SQL that loses data (drops, type changes, renames) and
+  developer migrations that change SelfAuth's own `auth_*` tables. The
+  developer's own tables can be created and extended without approval. Show
+  the findings verbatim.
 - `db migrate` refuses those plans unless `--approve-destructive` is passed
   (rule 5).
 - `db rollback` only explains the procedure. There are no automatic down

@@ -11,16 +11,38 @@ export function indentOutput(output: string, lines = 15): string {
   return kept.map((line) => `    ${line}`).join("\n");
 }
 
+/** What a finding means, in a sentence a person can act on. */
+const FINDING_TEXT: Record<string, string> = {
+  drop_table:
+    "deletes a table and its rows (SQLite does this to rebuild a table when a column is dropped: check the SQL copies the data first)",
+  drop_column: "deletes a column and the data in it",
+  drop_type: "deletes a database type",
+  drop_schema: "deletes a whole schema or database",
+  truncate: "empties a table",
+  delete: "deletes rows",
+  alter_column_type: "changes a column's type; existing values may not convert",
+  set_not_null: "makes a column required; it fails if any row is empty there",
+  rename: "renames something; code and data that use the old name break",
+  drop_constraint: "removes a rule the database was enforcing",
+  drop_index: "removes an index; queries may get slower",
+  selfauth_table: "changes a table SelfAuth owns (auth_…); that can break `selfauth upgrade`",
+  not_owned: "a SelfAuth migration changes a table SelfAuth does not own",
+  already_exists: "creates something that is already in the database",
+};
+
 function printPlan(plan: MigrationPlan) {
   if (plan.pending.length === 0) return ok("No pending migrations.");
   say(`Pending migrations (${plan.pending.length}):`);
   for (const m of plan.pending) say(`  • ${m.name}  (${m.path})`);
-  if (plan.findings.length === 0) return ok("No destructive or non-owned changes.");
+  if (plan.findings.length === 0)
+    return ok("Nothing here loses data or touches SelfAuth's tables.");
   say("\nChanges that need explicit approval:");
   for (const f of plan.findings) {
     warn(
       `[${f.severity}] ${f.kind} ${f.object ?? ""} — ${f.migration}${f.line ? `:${f.line}` : ""}`,
     );
+    const text = FINDING_TEXT[f.kind];
+    if (text) say(`      ${text}`);
   }
   if (plan.blocked)
     fail("Blocked: objects already exist in the database. Nothing will be applied.");

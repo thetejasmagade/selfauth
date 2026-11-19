@@ -15,7 +15,10 @@ export type FindingKind =
   | "rename"
   | "drop_constraint"
   | "drop_index"
+  /** A SelfAuth migration changes an object the project owns outside SelfAuth (DATA-MODEL-004). */
   | "not_owned"
+  /** The application's own migration changes a table SelfAuth owns (`auth_*`). */
+  | "selfauth_table"
   /** A pending migration creates an object that already exists in the database. */
   | "already_exists";
 
@@ -136,17 +139,38 @@ const TOUCHES = new RegExp(
 );
 
 /**
- * Flags destructive or risky statements. When `owned` is given, any statement
- * that alters an object outside it is reported as `not_owned` (DATA-MODEL-004).
+ * Who wrote the migration being reviewed. Ownership (DATA-MODEL-004) is about SelfAuth leaving the
+ * application's objects alone, so the two authors are held to opposite rules:
+ *
+ * - `selfauth`: a migration shipped by SelfAuth. Any change to an object outside `owned` is
+ *   reported as `not_owned`.
+ * - `app`: a migration the developer wrote. The developer may change their own tables freely, so
+ *   nothing is reported for those; a change to a table in `owned` (SelfAuth's) is reported as
+ *   `selfauth_table`, unless the migration creates that table itself.
+ *
+ * Statements that lose data (drops, type changes, renames, truncates, deletes) are reported for
+ * both authors, whoever owns the object.
+ */
+export type MigrationAuthor = "selfauth" | "app";
+
+/**
+ * Flags destructive or risky statements. `owned` is SelfAuth's tables and types (plus, for a
+ * SelfAuth migration, the ones it creates); see {@link MigrationAuthor} for how it is used.
  */
 export function analyzeSql(
   sql: string,
   owned?: { tables: string[]; types: string[] },
+  author: MigrationAuthor = "selfauth",
 ): SqlFinding[] {
   const findings: SqlFinding[] = [];
   const ownedNames = owned
     ? new Set([...owned.tables, ...owned.types].map((n) => n.toLowerCase()))
     : null;
+  const createdHere = new Set(
+    author === "app"
+      ? [...createdObjects(sql).tables, ...createdObjects(sql).types].map((n) => n.toLowerCase())
+      : [],
+  );
   const add = (
     kind: FindingKind,
     severity: SqlFinding["severity"],
@@ -155,8 +179,13 @@ export function analyzeSql(
     line: number,
   ) => findings.push({ kind, severity, object, statement, line });
   const checkOwned = (object: string, statement: string, line: number) => {
-    if (ownedNames && !ownedNames.has(object.toLowerCase()))
-      add("not_owned", "destructive", object, statement, line);
+    if (!ownedNames) return;
+    const name = object.toLowerCase();
+    if (author === "selfauth") {
+      if (!ownedNames.has(name)) add("not_owned", "destructive", object, statement, line);
+    } else if (ownedNames.has(name) && !createdHere.has(name)) {
+      add("selfauth_table", "destructive", object, statement, line);
+    }
   };
 
   for (const { statement, line } of splitStatements(sql)) {

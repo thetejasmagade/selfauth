@@ -9,8 +9,9 @@ analysis on top.
 - `PrismaMigrationAdapter`: an implementation over the project's own `prisma`
   binary.
 - `analyzeSql()`, `splitStatements()` and `createdObjects()` flag
-  destructive statements (drops, type changes) and statements that touch
-  tables SelfAuth doesn't own.
+  statements that lose data (drops, type changes, renames), developer
+  migrations that change SelfAuth's tables, and SelfAuth migrations that touch
+  tables it doesn't own. The developer's own tables can be extended freely.
 - `manifestSchema` describes the `selfauth.manifest.json` ownership manifest.
 
 This package is a development-time dependency of `@selfauth/cli`, and the

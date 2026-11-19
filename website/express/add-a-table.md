@@ -109,10 +109,10 @@ npx selfauth db plan
 ```text
 Pending migrations (1):
   • 20261119090410_add_notes  (prisma/migrations/20261119090410_add_notes/migration.sql)
-  ✓ No destructive or non-owned changes.
+  ✓ Nothing here loses data or touches SelfAuth's tables.
 ```
 
-`plan` reads every migration that hasn't run yet and looks for statements that could lose data: dropping a table, dropping a column, changing a type. A new table can't lose anything, so it's clear. Apply it:
+`plan` reads every migration that hasn't run yet and looks for statements that could lose data (dropping a table or a column, changing a type) and for changes to SelfAuth's own tables. A new table of yours does neither, so it's clear. Apply it:
 
 ```bash
 npx selfauth db migrate

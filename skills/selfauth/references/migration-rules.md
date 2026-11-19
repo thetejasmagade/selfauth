@@ -7,8 +7,8 @@ reviews them. `selfauth db …` adds safety analysis on top.
 | Command | What it does | Agent rule |
 | --- | --- | --- |
 | `selfauth db status` | Applied, pending and failed migrations | Safe to run |
-| `selfauth db plan` | Pending SQL with findings: **destructive** (drops, type changes, data loss), **not owned** (touches tables SelfAuth doesn't own), **already exists** (conflicts with objects in the database) | Safe. Show the findings verbatim |
-| `selfauth db migrate` | Applies pending migrations. Refuses destructive or not-owned plans, and blocks on already-exists | Run only after showing `db plan` |
+| `selfauth db plan` | Pending SQL with findings: **destructive** (drops, type changes, renames, data loss), **selfauth_table** (a developer migration changes an `auth_*` table), **not_owned** (a SelfAuth migration changes a table SelfAuth doesn't own), **already exists** (conflicts with objects in the database) | Safe. Show the findings verbatim |
+| `selfauth db migrate` | Applies pending migrations. Refuses plans with findings, and blocks on already-exists | Run only after showing `db plan` |
 | `selfauth db migrate --approve-destructive` | Applies despite findings | **Only** with explicit approval of those findings in this conversation |
 | `selfauth db generate <name>` | Creates a migration from schema changes, without applying it | Show the SQL afterwards |
 | `selfauth db validate` | Schema against the ownership manifest | Safe |
@@ -20,9 +20,12 @@ reviews them. `selfauth db …` adds safety analysis on top.
   `prisma migrate dev` against a database you did not create. They can drop
   data.
 - Editing a migration that has already been applied. Generate a new one.
-- Changing or dropping tables that SelfAuth doesn't own. The
-  `ownedResources` list in `selfauth.manifest.json` names the tables and
-  types SelfAuth owns.
+- Changing SelfAuth's own tables (`auth_*`) with a migration of your own: it can
+  break `selfauth upgrade`. Put extra data in a table of the developer's own
+  that refers to the user. The `ownedResources` list in `selfauth.manifest.json`
+  names the tables and types SelfAuth owns. The developer's own tables can be
+  created and extended freely when they ask for it; dropping or rewriting data
+  needs their approval of the plan.
 - Putting `DATABASE_URL` in committed files or printing it.
 
 ## Existing databases
