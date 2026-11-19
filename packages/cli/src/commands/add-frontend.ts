@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { runCommand } from "../run.js";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { detectProject } from "../detect.js";
@@ -81,8 +81,9 @@ export async function addFrontend(
       : null;
   if (install && options.install) {
     say(`\n$ ${install.join(" ")}`);
-    if (spawnSync(install[0]!, install.slice(1), { cwd: dir, stdio: "inherit" }).status !== 0) {
-      fail("Installing dependencies failed; run the command yourself.");
+    const result = runCommand(install, dir);
+    if (!result.ok) {
+      fail(`Installing dependencies failed (${result.reason}); run the command yourself.`);
       return 1;
     }
   }
