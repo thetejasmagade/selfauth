@@ -1,5 +1,11 @@
 # @selfauth/conformance
 
+## 0.17.0
+
+### Patch Changes
+
+- @selfauth/spec@0.17.0
+
 ## 0.16.0
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # @selfauth/cli
 
+## 0.17.0
+
+### Minor Changes
+
+- b0cc30b: `selfauth db plan` no longer asks for approval when you create a table or add a column or index to your own tables. It used to report every change to a table outside SelfAuth's list as `not_owned` and refuse to migrate without `--approve-destructive`, which taught people to approve without reading. The ownership rule now works the way it was meant to: a migration SelfAuth ships may only change SelfAuth's tables (`not_owned` otherwise), a migration you write may change your own tables freely, and changing a SelfAuth table (`auth_…`) from your own migration is reported as the new `selfauth_table` finding. Statements that lose data (drops, type changes, renames, deletes) still need approval for every table. Every finding now prints a sentence saying what it means, and a locked or failed migration prints the tool's own output.
+- 368fd3d: Gin projects get the same migration safety review as Prisma ones: `selfauth db plan` and `selfauth db migrate` now read the SQL in `db/migrations/`, flag changes that lose data or touch SelfAuth's tables, and `migrate` refuses them without `--approve-destructive`. Also for Gin: a handler that calls `c.Error(err)` now answers a 500 in the standard error format (with the error in the server log) instead of an empty 200; the server binds its port before printing "Listening", and a busy port is one clear error; generated Go files are gofmt-clean whatever the module name sorts like; and in a project with a frontend, `npm run db:seed`, `db:create-admin`, `db:migrate` and `db:status` load `server/.env` like `npm run dev` does. Fastify reports a failed start in one line (for example a busy port) instead of a stack trace.
+- 0eb5b0b: Your routes now get the database. `mountRoutes(app, auth, db)` (Express and Fastify) receives the Prisma client, or the Mongoose connection on MongoDB, that SelfAuth already uses, so your own tables need no second client. Gin's `routes.Register(r, a, db)` receives a `store.DB` with `SQL` (`*sql.DB` on PostgreSQL, MySQL and SQLite) or `Mongo` (`*mongo.Database`). `db` is undefined (Gin: empty) on the in-memory store. The example `/api/hello` route also says whether a database is connected.
+  
+  Upgrading: if you edited `src/routes/index.ts` (Gin: `internal/routes/routes.go`), `selfauth upgrade` keeps your file and writes a `.selfauth-new` proposal; add the `db` parameter to your `mountRoutes` / `Register` signature so it matches the updated `server.ts` / `cmd/server/main.go`.
+
+### Patch Changes
+
+- 84f63fe: Generated projects now ignore SQLite database files (`*.db`, `*-journal`, `*-shm`, `*-wal`) in `.gitignore`, so a development database is never committed. The Express server now reports a failed start (for example "Could not start on port 3000: … address already in use") and exits with code 1, instead of printing "Listening" and quitting. `selfauth db migrate` now prints the migration tool's own output when a migration fails, and explains a locked SQLite database (stop the running server, then migrate).
+- a9a6c6b: Fix `npm install` failing at once on Windows during `selfauth init`, `add` and `add-frontend`. Windows runs `npm`, `pnpm` and `yarn` as `.cmd` scripts, which Node cannot start without a shell, so the install never ran and no reason was shown. The commands now go through the shell with quoted arguments, and a failure says why.
+- Updated dependencies [b0cc30b]
+  - @selfauth/migration@0.17.0
+  - @selfauth/spec@0.17.0
+
 ## 0.16.0
 
 ### Minor Changes
