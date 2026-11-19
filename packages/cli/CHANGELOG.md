@@ -1,5 +1,18 @@
 # @selfauth/cli
 
+## 0.16.0
+
+### Minor Changes
+
+- 8afd018: `selfauth init --backend gin` now works with every database: PostgreSQL, MySQL, SQLite and MongoDB as well as the in-memory store. MySQL and SQLite share a `database/sql` store (the schema is the one derived from the PostgreSQL reference, written to `db/migrations`); MongoDB has its own store with the same collections and documents as the TypeScript one and creates indexes instead of migrations. Only the code of the database you choose is generated. All 90 conformance cases pass on each (MySQL and SQLite verified locally, MongoDB in CI), and `selfauth db`, `doctor`, `validate`, `diff` and `upgrade` work with them.
+- f690bcc: `selfauth init --backend gin --frontend vue|react` now works. The Go module goes in `server/` next to the frontend in `client/`, with a thin npm root (`npm run dev` starts both, `db:*`, `build`, `typecheck` and `test` wrap the Go commands) and a `scripts/dev-server.mjs` that loads `server/.env` for the Go server. `doctor`, `validate`, `diff`, `upgrade` and `db` work on it. The browser end-to-end suite now also runs against the Go server for both frontends.
+- 2f5390f: `selfauth skill install --global` (or `-g`) installs the agent skill into your home folder (`~/.claude/skills/selfauth/`, `~/.agents/skills/selfauth/`, `~/.cursor/skills/selfauth/`), so every project has it. It can't be combined with a project folder; `--agent`, `--update` and `--dry-run` work as before.
+
+### Patch Changes
+
+- @selfauth/migration@0.16.0
+  - @selfauth/spec@0.16.0
+
 ## 0.15.1
 
 ### Patch Changes
