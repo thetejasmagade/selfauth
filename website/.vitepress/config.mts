@@ -146,7 +146,12 @@ export default withMermaid(
     },
     // The mermaid library is large by design; it loads only on pages with diagrams.
     vite: { build: { chunkSizeWarningLimit: 3000 } },
-    mermaid: { theme: "neutral" },
+    // SVG text labels, so the page's paragraph spacing cannot clip text inside the boxes.
+    mermaid: {
+      theme: "neutral",
+      flowchart: { htmlLabels: false },
+      sequence: { useMaxWidth: true },
+    },
     themeConfig: {
       logo: "/logo.svg",
       siteTitle: "SelfAuth",

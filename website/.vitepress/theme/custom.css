@@ -57,3 +57,9 @@
   overflow-wrap: anywhere;
   padding-right: 64px; /* room for the copy button */
 }
+
+/* Diagram text must not inherit the article's paragraph spacing. */
+.vp-doc .mermaid p {
+  margin: 0;
+  line-height: 1.3;
+}
