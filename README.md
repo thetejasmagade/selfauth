@@ -49,6 +49,7 @@ selfauth/
 ├── apps/playground-vue/   Vue 3 reference frontend
 ├── apps/playground-react/ React reference frontend
 ├── apps/e2e/            One Playwright spec run against both frontends and both backends
+├── website/            The documentation website (VitePress): `pnpm docs:dev`
 ├── docs/adr/           Architecture decision records
 ├── templates/          Copyable standalone projects (manual install, no CLI)
 ├── skills/selfauth/    The `selfauth` agent skill (Claude Code, Codex, Cursor)
@@ -58,6 +59,8 @@ selfauth/
 
 Start with:
 
+- The documentation website, `pnpm docs:dev` (source in [`website/`](website/)): a step-by-step guide from
+  installation to production
 - [`docs/`](docs/README.md): install with the CLI, by hand, or with an agent;
   API reference; upgrading
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — components and boundaries

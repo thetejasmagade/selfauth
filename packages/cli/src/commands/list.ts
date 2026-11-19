@@ -78,7 +78,7 @@ export const INTEGRATIONS: Integration[] = [
     kind: "frontend",
     id: "vue",
     label:
-      "Vue 3 + Vite in web/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
+      "Vue 3 + Vite in client/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
     production: true,
     add: true,
   },
@@ -86,13 +86,13 @@ export const INTEGRATIONS: Integration[] = [
     kind: "frontend",
     id: "react",
     label:
-      "React + Vite in web/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
+      "React + Vite in client/ (reference frontend, browser-tested); `selfauth add-frontend` adds the auth module to an existing app",
     production: true,
     add: true,
   },
 ];
 
-export const PLANNED = ["MongoDB + Mongoose", "Prisma schema merging for `selfauth add`"];
+export const PLANNED = ["Prisma schema merging for `selfauth add`"];
 
 export function list(options: { json?: boolean } = {}): number {
   if (options.json) {

@@ -1,8 +1,9 @@
-# Secret scanning uses gitleaks' default rules, plus one exception.
+# Secret scanning uses gitleaks' default rules, plus two exceptions.
 # (`[allowlist]`, not `[[allowlists]]`: the pinned gitleaks 8.24 predates the newer syntax.)
 [extend]
 useDefault = true
 
 [allowlist]
-description = "The list of common passwords SelfAuth rejects (auth/core/common-passwords.ts, copied into the reference apps and templates). It is a public wordlist, not a secret."
+description = "(1) The list of common passwords SelfAuth rejects (auth/core/common-passwords.ts, copied into the reference apps and templates): a public wordlist. (2) One sample verification token printed by a throwaway local dev server and quoted in website/getting-started/first-flow.md as example output. It was never valid outside that run."
 paths = ['''(^|/)common-passwords\.ts$''']
+regexes = ['''I_zqMio5ZQj_3fWbS_2T4srUQmE_H6pQhBlrSj3FyoQ''']

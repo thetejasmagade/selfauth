@@ -21,7 +21,11 @@
     "version-packages": "changeset version && pnpm install --lockfile-only && pnpm build && node scripts/sync-versions.mjs",
     "release": "pnpm build && scripts/pack-check.sh && changeset publish",
     "templates:sync": "node scripts/sync-templates.mjs && node scripts/sync-dialects.mjs",
-    "templates:check": "node scripts/sync-templates.mjs --check && node scripts/sync-dialects.mjs --check"
+    "templates:check": "node scripts/sync-templates.mjs --check && node scripts/sync-dialects.mjs --check",
+    "docs:dev": "pnpm --filter @selfauth/website docs:dev",
+    "docs:build": "pnpm --filter @selfauth/website docs:build",
+    "docs:preview": "pnpm --filter @selfauth/website docs:preview",
+    "docs:check": "pnpm --filter @selfauth/website docs:check"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
