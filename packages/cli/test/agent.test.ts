@@ -215,6 +215,33 @@ describe("selfauth skill install", () => {
     expect(existsSync(join(dir, ".agents"))).toBe(false);
   });
 
+  it("installs into the home folder with --global", async () => {
+    const home = await temp();
+    const env = { ...process.env, HOME: home, USERPROFILE: home };
+    const run = (args: string[]) =>
+      spawnSync(process.execPath, [BIN, ...args], { encoding: "utf8", env });
+    const r = run(["skill", "install", "--global", "--agent", "all"]);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("global");
+    for (const target of Object.values(AGENT_SKILL_DIRS))
+      expect(existsSync(join(home, target, "SKILL.md"))).toBe(true);
+    // A second run changes nothing, and --dry-run writes nothing.
+    expect(run(["skill", "install", "--global", "--agent", "all"]).status).toBe(0);
+    const fresh = await temp();
+    const dry = spawnSync(process.execPath, [BIN, "skill", "install", "-g", "--dry-run"], {
+      encoding: "utf8",
+      env: { ...env, HOME: fresh, USERPROFILE: fresh },
+    });
+    expect(dry.status).toBe(0);
+    expect(existsSync(join(fresh, ".claude"))).toBe(false);
+  });
+
+  it("refuses --global together with a project folder", async () => {
+    const r = cli(["skill", "install", await temp(), "--global"]);
+    expect(r.status).toBe(1);
+    expect(r.stdout + r.stderr).toContain("--global");
+  });
+
   it("keeps edited skill files unless --update is passed", async () => {
     const dir = await temp();
     cli(["skill", "install", dir, "--agent", "codex"]);

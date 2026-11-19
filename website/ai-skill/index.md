@@ -28,6 +28,28 @@ Swap `claude` for `codex` or `cursor`, or use `all` for every agent. The files l
 | Codex | `.agents/skills/selfauth/` | `$selfauth` |
 | Cursor | `.cursor/skills/selfauth/` | `/selfauth` |
 
+### Install it for every project
+
+If you'd rather have the skill available everywhere, install it once into your home folder:
+
+```bash
+npx selfauth skill install --global --agent claude
+```
+
+`--global` (or `-g`) puts the skill in your user-level skills folder, and every project you open with that agent can use it. It doesn't touch any project, and you don't pass a folder with it.
+
+| Agent | Global install goes to |
+| --- | --- |
+| Claude Code | `~/.claude/skills/selfauth/` |
+| Codex | `~/.agents/skills/selfauth/` |
+| Cursor | `~/.cursor/skills/selfauth/` |
+
+On Windows, `~` is your user folder, for example `C:\Users\you`. Restart the agent afterwards so it picks the skill up. The `--agent`, `--update` and `--dry-run` options work the same way.
+
+Pick one or the other for a given agent. A project-level install is the one to commit when you want the whole team on the same version. A global install only affects your own machine, so teammates won't get it unless they install it too.
+
+### Install it for one project
+
 Commit the folder so everyone on the team gets the same behavior. After you upgrade the CLI, run the command again with `--update` so the skill matches the new commands. Use `--dry-run` first if you want to see what would be written.
 
 You don't have to call the skill by name. The agent loads it whenever your request matches, for example "add login to this app" or "protect the orders routes".
@@ -39,8 +61,8 @@ You don't have to call the skill by name. The agent loads it whenever your reque
 ```text [Claude Code]
 Claude Code finds project skills when it starts, so restart it after installing.
 
-For a personal install across every project, copy the folder to
-~/.claude/skills/selfauth/ instead of committing it to one repository.
+For every project at once, use `selfauth skill install --global`, which
+writes to ~/.claude/skills/selfauth/.
 ```
 
 ```text [Codex]

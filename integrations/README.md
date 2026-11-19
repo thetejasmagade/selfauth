@@ -12,6 +12,10 @@ npx @selfauth/cli skill install --agent cursor   # .cursor/skills/selfauth/
 npx @selfauth/cli skill install --agent all
 ```
 
+Add `--global` (`-g`) to install into your home folder (`~/.claude/skills/`,
+`~/.agents/skills/`, `~/.cursor/skills/`) so every project has the skill, not just
+this one.
+
 | Agent | Guide |
 | --- | --- |
 | Claude Code | [claude-code.md](claude-code.md) |

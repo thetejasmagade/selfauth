@@ -92,7 +92,7 @@ repository (`selfauth add-frontend` for Vue and React):
 | `list` | Supported integrations |
 | `doctor [dir]` | Configuration and production-readiness checks |
 | `validate [dir]` | Config schema, which generated files you changed, Prisma schema vs. manifest |
-| `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--update`, `--dry-run` |
+| `skill install [dir]` | The `selfauth` agent skill: `--agent claude\|codex\|cursor\|all`, `--global` (install for every project), `--update`, `--dry-run` |
 | `diff [dir]` / `upgrade [dir]` | Compare with / update to this CLI's templates. `upgrade --reorganize` moves a project made with 0.3 or earlier into the grouped `src/` layout |
 | `db status\|plan\|migrate\|validate\|rollback\|generate` | Migration orchestration over Prisma Migrate |
 
@@ -102,6 +102,7 @@ repository (`selfauth add-frontend` for Vue and React):
 
 ```bash
 npx selfauth skill install --agent claude   # or codex, cursor, all
+npx selfauth skill install --global --agent claude   # for every project, in your home folder
 ```
 
 This installs the `selfauth` skill, which makes the agent use these commands

@@ -15,6 +15,7 @@ selfauth skill install [dir] [options]
 | Option | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `--agent <list>` | `claude`, `codex`, `cursor`, `all` (comma-separated) | `claude` | Which agents to install for |
+| `-g`, `--global` | – | – | Install into your home folder instead of a project, so every project has the skill. Don't pass `[dir]` with it |
 | `--update` | – | – | Replace skill files that differ from this CLI's version |
 | `--dry-run` | – | – | Show what would be written |
 
@@ -30,6 +31,6 @@ selfauth skill install [dir] [options]
 npx selfauth skill install --agent claude
 ```
 
-Commit the folder so your whole team's agents use it. After upgrading the CLI, run `selfauth skill install --agent … --update` to keep the skill in step with the new commands.
+With `--global`, the same folders are created under your home folder (`~/.claude/skills/selfauth/`, `~/.agents/skills/selfauth/`, `~/.cursor/skills/selfauth/`), and only your machine gets the skill. For a project install, commit the folder so your whole team's agents use it. After upgrading the CLI, run `selfauth skill install --agent … --update` to keep the skill in step with the new commands.
 
 [Use the AI skill](/ai-skill/) explains what the skill makes the agent do and how to prompt it.
