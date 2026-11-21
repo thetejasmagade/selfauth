@@ -126,6 +126,22 @@ The first `go run` downloads the project's dependencies, so it takes a minute. A
 MongoDB has no SQL migrations. `npx selfauth db migrate` creates the indexes SelfAuth needs instead (the one that keeps emails unique, for example). The commands are the same.
 :::
 
+## Email setup
+
+SelfAuth sends two kinds of email: the link to verify an address after sign-up, and the link to reset a password. **You don't have to set anything up yet.** In development nothing is sent: each email is printed in the terminal where the server runs, one-time link included, so you can click it yourself. You'll see this in the next chapter.
+
+Real email is needed before production, because the server refuses to start in production without a mailer. The mailer is one small file you own, `internal/email/mailer.go` (`server/internal/email/mailer.go` if you chose a frontend).
+For real email, pick a provider ([Resend](/email/resend) is the quickest to start with), replace the mailer file with the code on its page and set the variables it lists. For Resend that is two variables in your terminal, in the same place you set `DATABASE_URL`:
+
+```bash
+export RESEND_API_KEY=re_your_key_here
+export MAIL_FROM="Notes <login@mail.example.com>"
+```
+
+With a key set, every email goes through the provider, in development too. Unset them to go back to printing emails in the terminal.
+
+That's all you need to know for now. For every provider, the variables each one needs, testing your mailer and fixing delivery problems, see the [detailed email setup guide](/email/).
+
 ## Check it worked
 
 ```bash
