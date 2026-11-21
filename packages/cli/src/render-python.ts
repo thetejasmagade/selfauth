@@ -234,7 +234,7 @@ ${pg ? `\nCreate the first administrator after registering and verifying: \`${ad
 ## Project layout
 
 \`\`\`text
-${ws ? tree.replace(/^/gm, "") : tree}
+${tree}
 ${client}\`\`\`
 
 Authentication behaviour is configuration (\`${base}selfauth.config.json\`), not code you edit:
