@@ -33,7 +33,8 @@ def main(argv: list[str] | None = None) -> int:
         database = Config.load(config_path()).adapter.database
         if args.command == "status":
             applied, pending = store.migration_status(database, url, args.dir)
-            print(f"applied: {applied}\npending: {pending}")
+            # The same format as the Go runner, which `selfauth db` reads: names separated by spaces.
+            print(f"applied: [{' '.join(applied)}]\npending: [{' '.join(pending)}]")
             return 0
         if os.environ.get("APP_ENV") == "production":
             print("Production database: make sure a recent backup exists.")
@@ -44,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as error:  # noqa: BLE001 - config errors and driver errors read better than a trace
         print(error, file=sys.stderr)
         return 1
-    print(f"Applied: {ran}" if ran else "No pending migrations.")
+    print(f"Applied: [{' '.join(ran)}]" if ran else "No pending migrations.")
     return 0
 
 
