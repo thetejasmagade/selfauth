@@ -46,15 +46,21 @@ The answer is the same whether or not the address was already taken, so nobody c
 
 ## Verify the email
 
-In development nothing is sent. The email is printed in the terminal where the server runs:
+Where the email shows up depends on the email setup in [chapter 1](./create-project#email-setup):
 
-```text
-[dev mail] to=maya@example.com kind=verification
-Verify your email address
-Open this link to verify your email address: http://localhost:5173/verify-email#token=eUWAyeCgb4hAtJU0YbVFuoFUUFDk37a_seIsIiX-kX8
-```
+- **No provider set up (the default).** Nothing is sent. The email is printed in the terminal where the server runs. Look there:
 
-The part after `token=` is the one-time token. Send it back:
+  ```text
+  [dev mail] to=maya@example.com kind=verification
+  Verify your email address
+  Open this link to verify your email address: http://localhost:5173/verify-email#token=eUWAyeCgb4hAtJU0YbVFuoFUUFDk37a_seIsIiX-kX8
+  ```
+
+- **A real provider set up.** The email arrives in the inbox of the address you registered, so register with an address you can read, not the made-up `maya@example.com` used in these examples. Open the email and look for the link that ends in `#token=…`. Check your spam folder if it's slow. If nothing arrives, open your provider's dashboard: it lists every message it received and what happened to it. To go back to printing emails in the terminal, remove the provider's variables and restart the server.
+
+Either way, the token is the part after `token=`.
+
+Send the token back:
 
 ```bash
 curl -s -H 'Content-Type: application/json' -H 'X-SelfAuth-CSRF: 1' \
@@ -91,6 +97,7 @@ curl -s -b jar localhost:3000/api/hello
 | `SELFAUTH_APP_BASE_URL is required` | `.env` is missing: copy `.env.example` to `.env` |
 | `CSRF_FAILED` | The `X-SelfAuth-CSRF: 1` header is missing |
 | `EMAIL_NOT_VERIFIED` | Do the verify step first |
+| No email arrives, with a provider set up | Check spam, then your provider's dashboard. A rejected request is in the server's log: see the [email guide](/email/). To carry on, remove the provider's variables and restart: emails print in the terminal again |
 | `role 'user' is missing in the database` | Run `python -m app.cmd.seed` |
 | `could not start on port 3000` | Something else uses the port: change `PORT` in `.env` |
 
