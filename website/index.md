@@ -13,11 +13,11 @@ hero:
   tagline: One command puts sign-in, sessions, roles and permissions into your own project. You can read every line, change what you like, and deploy it anywhere. Nothing phones home.
   actions:
     - theme: brand
-      text: Start the Express guide
-      link: /express/
-    - theme: alt
       text: What is SelfAuth?
       link: /start/what-is-selfauth
+    - theme: alt
+      text: Start the Express guide
+      link: /express/
     - theme: alt
       text: Use an AI agent
       link: /ai/
