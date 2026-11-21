@@ -1,7 +1,7 @@
 {
   "toolkit": "selfauth",
-  "version": "0.18.0",
-  "templateVersion": "0.18.0",
+  "version": "0.19.0",
+  "templateVersion": "0.19.0",
   "specVersion": "0.1",
   "database": {
     "type": "memory",
