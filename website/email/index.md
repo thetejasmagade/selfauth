@@ -75,6 +75,26 @@ type EmailMessage struct {
 | `passwordChanged` | After a password change |
 | `passwordResetCompleted` | After a reset finished |
 
+## Environment variables at a glance
+
+SelfAuth itself reads no email variables: they are read by the mailer code on your provider's page, which is why the names below are the ones that code uses. Set only the ones for the provider you use. `MAIL_FROM` is the sender address, on a domain you've verified with the provider, for example `Notes <login@mail.example.com>`.
+
+| Provider | Variables | Notes |
+| --- | --- | --- |
+| [Resend](./resend) | `RESEND_API_KEY`, `MAIL_FROM` | The key starts with `re_` |
+| [Postmark](./postmark) | `POSTMARK_SERVER_TOKEN`, `MAIL_FROM` | The server's API token |
+| [SendGrid](./sendgrid) | `SENDGRID_API_KEY`, `MAIL_FROM` | The key starts with `SG.` |
+| [Mailgun](./mailgun) | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAIL_FROM`, and `MAILGUN_BASE_URL` for EU accounts | `MAILGUN_BASE_URL` is `https://api.eu.mailgun.net`; leave it out for the US region |
+| [Brevo](./brevo) | `BREVO_API_KEY`, `MAIL_FROM` | |
+| [SMTP and Amazon SES](./smtp) | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `SMTP_PORT` | `SMTP_PORT` is `587` if you leave it out, or `465` |
+
+Where to set them:
+
+- **On your computer:** in `.env` (Express and Fastify, and Flask), or exported in your shell (Gin; its server doesn't read `.env`). Leave them unset in development and emails are printed in the terminal instead, which is usually what you want.
+- **In production:** in your hosting platform's environment settings, never in a file in your repository. Without the provider's key the server refuses to start in production, and the error names the missing variable.
+
+Each provider's page has the same list with where to find each value in the provider's dashboard. [Environment variables](/reference/environment#email-provider-variables) lists them with the rest.
+
 ## Where the mailer lives
 
 | Backend | File | Function |

@@ -119,7 +119,7 @@ Set these on your hosting platform, not in a file in your repository:
 | `DATABASE_URL` | Your production database |
 | `SELFAUTH_APP_BASE_URL` | Your site's public address, starting with `https://`. Email links point here. |
 | `PORT` | Whatever your host expects. Many set it for you. |
-| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider's settings (these two are for Resend, as in step 1) |
+| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider's settings (these two are for Resend, as in step 1; [other providers use other names](/reference/environment#email-provider-variables)) |
 | `SELFAUTH_CONFIG` | Only if `selfauth.config.json` isn't in the folder the server starts in |
 
 Two more things in `selfauth.config.json`:

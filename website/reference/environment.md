@@ -55,6 +55,21 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 
 To rotate it, set the new value as `SELFAUTH_CSRF_SECRET`, move the old one to `SELFAUTH_CSRF_SECRET_PREVIOUS` for a while, and remove it once old tokens have expired.
 
+## Email provider variables
+
+These are not read by SelfAuth itself: they are read by the mailer you add before production, in `src/email/mailer.ts` (Express, Fastify), `internal/email/mailer.go` (Gin) or `app/mailer.py` (Flask). Without a mailer, development prints emails in the terminal and production refuses to start. Set only the variables for your provider; the [email section](/email/) has the code and where to find each value.
+
+| Provider | Variables | Notes |
+| --- | --- | --- |
+| [Resend](/email/resend) | `RESEND_API_KEY`, `MAIL_FROM` | The key starts with `re_` |
+| [Postmark](/email/postmark) | `POSTMARK_SERVER_TOKEN`, `MAIL_FROM` | The server's API token |
+| [SendGrid](/email/sendgrid) | `SENDGRID_API_KEY`, `MAIL_FROM` | The key starts with `SG.` |
+| [Mailgun](/email/mailgun) | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAIL_FROM`, and `MAILGUN_BASE_URL` for EU accounts | `MAILGUN_BASE_URL` is `https://api.eu.mailgun.net`; leave it out for the US region |
+| [Brevo](/email/brevo) | `BREVO_API_KEY`, `MAIL_FROM` | |
+| [SMTP and Amazon SES](/email/smtp) | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `SMTP_PORT` | `SMTP_PORT` is `587` if you leave it out, or `465` |
+
+`MAIL_FROM` is the sender, on a domain you've verified with the provider: `Notes <login@mail.example.com>`. Treat the keys as secrets: set them in your hosting platform, never commit them.
+
 ## Where to set them
 
 ### Development

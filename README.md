@@ -1,6 +1,10 @@
-# SelfAuth
+<p align="center">
+  <img src="website/public/logo.svg" alt="SelfAuth logo" width="120" height="120">
+</p>
 
-**Authentication. Fully yours.**
+<h1 align="center">SelfAuth</h1>
+
+<p align="center"><strong>Authentication. Fully yours.</strong></p>
 
 SelfAuth is an open-source, **development-time** authentication and
 authorization toolkit. It generates, integrates, validates, and maintains

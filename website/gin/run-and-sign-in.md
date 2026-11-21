@@ -63,11 +63,17 @@ The answer is the same whether or not the email already has an account, so nobod
 
 ### Verify the email
 
-New accounts must confirm their email before they can sign in. In development, SelfAuth doesn't send email. It prints it in the server's terminal instead. Look there:
+New accounts must confirm their email before they can sign in. Where the email shows up depends on the email setup in [chapter 1](./create-project#email-setup):
 
-```text
-Open this link to verify your email address: http://localhost:5173/verify-email#token=-lTTHdiNdyM0GRMB76HyZukeiUVZm7okw-C2T91RyKI
-```
+- **No provider set up (the default).** Nothing is sent. The email is printed in the terminal where the server runs. Look there:
+
+  ```text
+  Open this link to verify your email address: http://localhost:5173/verify-email#token=-lTTHdiNdyM0GRMB76HyZukeiUVZm7okw-C2T91RyKI
+  ```
+
+- **A real provider set up.** The email arrives in the inbox of the address you registered, so register with an address you can read, not the made-up `maya@example.com` used in these examples. Open the email and look for the link that ends in `#token=…`. Check your spam folder if it's slow. If nothing arrives, open your provider's dashboard: it lists every message it received and what happened to it. To go back to printing emails in the terminal, remove the provider's variables and restart the server.
+
+Either way, the token is the part after `token=`.
 
 Try signing in before you verify, to see what happens:
 
@@ -80,7 +86,7 @@ curl "${H[@]}" localhost:3000/auth/login \
 {"error":{"code":"EMAIL_NOT_VERIFIED","message":"Please verify your email address before signing in.","requestId":"6c2627e4-29fc-4518-b5dd-c722dc82df2b"}}
 ```
 
-Copy the token from your own terminal, everything after `token=`, and send it:
+Copy your own token, everything after `token=`, and send it:
 
 ```bash
 curl "${H[@]}" localhost:3000/auth/email/verify -d '{"token":"PASTE_YOUR_TOKEN"}'
@@ -159,6 +165,7 @@ Every error looks like this: a `code` your code can check, a `message` for peopl
 - **`could not start on port 3000: … address already in use`.** Another program, perhaps an earlier server, is using the port. Stop it, or set `PORT` to another number.
 - **`INVALID_CREDENTIALS`.** The email or password doesn't match. SelfAuth doesn't say which one, on purpose.
 - **`RATE_LIMITED`.** You tried to sign in too many times. The limit is kept in the database, so restarting doesn't reset it. Wait 15 minutes and try again.
+- **No verification email, with a provider set up.** Check spam, then your provider's dashboard for the message. A `401` or `403` from the provider is in the server's log (a wrong key, or a sender that isn't on a verified domain). The [email guide](/email/) lists the errors for each provider. To carry on without waiting, remove the provider's variables and restart: the email is printed in the terminal again.
 - **`INVALID_TOKEN` when verifying.** You copied only part of the token, or used an older one. Each new registration or resend prints a new link.
 
 Next: [Find your way around the files](./project-tour)

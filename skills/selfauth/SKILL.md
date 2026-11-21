@@ -190,9 +190,12 @@ for the API. In short:
 - Browsers must send `X-SelfAuth-CSRF: 1` on every POST, PUT, PATCH and DELETE.
   That includes the application's existing fetch calls, because CSRF protection
   covers the whole app (SEC-CSRF-004).
-- Email: `createMailer()` in `email/mailer.ts` needs a real provider before
-  production. That is a manual item unless the developer names a provider and
-  gives you its API usage. Never hard-code the API key.
+- Email: the mailer needs a real provider before production (`createMailer()` in
+  `email/mailer.ts` for Express and Fastify, `NewMailer` in `internal/email/mailer.go`
+  for Gin, `create_mailer` in `app/mailer.py` for Flask). That is a manual item
+  unless the developer names a provider; then use the tested code and variable
+  names in the docs' email section (`/email/`), and read `references/questions.md`
+  ("How do I send real emails?") for the variables. Never hard-code the API key.
 
 ### 8. Validate
 
