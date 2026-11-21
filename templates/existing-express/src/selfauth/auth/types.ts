@@ -53,7 +53,7 @@ export interface RateLimitOperation {
 export interface SelfAuthConfig {
   specVersion: string;
   adapter: {
-    backend: "express" | "fastify" | "gin";
+    backend: "express" | "fastify" | "gin" | "flask";
     frontend: "vue" | "react" | "none";
     database: "postgresql" | "mysql" | "sqlite" | "mongodb" | "memory";
     orm: "prisma" | "mongoose" | "none";
