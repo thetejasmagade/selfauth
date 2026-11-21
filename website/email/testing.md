@@ -120,6 +120,10 @@ The fake `fetch` replaces the real one only while the test runs, and `afterEach`
 
 ## Go (Gin)
 
+::: warning Go: replace YOUR_MODULE first
+The test imports `YOUR_MODULE/internal/auth` and `YOUR_MODULE/internal/config`. `YOUR_MODULE` is a placeholder: change it, in both imports, to your own module name, which is the first line of `go.mod` (`module …`). With a frontend that file is `server/go.mod`. Skipping this gives `package YOUR_MODULE/internal/auth is not in std`.
+:::
+
 Create `internal/email/mailer_test.go`:
 
 ```go
@@ -133,8 +137,8 @@ import (
 	"strings"
 	"testing"
 
-	"notes-app/internal/auth"
-	"notes-app/internal/config"
+	"YOUR_MODULE/internal/auth"
+	"YOUR_MODULE/internal/config"
 )
 
 var verification = auth.EmailMessage{
