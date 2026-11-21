@@ -121,9 +121,21 @@ routes. Hiding a button in the frontend is not protection (AUTHZ-CORE-004).
 you@example.com` after registering that account (PostgreSQL projects).
 → [guides/manual-integration.md](guides/manual-integration.md)
 
-**How do I send real emails?** Implement `createMailer()` in `email/mailer.ts` with
-the provider's SDK. The server refuses to start in production until you do.
-Never hard-code the provider's key. → [guides/customization.md](guides/customization.md)
+**How do I send real emails?** Implement the mailer: `createMailer()` in
+`src/email/mailer.ts` (Express, Fastify), `NewMailer` in `internal/email/mailer.go`
+(Gin) or `create_mailer` in `app/mailer.py` (Flask); in a project with a frontend
+these paths are under `server/`. The server refuses to start in production until
+you do; in development emails are printed in the server's terminal, so nothing
+is needed to try SelfAuth out. An HTTP API call (or the standard library's SMTP
+client) is enough, no SDK is required. The key comes from the environment, never
+from the code: Resend `RESEND_API_KEY`, Postmark `POSTMARK_SERVER_TOKEN`, SendGrid
+`SENDGRID_API_KEY`, Mailgun `MAILGUN_API_KEY` + `MAILGUN_DOMAIN` (+ `MAILGUN_BASE_URL`
+for EU), Brevo `BREVO_API_KEY`, SMTP/Amazon SES `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/
+`SMTP_PASS`, each with `MAIL_FROM` (a sender on a domain verified with the
+provider). Turn click tracking off for these messages, keep the link out of
+errors and logs (SEC-LOG-001) and time out requests. The SelfAuth docs' email
+section (`/email/`) has tested code for each provider and a test for the mailer.
+→ [guides/customization.md](guides/customization.md)
 
 ## Security
 
