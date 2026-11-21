@@ -150,7 +150,7 @@ For a question about your own project ("will this work with my app?"), it inspec
 
 The agent finishes the wiring, but some things stay with you, and it will list them in its report:
 
-- Choosing and configuring an email provider (see [Send real email](/express/production)).
+- Choosing and configuring an email provider (see [Send real email](/email/)).
 - Creating the production database and setting `DATABASE_URL`.
 - Deploying (see [Going to production](/express/production)).
 - Deciding who gets which permissions. It proposes permissions from your domain, and you should read them.

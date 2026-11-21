@@ -29,7 +29,7 @@ In development, emails are printed in the terminal. In production nobody reads t
 no email provider configured: implement NewMailer in internal/email/mailer.go before running in production
 ```
 
-Open `internal/email/mailer.go`. A mailer has one method that sends one message. Here's one for [Resend](https://resend.com), using only Go's standard library. Any provider with an HTTP API looks much the same. Replace the whole file with:
+Open `internal/email/mailer.go`. A mailer has one method that sends one message. Here's one for [Resend](https://resend.com), using only Go's standard library. Replace the whole file with:
 
 ```go
 // Package email provides the application's mailer.
@@ -49,6 +49,7 @@ import (
 	"notes-app/internal/config"
 )
 
+// resendURL is a variable so a test can point it at a fake server.
 var resendURL = "https://api.resend.com/emails"
 
 type resendMailer struct {
@@ -76,26 +77,31 @@ func (m resendMailer) Send(ctx context.Context, msg auth.EmailMessage) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return fmt.Errorf("Resend rejected the email (HTTP %d)", resp.StatusCode)
+		return fmt.Errorf("resend rejected the email (HTTP %d)", resp.StatusCode)
 	}
 	return nil
 }
 
 // NewMailer returns the mailer for env.
 func NewMailer(env config.Env) (auth.Mailer, error) {
-	if !env.Production() {
-		// Development: prints messages (including one-time links) to the console.
+	apiKey, from := os.Getenv("RESEND_API_KEY"), os.Getenv("MAIL_FROM") // from: "Notes <login@mail.example.com>"
+	if apiKey == "" {
+		if env.Production() {
+			return nil, errors.New("RESEND_API_KEY and MAIL_FROM are required in production")
+		}
+		// Development: print messages (one-time links included) to the console.
 		return auth.NewDevConsoleMailer(false)
 	}
-	apiKey, from := os.Getenv("RESEND_API_KEY"), os.Getenv("MAIL_FROM") // from: "Acme <login@mail.acme.com>"
-	if apiKey == "" || from == "" {
-		return nil, errors.New("RESEND_API_KEY and MAIL_FROM are required in production")
+	if from == "" {
+		return nil, errors.New("MAIL_FROM is required when RESEND_API_KEY is set")
 	}
 	return resendMailer{apiKey: apiKey, from: from, client: &http.Client{Timeout: 10 * time.Second}}, nil
 }
 ```
 
 `MAIL_FROM` must be on a domain you've verified with Resend. Send yourself a test email before real users depend on it.
+
+Resend is one choice among many. The [email providers section](/email/) has ready-made mailers for Postmark, SendGrid, Mailgun, Brevo and any SMTP server (including Amazon SES), a template for providers that aren't listed, and [a test](/email/testing) for your mailer.
 
 ## 2. Use a production database
 
@@ -113,7 +119,7 @@ Set these on your hosting platform, not in a file in your repository:
 | `DATABASE_URL` | Your production database |
 | `SELFAUTH_APP_BASE_URL` | Your site's public address, starting with `https://`. Email links point here. |
 | `PORT` | Whatever your host expects. Many set it for you. |
-| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider |
+| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider's settings (these two are for Resend, as in step 1) |
 | `SELFAUTH_CONFIG` | Only if `selfauth.config.json` isn't in the folder the server starts in |
 
 Two more things in `selfauth.config.json`:

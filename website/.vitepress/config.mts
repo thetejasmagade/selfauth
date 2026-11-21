@@ -82,6 +82,21 @@ const sidebar: DefaultTheme.Sidebar = [
     ],
   },
   {
+    text: "Email providers",
+    collapsed: true,
+    items: [
+      { text: "Send real email", link: "/email/" },
+      { text: "Resend", link: "/email/resend" },
+      { text: "Postmark", link: "/email/postmark" },
+      { text: "SendGrid", link: "/email/sendgrid" },
+      { text: "Mailgun", link: "/email/mailgun" },
+      { text: "Brevo", link: "/email/brevo" },
+      { text: "SMTP and Amazon SES", link: "/email/smtp" },
+      { text: "A provider that isn't listed", link: "/email/other-providers" },
+      { text: "Test your mailer", link: "/email/testing" },
+    ],
+  },
+  {
     text: "Reference",
     collapsed: true,
     items: [
@@ -157,6 +172,7 @@ export default withMermaid(
       nav: [
         { text: "Start here", link: "/start/what-is-selfauth", activeMatch: "/start/" },
         { text: "AI agent", link: "/ai/", activeMatch: "/ai/" },
+        { text: "Email", link: "/email/", activeMatch: "/email/" },
         {
           text: "Guides",
           items: [

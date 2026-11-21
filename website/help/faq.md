@@ -122,7 +122,7 @@ That's the default `http.basePath`, and you can change it in the configuration. 
 
 ### Can I use my own email templates?
 
-Yes. Branch on `message.kind` in your mailer, and keep the link exactly as given. See [Send real email](/express/production).
+Yes. Branch on `message.kind` in your mailer, and keep the link exactly as given. See [Send real email](/email/).
 
 ### How do I delete a user's data?
 

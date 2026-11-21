@@ -45,7 +45,7 @@ Another program, or an earlier copy of your own server, is using the port. Stop 
 
 That's intentional: the mailer placeholder is still in place.
 
-[Send real email](/express/production) fixes it, and the other [startup errors](/express/production) are listed in the production guide.
+[Send real email](/email/) fixes it, with a ready-made mailer for each common provider. The other [startup errors](/express/production) are listed in the production guide.
 
 ### Gin: `read selfauth.config.json: open selfauth.config.json: no such file or directory`
 

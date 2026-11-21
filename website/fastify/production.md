@@ -29,20 +29,22 @@ In development, emails are printed in the terminal. In production nobody reads t
 Error: No email provider configured: implement createMailer() in src/email/mailer.ts before running in production.
 ```
 
-Open `src/email/mailer.ts`. A mailer is one function that sends one message. Here's one for [Resend](https://resend.com), which needs no extra package. Any provider with an HTTP API looks much the same.
+Open `src/email/mailer.ts`. A mailer is one function that sends one message. Here's one for [Resend](https://resend.com), which needs no extra package. Replace the whole file with:
 
 ```ts
 import { DevConsoleMailer, type Mailer } from "../auth/index.ts";
 import type { Env } from "../config/env.ts";
 
 export function createMailer(env: Env): Mailer {
-  if (env.nodeEnv !== "production") return new DevConsoleMailer(env.nodeEnv);
-
   const apiKey = process.env["RESEND_API_KEY"];
   const from = process.env["MAIL_FROM"]; // for example: "Notes <login@mail.example.com>"
-  if (!apiKey || !from) {
-    throw new Error("RESEND_API_KEY and MAIL_FROM are required in production");
+  if (!apiKey) {
+    if (env.nodeEnv === "production") {
+      throw new Error("RESEND_API_KEY and MAIL_FROM are required in production");
+    }
+    return new DevConsoleMailer(env.nodeEnv); // development: print emails in the terminal
   }
+  if (!from) throw new Error("MAIL_FROM is required when RESEND_API_KEY is set");
 
   return {
     async send(m) {
@@ -67,6 +69,8 @@ export function createMailer(env: Env): Mailer {
 
 `MAIL_FROM` must be on a domain you've verified with Resend. Send yourself a test email before real users depend on it.
 
+Resend is one choice among many. The [email providers section](/email/) has ready-made mailers for Postmark, SendGrid, Mailgun, Brevo and any SMTP server (including Amazon SES), a template for providers that aren't listed, and [a test](/email/testing) for your mailer.
+
 ## 2. Use a production database
 
 SQLite is a single file on a single machine. That's fine for learning, but in production you'll usually want PostgreSQL (or MySQL, or MongoDB): it survives the server being replaced, and several copies of your app can share it. To switch, create a new project with `--database postgresql` and move your code across. The `src/routes/` files and your models in `schema.prisma` work as they are.
@@ -83,7 +87,7 @@ Set these on your hosting platform, not in a file in your repository:
 | `DATABASE_URL` | Your production database |
 | `SELFAUTH_APP_BASE_URL` | Your site's public address, starting with `https://`. Email links point here. |
 | `PORT` | Whatever your host expects. Many set it for you. |
-| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider |
+| `RESEND_API_KEY`, `MAIL_FROM` | Your email provider's settings (these two are for Resend, as in step 1) |
 
 Two more things in `src/config/selfauth.config.ts`:
 

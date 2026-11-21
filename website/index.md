@@ -50,6 +50,7 @@ features:
 | Have your AI coding agent set it up | [Use with an AI agent](/ai/) |
 | Build an app step by step | The [Express](/express/), [Fastify](/fastify/) or [Gin](/gin/) guide |
 | Add your own table and migrate the database | [Add a table](/express/add-a-table) |
+| Send real email through Resend, Postmark, SendGrid, Mailgun, Brevo or Amazon SES | [Email providers](/email/) |
 | Add SelfAuth to a project you already have | [`selfauth add`](/reference/cli/add) |
 | Fix an error message | [Troubleshooting](/help/troubleshooting) |
 
