@@ -50,6 +50,10 @@ npm install --save-dev @types/nodemailer
 
 The Go version needs nothing new: it uses Go's own `net/smtp`.
 
+::: warning Go: replace YOUR_MODULE first
+The Go code imports `YOUR_MODULE/internal/auth` and `YOUR_MODULE/internal/config`. `YOUR_MODULE` is a placeholder: change it, in both imports, to your own module name, which is the first line of `go.mod` (`module …`). With a frontend that file is `server/go.mod`. Skipping this gives `package YOUR_MODULE/internal/auth is not in std`.
+:::
+
 ::: code-group
 
 ```ts [TypeScript: src/email/mailer.ts]
@@ -118,8 +122,8 @@ import (
 	"strings"
 	"time"
 
-	"notes-app/internal/auth"
-	"notes-app/internal/config"
+	"YOUR_MODULE/internal/auth"
+	"YOUR_MODULE/internal/config"
 )
 
 // smtpTLS is a variable so a test can trust a throwaway certificate.
@@ -230,7 +234,7 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 
 :::
 
-In the Go code, replace `notes-app` in the two imports with your module name. It's whatever `go.mod` says on its first line.
+In the Go code, replace `YOUR_MODULE` in the two imports with your module name. It's whatever `go.mod` says on its first line (`server/go.mod` with a frontend).
 
 What the code does:
 

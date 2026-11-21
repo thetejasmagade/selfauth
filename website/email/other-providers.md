@@ -32,6 +32,10 @@ Then, while you're in the docs, look for the setting that **turns off click trac
 
 Replace the parts marked `CHANGE`, and the name in the error messages. The rest stays as it is: it already keeps the message out of errors and gives up after 10 seconds.
 
+::: warning Go: replace YOUR_MODULE first
+The Go code imports `YOUR_MODULE/internal/auth` and `YOUR_MODULE/internal/config`. `YOUR_MODULE` is a placeholder: change it, in both imports, to your own module name, which is the first line of `go.mod` (`module …`). With a frontend that file is `server/go.mod`. Skipping this gives `package YOUR_MODULE/internal/auth is not in std`.
+:::
+
 ::: code-group
 
 ```ts [TypeScript: src/email/mailer.ts]
@@ -89,8 +93,8 @@ import (
 	"os"
 	"time"
 
-	"notes-app/internal/auth"
-	"notes-app/internal/config"
+	"YOUR_MODULE/internal/auth"
+	"YOUR_MODULE/internal/config"
 )
 
 // exampleURL is a variable so a test can point it at a fake server.
@@ -202,7 +206,7 @@ def create_mailer(env: Env) -> Mailer:
 
 :::
 
-In the Go code, replace `notes-app` in the two imports with your module name. It's whatever `go.mod` says on its first line.
+In the Go code, replace `YOUR_MODULE` in the two imports with your module name. It's whatever `go.mod` says on its first line (`server/go.mod` with a frontend).
 
 ### Worked example: JSON with objects
 

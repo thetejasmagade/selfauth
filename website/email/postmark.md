@@ -26,6 +26,10 @@ keywords: [postmark, send email, postmark api, mailer, createMailer, NewMailer, 
 
 Replace the whole mailer file with this. For the file's location, see [where the mailer lives](./#where-the-mailer-lives).
 
+::: warning Go: replace YOUR_MODULE first
+The Go code imports `YOUR_MODULE/internal/auth` and `YOUR_MODULE/internal/config`. `YOUR_MODULE` is a placeholder: change it, in both imports, to your own module name, which is the first line of `go.mod` (`module …`). With a frontend that file is `server/go.mod`. Skipping this gives `package YOUR_MODULE/internal/auth is not in std`.
+:::
+
 ::: code-group
 
 ```ts [TypeScript: src/email/mailer.ts]
@@ -85,8 +89,8 @@ import (
 	"os"
 	"time"
 
-	"notes-app/internal/auth"
-	"notes-app/internal/config"
+	"YOUR_MODULE/internal/auth"
+	"YOUR_MODULE/internal/config"
 )
 
 // postmarkURL is a variable so a test can point it at a fake server.
@@ -146,7 +150,7 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 
 :::
 
-In the Go code, replace `notes-app` in the two imports with your module name. It's whatever `go.mod` says on its first line.
+In the Go code, replace `YOUR_MODULE` in the two imports with your module name. It's whatever `go.mod` says on its first line (`server/go.mod` with a frontend).
 
 What the code does:
 
