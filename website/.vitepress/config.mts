@@ -11,6 +11,12 @@ const hostname = (
   process.env["DOCS_HOSTNAME"] ?? (vercelHost ? `https://${vercelHost}` : undefined)
 )?.replace(/\/$/, "");
 
+// Social previews need an absolute image URL. Use the site's own address when it is known,
+// otherwise the copy in the repository, so the image is never missing.
+const ogImage = hostname
+  ? `${hostname}${base}og.png`
+  : `${REPO.replace("github.com", "raw.githubusercontent.com")}/main/website/public/og.png`;
+
 const sidebar: DefaultTheme.Sidebar = [
   {
     text: "Start here",
@@ -167,7 +173,15 @@ export default withMermaid(
       ["meta", { name: "theme-color", content: "#3451b2" }],
       ["meta", { property: "og:site_name", content: "SelfAuth docs" }],
       ["meta", { property: "og:type", content: "website" }],
-      ["meta", { name: "twitter:card", content: "summary" }],
+      ["meta", { property: "og:image", content: ogImage }],
+      ["meta", { property: "og:image:width", content: "1200" }],
+      ["meta", { property: "og:image:height", content: "630" }],
+      [
+        "meta",
+        { property: "og:image:alt", content: "SelfAuth: authentication that lives in your repo" },
+      ],
+      ["meta", { name: "twitter:card", content: "summary_large_image" }],
+      ["meta", { name: "twitter:image", content: ogImage }],
     ],
     sitemap: hostname ? { hostname } : undefined,
     markdown: {

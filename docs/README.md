@@ -13,6 +13,7 @@
 - [Data retention after account deletion](data-retention.md)
 - [Conformance and support matrix](conformance.md) (Express), [for Fastify](conformance-fastify.md) [for Gin (Go)](conformance-gin.md) and [for Flask (Python)](conformance-flask.md)
 - [Security review](security-review.md)
+- [Specification review checklist](spec-review.md)
 - [Customization and extension points](customization.md)
 - [Frontend deployment](frontend-deployment.md): same origin, subdomains,
   cross site
