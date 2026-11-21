@@ -82,6 +82,22 @@ const sidebar: DefaultTheme.Sidebar = [
     ],
   },
   {
+    text: "Flask (Python) guide",
+    collapsed: true,
+    items: [
+      { text: "Overview", link: "/flask/" },
+      { text: "1. Create your project", link: "/flask/create-project" },
+      { text: "2. Run it and sign in", link: "/flask/run-and-sign-in" },
+      { text: "3. Find your way around", link: "/flask/project-tour" },
+      { text: "4. Add endpoints", link: "/flask/endpoints" },
+      { text: "5. Add permissions", link: "/flask/permissions" },
+      { text: "6. Add a table and the notes endpoints", link: "/flask/notes" },
+      { text: "7. Change a table later", link: "/flask/change-a-table" },
+      { text: "8. Test your endpoints", link: "/flask/tests" },
+      { text: "9. Get ready for production", link: "/flask/production" },
+    ],
+  },
+  {
     text: "Email providers",
     collapsed: true,
     items: [
@@ -114,6 +130,7 @@ const sidebar: DefaultTheme.Sidebar = [
       { text: "Error codes", link: "/reference/errors" },
       { text: "Server API (TypeScript)", link: "/reference/server-typescript" },
       { text: "Server API (Go)", link: "/reference/server-go" },
+      { text: "Server API (Python)", link: "/reference/server-python" },
       { text: "Client API (Vue and React)", link: "/reference/client" },
     ],
   },
@@ -179,6 +196,7 @@ export default withMermaid(
             { text: "Express", link: "/express/" },
             { text: "Fastify", link: "/fastify/" },
             { text: "Gin (Go)", link: "/gin/" },
+            { text: "Flask (Python)", link: "/flask/" },
           ],
         },
         {

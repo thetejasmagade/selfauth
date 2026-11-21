@@ -76,8 +76,8 @@ class PasswordHasher:
         self._slots = threading.BoundedSemaphore(max(2, (os.cpu_count() or 1) * 2))
         self._count_lock = threading.Lock()
         self._computations = 0
-        self._dummy: str | None = None
-        self._dummy_lock = threading.Lock()
+        # Computed once, here, so the first login for an unknown account costs no more than the rest.
+        self._dummy = self.hash("selfauth-dummy-password-for-timing")
 
     @property
     def computations(self) -> int:
@@ -115,11 +115,7 @@ class PasswordHasher:
     def verify_dummy(self, password: str) -> None:
         """Burns comparable work when there is no real hash to check, so response time does not
         reveal whether an account exists (AUTHN-LOGIN-003, AUTHN-REG-010)."""
-        with self._dummy_lock:
-            if self._dummy is None:
-                self._dummy = self.hash("selfauth-dummy-password-for-timing")
-            dummy = self._dummy
-        self.verify(dummy, password)
+        self.verify(self._dummy, password)
 
     def needs_rehash(self, stored: str) -> bool:
         """True if the stored hash is weaker than the current configuration (SEC-HASH-004)."""

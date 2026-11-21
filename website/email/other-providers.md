@@ -1,6 +1,6 @@
 ---
 title: Use an email provider that isn't listed
-description: Connect any other email provider to SelfAuth by filling in a template, with the five questions to answer from the provider's documentation, TypeScript and Go code, and what to do for providers that only offer an SDK.
+description: Connect any other email provider to SelfAuth by filling in a template, with the five questions to answer from the provider's documentation, TypeScript, Go and Python code, and what to do for providers that only offer an SDK.
 keywords: [custom mailer, email provider, mailjet, mailersend, sparkpost, ses sdk, http api, sdk, createMailer, NewMailer, transactional email]
 ---
 
@@ -146,6 +146,60 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 }
 ```
 
+```python [Python: app/mailer.py]
+"""The application's mailer."""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.error
+import urllib.request
+
+from .auth.mailer import DevConsoleMailer, EmailMessage, Mailer
+from .config import Env
+
+# A variable so a test can point it at a fake server.
+EXAMPLE_URL = "https://api.example.com/v1/send"  # CHANGE: question 1
+
+
+class ExampleMailer:
+    def __init__(self, api_key: str, sender: str) -> None:
+        self._api_key, self._sender = api_key, sender
+
+    def send(self, message: EmailMessage) -> None:
+        body = {
+            # CHANGE: question 4. The field names your provider uses.
+            "from": self._sender, "to": message.to, "subject": message.subject,
+            "text": message.text,  # already holds the sentence and the link
+        }
+        request = urllib.request.Request(
+            EXAMPLE_URL,
+            data=json.dumps(body).encode(),  # CHANGE: question 3 (a form: urllib.parse.urlencode(body).encode())
+            headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},  # CHANGE: question 2
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=10):
+                return
+        except urllib.error.HTTPError as error:
+            # Status only: never log the message, the link or the response body.
+            raise RuntimeError(f"Example rejected the email (HTTP {error.code})") from None
+        except OSError:
+            raise RuntimeError("could not reach Example") from None  # never include the request: it holds the link
+
+
+def create_mailer(env: Env) -> Mailer:
+    api_key, sender = os.environ.get("EXAMPLE_API_KEY"), os.environ.get("MAIL_FROM")  # CHANGE: your key's variable
+    if not api_key:
+        if env.production:
+            raise RuntimeError("EXAMPLE_API_KEY and MAIL_FROM are required in production")
+        return DevConsoleMailer(production=False)  # development: print emails in the terminal
+    if not sender:
+        raise RuntimeError("MAIL_FROM is required when EXAMPLE_API_KEY is set")
+    return ExampleMailer(api_key, sender)
+```
+
 :::
 
 In the Go code, replace `notes-app` in the two imports with your module name. It's whatever `go.mod` says on its first line.
@@ -156,7 +210,7 @@ Some providers want the recipient as a list of objects, and the sender split int
 
 ### Worked example: a web form
 
-Mailgun takes a form, not JSON, and signs in with basic authentication. The [Mailgun page](./mailgun) shows both. In TypeScript, pass a `URLSearchParams` as the body. In Go, build a `url.Values` and call `req.SetBasicAuth`.
+Mailgun takes a form, not JSON, and signs in with basic authentication. The [Mailgun page](./mailgun) shows both. In TypeScript, pass a `URLSearchParams` as the body. In Go, build a `url.Values` and call `req.SetBasicAuth`. In Python, encode the fields with `urllib.parse.urlencode` and add an `Authorization: Basic …` header built with `base64.b64encode(b"api:KEY")`.
 
 ## When there's only an SDK
 

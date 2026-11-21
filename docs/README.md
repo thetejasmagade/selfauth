@@ -11,7 +11,7 @@
 - [Database schema and migrations](database.md)
 - [Adding SelfAuth to an existing project](existing-projects.md): other folder layouts, monorepos, a frontend elsewhere
 - [Data retention after account deletion](data-retention.md)
-- [Conformance and support matrix](conformance.md) (Express), [for Fastify](conformance-fastify.md) and [for Gin (Go)](conformance-gin.md)
+- [Conformance and support matrix](conformance.md) (Express), [for Fastify](conformance-fastify.md) [for Gin (Go)](conformance-gin.md) and [for Flask (Python)](conformance-flask.md)
 - [Security review](security-review.md)
 - [Customization and extension points](customization.md)
 - [Frontend deployment](frontend-deployment.md): same origin, subdomains,

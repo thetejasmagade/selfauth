@@ -167,6 +167,19 @@ databases (Phase 6 CLI).
   authorization level on both stores; production-profile is not claimed.
 - ADR 0027.
 
+## Phase 10 — Flask (Python) done
+
+- `apps/playground-flask`: a Python port of the core (`app/auth`) behind a Flask adapter, with the
+  memory, PostgreSQL (psycopg), MySQL (PyMySQL), SQLite (`sqlite3`) and MongoDB (PyMongo) stores, the
+  same migration SQL as the other apps and a small migration runner. All 90 conformance cases run on
+  every store; a Python harness hosts one isolated instance per case.
+- `selfauth init --backend flask` (any database; with Vue or React as `server/` + `client/`,
+  browser-tested against the Flask server). `selfauth doctor`, `validate`, `diff`, `upgrade` and `db`
+  work on them. `selfauth add` does not apply to Python.
+- `conformance/adapters/flask.json` and the generated [`docs/conformance-flask.md`](docs/conformance-flask.md):
+  authorization level on every store; production-profile is not claimed.
+- ADR 0028.
+
 ## Next
 
 1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").

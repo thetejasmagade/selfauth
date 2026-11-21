@@ -918,6 +918,10 @@
           "target": "tests/conftest.py"
         },
         {
+          "source": "apps/playground-flask/tests/support.py",
+          "target": "tests/support.py"
+        },
+        {
           "source": "apps/playground-flask/tests/test_app.py",
           "target": "tests/test_app.py"
         },
@@ -930,12 +934,31 @@
           "target": "tests/test_env_file.py"
         },
         {
+          "source": "apps/playground-flask/tests/test_hardening.py",
+          "target": "tests/test_hardening.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_migrations.py",
+          "target": "tests/test_migrations.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
+        },
+        {
           "source": "apps/playground-flask/tests/test_password.py",
           "target": "tests/test_password.py"
         },
         {
           "source": "apps/playground-flask/tests/test_routes.py",
           "target": "tests/test_routes.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_service.py",
+          "target": "tests/test_service.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_store.py",
+          "target": "tests/test_store.py"
         },
         {
           "source": "apps/playground-flask/tests/testdata/default.json",

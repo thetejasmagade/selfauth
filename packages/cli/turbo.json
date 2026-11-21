@@ -9,6 +9,7 @@
         "$TURBO_ROOT$/apps/playground/**",
         "$TURBO_ROOT$/apps/playground-fastify/**",
         "$TURBO_ROOT$/apps/playground-gin/**",
+        "$TURBO_ROOT$/apps/playground-flask/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
         "$TURBO_ROOT$/skills/selfauth/**"
@@ -20,6 +21,7 @@
         "$TURBO_ROOT$/apps/playground/**",
         "$TURBO_ROOT$/apps/playground-fastify/**",
         "$TURBO_ROOT$/apps/playground-gin/**",
+        "$TURBO_ROOT$/apps/playground-flask/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
         "$TURBO_ROOT$/skills/**",

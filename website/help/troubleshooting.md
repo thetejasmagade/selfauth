@@ -10,7 +10,7 @@ Find the symptom that matches, check the likely cause and try the fix. Every mes
 
 ## First, three quick checks
 
-1. `node --version` is 22.18 or newer (for Gin, `go version` is 1.26 or newer).
+1. `node --version` is 22.18 or newer (for Gin, `go version` is 1.26 or newer; for Flask, `python3 --version` is 3.11 or newer).
 2. `npx selfauth doctor` and `npx selfauth validate` report no errors.
 3. You restarted the server after changing the configuration or `.env`. Both are only read at startup.
 
@@ -113,7 +113,7 @@ Baseline it with `prisma migrate resolve --applied <migration>`, and only for mi
 
 ### `Role 'user' is missing in the database. Run the migrations and npm run db:seed first.`
 
-Run `npm run db:seed` (`go run ./cmd/seed` for Gin).
+Run `npm run db:seed` (`go run ./cmd/seed` for Gin, `python -m app.cmd.seed` for Flask).
 
 ### TypeScript or runtime error about `generated/prisma` or a missing model
 

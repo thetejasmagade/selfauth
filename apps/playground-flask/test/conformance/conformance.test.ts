@@ -53,11 +53,9 @@ describe
     }
   });
 
-describe
-  .runIf(TEST_DATABASE_URL)
-  .concurrent("SelfAuth conformance — Flask + PostgreSQL", () => {
-    const driver = flaskDriver(harness.port, "postgres");
-    for (const c of cases) {
-      it(`${c.id} [${c.level}] ${c.title}`, () => runCase(c, driver), 30_000);
-    }
-  });
+describe.runIf(TEST_DATABASE_URL).concurrent("SelfAuth conformance — Flask + PostgreSQL", () => {
+  const driver = flaskDriver(harness.port, "postgres");
+  for (const c of cases) {
+    it(`${c.id} [${c.level}] ${c.title}`, () => runCase(c, driver), 30_000);
+  }
+});

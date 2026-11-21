@@ -8,7 +8,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "conformance": "vitest run",
-    "py:test": "python -m pytest -q"
+    "py:test": "${SELFAUTH_FLASK_PYTHON:-python3} -m pytest -q",
+    "e2e:server": "APP_ENV=test ${SELFAUTH_FLASK_PYTHON:-python3} test/e2e.py"
   },
   "devDependencies": {
     "@selfauth/conformance": "workspace:*",

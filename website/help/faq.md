@@ -84,7 +84,7 @@ Not with a generated adapter. A frontend of any kind can call the [HTTP API](/re
 
 ### Which databases?
 
-PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Every database works with Express, Fastify and Gin.
+PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Every database works with Express, Fastify, Gin and Flask.
 
 ### Can I use it with an ORM other than Prisma?
 

@@ -186,8 +186,10 @@ class MemoryStore(Store):
 
     # roles
     def sync_roles(self, roles: dict[str, list[str]]) -> None:
+        # Upserts: a role that is no longer configured is kept, like every database store keeps it.
         with self._lock:
-            self.roles = {name: list(perms) for name, perms in roles.items()}
+            for name, perms in roles.items():
+                self.roles[name] = list(dict.fromkeys(perms))
 
     def get_user_roles(self, user_id: str) -> list[str]:
         with self._lock:

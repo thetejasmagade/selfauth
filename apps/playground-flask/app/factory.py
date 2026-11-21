@@ -59,7 +59,9 @@ def create_app(
     """Builds the Flask app: request id, logging, the JSON body limit, then SelfAuth's CORS,
     session and CSRF hooks and routes, then yours."""
     app = Flask(__name__)
+    # No redirects, ever (SEC-REDIRECT-001): "/a/" does not match "/a", and "//" is not folded into "/".
     app.url_map.strict_slashes = True
+    app.url_map.merge_slashes = False
     app.config["PROPAGATE_EXCEPTIONS"] = False
     auth.install(app)
 

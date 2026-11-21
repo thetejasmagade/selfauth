@@ -1,6 +1,6 @@
 ---
 title: Test your mailer
-description: Write automated tests for your email provider code in a SelfAuth project, using a fake server so no real email is sent, for Express and Fastify (node:test) and Gin (go test), including a check that errors never contain the one-time link.
+description: Write automated tests for your email provider code in a SelfAuth project, using a fake server so no real email is sent, for Express and Fastify (node:test), Gin (go test) and Flask (pytest), including a check that errors never contain the one-time link.
 keywords: [test mailer, test email, fake server, node test, go test, httptest, mock fetch, resend, createMailer, NewMailer]
 ---
 
@@ -8,7 +8,7 @@ keywords: [test mailer, test email, fake server, node test, go test, httptest, m
 
 Your mailer is code that sends login links. A test makes sure nobody breaks it by accident, and costs no emails. The idea is the same for every provider:
 
-1. Point the mailer at a **fake server** (Go) or a **fake `fetch`** (TypeScript) that records the request and answers with a status you choose.
+1. Point the mailer at a **fake server** (Go and Python) or a **fake `fetch`** (TypeScript) that records the request and answers with a status you choose.
 2. Send one message.
 3. Check what the fake received: the URL, the key, and the fields.
 4. Make the fake answer with an error, and check that the error doesn't contain the one-time link.
@@ -262,9 +262,101 @@ PASS
 
 This is why every Go mailer keeps its URL in a variable such as `resendURL`: the test points it at the fake server, which `httptest` starts on a free local port. Because the other tests replace the URL, `TestPointsAtResend` checks the real one. `t.Setenv` sets the keys for one test and puts them back afterwards. For another provider, change the variable's name and the checks on the header and the body.
 
+## Python (Flask)
+
+Create `tests/test_mailer.py`. It starts a tiny local server with the standard library; no extra package is needed:
+
+```python
+from __future__ import annotations
+
+import json
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+import pytest
+
+from app import mailer
+from app.auth.mailer import DevConsoleMailer, EmailMessage
+from app.config import Env
+
+MESSAGE = EmailMessage(
+    kind="verification", to="maya@example.com", subject="Verify your email",
+    text="Open this link: https://notes.example.com/verify-email#token=SECRET-TOKEN",
+)
+PRODUCTION = Env(app_env="production", app_base_url="https://notes.example.com")
+DEVELOPMENT = Env(app_env="development", app_base_url="http://localhost:5173")
+
+
+@pytest.fixture
+def provider(monkeypatch):
+    """A local server that stands in for Resend: it records the request and answers with `.status`."""
+    seen: dict = {"status": 200}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self) -> None:  # noqa: N802
+            seen["authorization"] = self.headers["Authorization"]
+            seen["body"] = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            self.send_response(seen["status"])
+            self.end_headers()
+
+        def log_message(self, *args) -> None:
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    monkeypatch.setattr(mailer, "RESEND_URL", f"http://127.0.0.1:{server.server_port}/emails")
+    yield seen
+    server.shutdown()
+
+
+def test_points_at_resend() -> None:
+    # The other tests replace the URL, so check the real one once.
+    assert mailer.RESEND_URL == "https://api.resend.com/emails"
+
+
+def test_sends_the_message_to_resend(provider, monkeypatch) -> None:
+    monkeypatch.setenv("RESEND_API_KEY", "re_test")
+    monkeypatch.setenv("MAIL_FROM", "Notes <login@mail.example.com>")
+    mailer.create_mailer(PRODUCTION).send(MESSAGE)
+    assert provider["authorization"] == "Bearer re_test"
+    assert provider["body"] == {
+        "from": "Notes <login@mail.example.com>", "to": ["maya@example.com"],
+        "subject": "Verify your email", "text": MESSAGE.text,
+    }
+
+
+def test_fails_with_the_status_and_without_the_link(provider, monkeypatch) -> None:
+    monkeypatch.setenv("RESEND_API_KEY", "re_test")
+    monkeypatch.setenv("MAIL_FROM", "Notes <login@mail.example.com>")
+    provider["status"] = 403
+    with pytest.raises(RuntimeError) as error:
+        mailer.create_mailer(PRODUCTION).send(MESSAGE)
+    assert "HTTP 403" in str(error.value)
+    assert "SECRET-TOKEN" not in str(error.value)
+
+
+def test_production_needs_a_key(monkeypatch) -> None:
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="RESEND_API_KEY"):
+        mailer.create_mailer(PRODUCTION)
+
+
+def test_development_prints_emails(monkeypatch) -> None:
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    assert isinstance(mailer.create_mailer(DEVELOPMENT), DevConsoleMailer)
+```
+
+Run it:
+
+```bash
+pytest tests/test_mailer.py -v
+```
+
+The mailer keeps its URL in a module variable, `RESEND_URL`, so `monkeypatch.setattr` can point it at the fake server for one test. Because the other tests replace the URL, `test_points_at_resend` checks the real one. `monkeypatch.setenv` sets the keys for one test and puts them back afterwards.
+
 ## Check it worked
 
-Break the mailer on purpose: change the URL in `mailer.ts` or `mailer.go` by one letter, and run the tests. The first test should fail. Put it back.
+Break the mailer on purpose: change the URL in `mailer.ts`, `mailer.go` or `mailer.py` by one letter, and run the tests. The first test should fail. Put it back.
 
 ## If something went wrong
 

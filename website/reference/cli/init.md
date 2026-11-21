@@ -23,15 +23,15 @@ Each option below answers its question in advance, so you only get asked about w
 | Option | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `[dir]` | a folder name | asked, or `.` if the current folder is empty | Where to create the project. The folder name becomes the project name |
-| `--backend <framework>` | `express`, `fastify`, `gin` | `express` | The web framework |
+| `--backend <framework>` | `express`, `fastify`, `gin`, `flask` | `express` | The web framework |
 | `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Works with every backend |
-| `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. With Gin the Go module moves into `server/` |
+| `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. With Gin or Flask the Go module or Python application moves into `server/` |
 | `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are not given to any role: see [Permissions and roles](/express/permissions) |
 | `--app-base-url <url>` | an `http` or `https` address | `http://localhost:5173` | Frontend address used in email links |
 | `--module <path>` | a Go module path, such as `github.com/you/my-api` | the project name | Gin only. Used in `go.mod` and all imports |
 | `-y`, `--yes` | – | – | Do not ask; accept the plan |
 | `--dry-run` | – | – | Print the plan and write nothing |
-| `--install` | – | asked (default yes) in the wizard; no with `--yes` | Run `npm install` afterwards. Not used for Gin |
+| `--install` | – | asked (default yes) in the wizard; no with `--yes` | Run `npm install` afterwards. Not used for Gin or Flask without a frontend |
 
 Permission names have to follow the [naming rules](/express/permissions), and a bad one is refused.
 
@@ -125,6 +125,7 @@ The number of files depends on the options you chose.
 | Express or Fastify, no frontend | one package with `src/` at the root | [Express API](/express/project-tour) |
 | with `--frontend` | `server/` and `client/` in one npm workspace | [Full stack](/express/frontend-page) |
 | Gin | a Go module | [Gin (Go)](/gin/) |
+| Flask | a Python application with `requirements.txt` | [Flask (Python)](/flask/) |
 
 ## Common errors
 
@@ -134,4 +135,4 @@ The number of files depends on the options you chose.
 | `This directory already has a package.json.` | The folder holds a Node project | Use [`selfauth add`](./add), or an empty folder |
 | `This directory already has a go.mod.` | The folder holds a Go project | Use an empty folder: `init` creates new projects only |
 | An error about the Go module path | The `--module` value is not a valid module path | Use a path like `github.com/you/my-api` |
-| An error about the database for Gin | Gin supports PostgreSQL and memory only | Use `--database postgresql` or `memory` |
+| `This directory already has a pyproject.toml.` | The folder holds a Python project | Use an empty folder |

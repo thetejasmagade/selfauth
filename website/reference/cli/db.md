@@ -6,7 +6,7 @@ keywords: [selfauth db, migrate, prisma migrate, db plan, db status, approve-des
 
 # `selfauth db`
 
-Wraps your project's native migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite, the index script for MongoDB, the Go runner for Gin) and adds a safety review on top. SelfAuth never migrates when the server starts.
+Wraps your project's native migration tool (Prisma Migrate for PostgreSQL, MySQL and SQLite, the index script for MongoDB, the Go runner for Gin, the Python runner for Flask) and adds a safety review on top. SelfAuth never migrates when the server starts.
 
 ```text
 selfauth db <command> [--dir <dir>]

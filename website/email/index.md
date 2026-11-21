@@ -13,7 +13,7 @@ SelfAuth writes the emails (verify your address, reset your password) but doesn'
 | Development | Emails are printed in the server's terminal, one-time links included. Nothing is sent. |
 | Production | The server refuses to start until a real mailer is connected. That's on purpose: otherwise sign-up would work and nobody would ever receive a verification email. |
 
-This section has a ready-made mailer for each of the common providers, in TypeScript (Express and Fastify) and in Go (Gin). Pick one, copy the code, set two or three environment variables, and you're done.
+This section has a ready-made mailer for each of the common providers, in TypeScript (Express and Fastify) and in Go (Gin). Flask (Python) has a ready-made mailer for [Resend](./resend) and a [template](./other-providers) for every other provider; the other pages' TypeScript tabs give the URL, headers and fields to put in it. Pick one, copy the code, set two or three environment variables, and you're done.
 
 ## Pick a provider
 
@@ -81,8 +81,9 @@ type EmailMessage struct {
 | --- | --- | --- |
 | Express, Fastify | `src/email/mailer.ts` | `createMailer(env)` |
 | Gin | `internal/email/mailer.go` | `NewMailer(env)` |
+| Flask | `app/mailer.py` | `create_mailer(env)` |
 
-In a project with a frontend, the Express, Fastify and Gin paths are under `server/`. Replace the whole file with the code from your provider's page.
+In a project with a frontend, the Express, Fastify, Gin and Flask paths are under `server/`. Replace the whole file with the code from your provider's page.
 
 ## How every page works
 
@@ -90,7 +91,7 @@ Each provider page follows the same steps, so once you've done one, the others a
 
 1. **Before you start:** what to set up in the provider's dashboard.
 2. **Environment:** the variables the code reads.
-3. **The code:** one tab for TypeScript, one for Go.
+3. **The code:** one tab for TypeScript, one for Go (Resend and the template also have Python).
 4. **Try it:** send yourself a real email from your own machine.
 5. **If something went wrong:** the errors people hit most.
 

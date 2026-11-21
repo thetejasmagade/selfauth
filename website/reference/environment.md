@@ -13,14 +13,14 @@ Environment variables hold the things that differ between your laptop and produc
 | Variable | Required | Default | Used by | Meaning |
 | --- | --- | --- | --- | --- |
 | `NODE_ENV` | no | `development` | Express, Fastify | `development`, `test` or `production`. `production` turns on strict checks |
-| `APP_ENV` | no | `development` | Gin | The same, for Go |
+| `APP_ENV` | no | `development` | Gin, Flask | The same, for Go and Python |
 | `PORT` | no | `3000` | all | Port to listen on (1 – 65535) |
 | `HOST` | no | `0.0.0.0` | Fastify | Interface to listen on |
 | `SELFAUTH_APP_BASE_URL` | yes | – | all | Address of your frontend, used to build email links |
 | `DATABASE_URL` | for a real database | – | all | Connection string. If unset in development the in-memory store is used. Required in production |
 | `SELFAUTH_CSRF_SECRET` | with `csrf.mode: "token"` | – | all | 32 or more random bytes, base64url |
 | `SELFAUTH_CSRF_SECRET_PREVIOUS` | no | – | all | The old secret, accepted while rotating |
-| `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin | Path to the configuration file |
+| `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin, Flask | Path to the configuration file |
 | `SELFAUTH_API_TARGET` | no | `http://localhost:3000` | Vite dev server | Where the dev server forwards `/auth` and `/api` |
 
 If a value is invalid the server stops at startup and lists every problem:
@@ -62,6 +62,7 @@ To rotate it, set the new value as `SELFAUTH_CSRF_SECRET`, move the old one to `
 | Project | How |
 | --- | --- |
 | Express, Fastify | Copy `.env.example` to `.env` (full stack: `server/.env`). The npm scripts load it with `node --env-file-if-exists=.env` |
+| Flask | Copy `.env.example` to `.env` (full stack: `server/.env`). The server loads it by itself in development; variables already set in the environment win |
 | Gin | The server does not read `.env`. Export the variables in your shell, or use a tool such as direnv |
 
 ```bash
@@ -83,7 +84,7 @@ $env:SELFAUTH_APP_BASE_URL = "http://localhost:5173"
 Set variables in your hosting platform, whether that's container environment settings, a service dashboard or a secrets manager. A typical production set:
 
 ```ini
-NODE_ENV=production            # Gin: APP_ENV=production
+NODE_ENV=production            # Gin and Flask: APP_ENV=production
 SELFAUTH_APP_BASE_URL=https://app.example.com
 DATABASE_URL=...               # required
 ```

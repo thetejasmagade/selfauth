@@ -100,6 +100,11 @@ jobs:
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
+      # The Python reference backend is one of the backends the browser spec runs against.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r apps/playground-flask/requirements.txt
       - run: pnpm install --frozen-lockfile
       - uses: actions/cache@v4
         with:
@@ -406,6 +411,201 @@ jobs:
       - run: pnpm build --cache-dir=.turbo
       - name: Generate a Gin project outside the monorepo and exercise it
         run: scripts/smoke-gin.sh ${{ matrix.database }} ${{ matrix.frontend }}
+
+  flask:
+    # Python only: no Node install or build is needed to test the Flask application.
+    name: Flask (Python) reference app
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    services:
+      # Real database for the PostgreSQL store and the migrator.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: selfauth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d selfauth_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://selfauth:selfauth@localhost:5432/selfauth_test
+      SELFAUTH_REQUIRE_POSTGRES: "1"
+      # MySQL and MongoDB: every test case gets its own database on these servers.
+      TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/selfauth_test
+      TEST_MONGODB_URL: mongodb://127.0.0.1:27017/selfauth_test
+      SELFAUTH_REQUIRE_MONGODB: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/playground-flask/requirements.txt
+      - name: Start MySQL (installed on the runner image, off by default)
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS selfauth_test"
+      - name: Start MongoDB
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
+      - name: Install and run the unit and store tests
+        working-directory: apps/playground-flask
+        run: |
+          pip install -r requirements.txt pytest
+          python -m pytest -q
+
+  flask-conformance:
+    # One store per job, in parallel: the MySQL run alone takes over a minute.
+    name: Flask conformance (${{ matrix.store }})
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        store: [sqlite, postgresql, mysql, mongodb]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: selfauth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d selfauth_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # A store is measured only when its URL is set; memory and SQLite always run (a few seconds).
+      TEST_DATABASE_URL: ${{ matrix.store == 'postgresql' && 'postgresql://selfauth:selfauth@localhost:5432/selfauth_test' || '' }}
+      TEST_MYSQL_URL: ${{ matrix.store == 'mysql' && 'mysql://root:root@127.0.0.1:3306/selfauth_test' || '' }}
+      TEST_MONGODB_URL: ${{ matrix.store == 'mongodb' && 'mongodb://127.0.0.1:27017/selfauth_test' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/playground-flask/requirements.txt
+      - run: pnpm install --frozen-lockfile
+      - run: pip install -r apps/playground-flask/requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.store == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS selfauth_test"
+      - name: Start MongoDB
+        if: matrix.store == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
+      - name: Run every conformance case against the Flask application
+        run: pnpm --filter @selfauth/playground-flask conformance
+
+  generated-flask-project:
+    name: Generated Flask project (${{ matrix.database }}, ${{ matrix.frontend }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Every database and every frontend is generated with Flask; the pieces are independent, so
+        # the pairs below cover each of them (and several crosses) without the full product.
+        include:
+          - { database: memory, frontend: none }
+          - { database: postgresql, frontend: none }
+          - { database: mysql, frontend: none }
+          - { database: sqlite, frontend: none }
+          - { database: mongodb, frontend: none }
+          - { database: memory, frontend: vue }
+          - { database: mysql, frontend: vue }
+          - { database: mongodb, frontend: vue }
+          - { database: postgresql, frontend: react }
+          - { database: sqlite, frontend: react }
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SMOKE_DATABASE_URL: ${{ matrix.database == 'mysql' && 'mysql://root:root@127.0.0.1:3306/smoke' || matrix.database == 'mongodb' && 'mongodb://127.0.0.1:27017/smoke' || 'postgresql://selfauth:selfauth@localhost:5432/smoke' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/playground-flask/requirements.txt
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.database == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
+      - name: Start MongoDB
+        if: matrix.database == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Generate a Flask project outside the monorepo and exercise it
+        run: scripts/smoke-flask.sh ${{ matrix.database }} ${{ matrix.frontend }}
 
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})

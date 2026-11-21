@@ -1,7 +1,7 @@
 ---
 title: Send email with Resend
-description: Connect Resend to a SelfAuth project, with working mailer code for Express, Fastify (TypeScript) and Gin (Go), the environment variables to set, how to try it locally and the errors people hit.
-keywords: [resend, send email, resend api, mailer, createMailer, NewMailer, transactional email, express, fastify, gin]
+description: Connect Resend to a SelfAuth project, with working mailer code for Express, Fastify (TypeScript), Gin (Go) and Flask (Python), the environment variables to set, how to try it locally and the errors people hit.
+keywords: [resend, send email, resend api, mailer, createMailer, NewMailer, transactional email, express, fastify, gin, flask, python]
 ---
 
 # Send email with Resend
@@ -132,6 +132,59 @@ func NewMailer(env config.Env) (auth.Mailer, error) {
 }
 ```
 
+```python [Python: app/mailer.py]
+"""The application's mailer."""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.error
+import urllib.request
+
+from .auth.mailer import DevConsoleMailer, EmailMessage, Mailer
+from .config import Env
+
+# A variable so a test can point it at a fake server.
+RESEND_URL = "https://api.resend.com/emails"
+
+
+class ResendMailer:
+    def __init__(self, api_key: str, sender: str) -> None:
+        self._api_key, self._sender = api_key, sender
+
+    def send(self, message: EmailMessage) -> None:
+        request = urllib.request.Request(
+            RESEND_URL,
+            data=json.dumps(
+                # message.text already holds the sentence and the link.
+                {"from": self._sender, "to": [message.to], "subject": message.subject, "text": message.text}
+            ).encode(),
+            headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=10):
+                return
+        except urllib.error.HTTPError as error:
+            # Status only: never log the message, the link or the response body.
+            raise RuntimeError(f"Resend rejected the email (HTTP {error.code})") from None
+        except OSError:
+            raise RuntimeError("could not reach Resend") from None  # never include the request: it holds the link
+
+
+def create_mailer(env: Env) -> Mailer:
+    api_key = os.environ.get("RESEND_API_KEY")
+    sender = os.environ.get("MAIL_FROM")  # for example: "Notes <login@mail.example.com>"
+    if not api_key:
+        if env.production:
+            raise RuntimeError("RESEND_API_KEY and MAIL_FROM are required in production")
+        return DevConsoleMailer(production=False)  # development: print emails in the terminal
+    if not sender:
+        raise RuntimeError("MAIL_FROM is required when RESEND_API_KEY is set")
+    return ResendMailer(api_key, sender)
+```
+
 :::
 
 In the Go code, replace `notes-app` in the two imports with your module name. It's whatever `go.mod` says on its first line.
@@ -159,6 +212,11 @@ export RESEND_API_KEY=re_your_key_here
 export MAIL_FROM="Notes <login@mail.example.com>"
 ```
 
+```text [Python: .env]
+RESEND_API_KEY=re_your_key_here
+MAIL_FROM=Notes <login@mail.example.com>
+```
+
 :::
 
 Start the server, then register:
@@ -173,7 +231,7 @@ An email titled "Verify your email" should arrive within a few seconds. If it do
 
 ## How this was checked
 
-The code compiles in generated Express, Fastify and Gin projects, and it was run against a local fake server that checks the URL, the `Authorization` header and the JSON body described in Resend's API reference, and that an error response doesn't leak the message. I couldn't call the real Resend service, so send yourself a test email before real users depend on it.
+The code compiles in generated Express, Fastify and Gin projects, the Python version passes its own tests in a generated Flask project, and it was run against a local fake server that checks the URL, the `Authorization` header and the JSON body described in Resend's API reference, and that an error response doesn't leak the message. I couldn't call the real Resend service, so send yourself a test email before real users depend on it.
 
 ## If something went wrong
 
@@ -183,5 +241,5 @@ The code compiles in generated Express, Fastify and Gin projects, and it was run
 | `Resend rejected the email (HTTP 403)` | The From address isn't on a domain you've verified. Check `MAIL_FROM` against the domain in the dashboard. |
 | `Resend rejected the email (HTTP 422)` | The request was invalid. The usual cause is a `MAIL_FROM` that isn't in the form `Name <address@domain>` or `address@domain`. |
 | `Resend rejected the email (HTTP 429)` | Too many requests too quickly. Resend limits requests per second. |
-| `could not reach Resend` (Go), `fetch failed` (TypeScript) | No network route to `api.resend.com`: a firewall, or the host blocks outgoing requests. |
+| `could not reach Resend` (Go and Python), `fetch failed` (TypeScript) | No network route to `api.resend.com`: a firewall, or the host blocks outgoing requests. |
 | The email arrives in spam | The domain's DNS records aren't all in place yet. See [What every provider needs](./#what-every-provider-needs). |

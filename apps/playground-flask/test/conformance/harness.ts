@@ -20,7 +20,12 @@ export interface Harness {
 function python(): string {
   const configured = process.env["SELFAUTH_FLASK_PYTHON"];
   if (configured) return configured;
-  const venv = join(appDir, ".venv", process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "python.exe" : "python");
+  const venv = join(
+    appDir,
+    ".venv",
+    process.platform === "win32" ? "Scripts" : "bin",
+    process.platform === "win32" ? "python.exe" : "python",
+  );
   return existsSync(venv) ? venv : "python3";
 }
 
@@ -34,7 +39,11 @@ export async function startHarness(): Promise<Harness> {
     const lines = createInterface({ input: child.stdout! });
     child.once("error", reject);
     child.once("exit", (code) =>
-      reject(new Error(`the Python harness exited early (${code}); is the app's dependencies' installed? Run: pip install -e . in apps/playground-flask`)),
+      reject(
+        new Error(
+          `the Python harness exited early (${code}); is the app's dependencies' installed? Run: pip install -e . in apps/playground-flask`,
+        ),
+      ),
     );
     lines.once("line", (line) => {
       const match = /^listening 127\.0\.0\.1:(\d+)$/.exec(line);
