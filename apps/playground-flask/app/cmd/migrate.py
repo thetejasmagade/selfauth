@@ -13,7 +13,7 @@ import argparse
 import os
 import sys
 
-from .. import store
+from .. import env_file, store
 from ..config import Config
 from ..store.errors import DatabaseError
 from ..wsgi import config_path
@@ -24,6 +24,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("command", choices=["status", "up"])
     parser.add_argument("--dir", default="db/migrations", help="directory of migrations")
     args = parser.parse_args(argv)
+    env_file.load()
     url = os.environ.get("DATABASE_URL")
     if not url:
         print("DATABASE_URL is required", file=sys.stderr)

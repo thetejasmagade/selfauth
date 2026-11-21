@@ -60,6 +60,61 @@ async function folderProblem(answer: string): Promise<string | null> {
 const permissionsProblem = (answer: string): string | null =>
   parsePermissions(answer).map(permissionProblem).find(Boolean) ?? null;
 
+/** The database library the generated project uses, for the plan line. */
+function databaseDriver(backend: Backend, database: Database): string {
+  if (backend === "gin")
+    return database === "postgresql"
+      ? "pgx"
+      : database === "mongodb"
+        ? "mongo-driver"
+        : "database/sql";
+  if (backend === "flask")
+    return database === "postgresql"
+      ? "psycopg"
+      : database === "mysql"
+        ? "PyMySQL"
+        : database === "sqlite"
+          ? "sqlite3"
+          : "PyMongo";
+  return database === "mongodb" ? "Mongoose" : "Prisma";
+}
+
+/** What to do after a Flask project is created. */
+function flaskNextSteps(answers: InitAnswers, install: boolean): number {
+  const database = hasDatabase(answers.database);
+  const workspace = answers.frontend !== "none";
+  const server = workspace ? "server/" : "";
+  if (workspace) {
+    if (!install) say("  npm install               # installs the client (and the root scripts)");
+    say("  python3 -m venv server/.venv");
+    say(
+      `  server/.venv/bin/pip install -r server/requirements.txt   # Windows: server\\.venv\\Scripts\\pip`,
+    );
+    say(`  cp server/.env.example server/.env${database ? "   # set DATABASE_URL" : ""}`);
+    if (database) say("  npm run db:migrate && npm run db:seed   # read the migration first");
+    say(
+      `  npm run dev               # Flask API and ${answers.frontend} app together; open ${answers.appBaseUrl}`,
+    );
+  } else {
+    say(
+      "  python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\\Scripts\\activate",
+    );
+    say("  pip install -r requirements.txt");
+    say(`  cp .env.example .env${database ? "   # set DATABASE_URL" : ""}`);
+    if (database) {
+      say(
+        "  python -m app.cmd.migrate status && python -m app.cmd.migrate up   # read the migration first",
+      );
+      say("  python -m app.cmd.seed");
+    }
+    say("  python -m app.cmd.server");
+  }
+  say(
+    `\nBefore production: implement create_mailer in ${server}app/mailer.py, then run \`npx selfauth doctor\`.`,
+  );
+  return 0;
+}
+
 /** `selfauth init [dir]`: generate a new project. Returns the process exit code. */
 export async function init(dirArg: string | undefined, options: InitOptions): Promise<number> {
   // Flags are checked before anything is asked, so a typo fails at once.
@@ -75,13 +130,13 @@ export async function init(dirArg: string | undefined, options: InitOptions): Pr
       return 1;
     }
   }
-  if (options.backend === "gin") {
+  if (options.backend === "gin" || options.backend === "flask") {
     if (
       options.database !== undefined &&
-      !BACKEND_DATABASES.gin.includes(options.database as Database)
+      !BACKEND_DATABASES[options.backend].includes(options.database as Database)
     ) {
       fail(
-        `The Gin backend supports ${BACKEND_DATABASES.gin.join(" and ")} (got '${options.database}').`,
+        `The ${options.backend === "gin" ? "Gin" : "Flask"} backend supports ${BACKEND_DATABASES[options.backend].join(" and ")} (got '${options.database}').`,
       );
       return 1;
     }
@@ -140,9 +195,11 @@ async function run(
     fail("This directory already contains a SelfAuth project (selfauth.manifest.json).");
     return 1;
   }
-  if (existsSync(join(dir, "go.mod"))) {
-    fail("This directory already has a go.mod. `selfauth init` creates new projects only.");
-    return 1;
+  for (const file of ["go.mod", "pyproject.toml", "requirements.txt"]) {
+    if (existsSync(join(dir, file))) {
+      fail(`This directory already has a ${file}. \`selfauth init\` creates new projects only.`);
+      return 1;
+    }
   }
   if (project.hasPackageJson) {
     fail("This directory already has a package.json.");
@@ -167,11 +224,17 @@ async function run(
               label: "Gin (Go)",
               hint: "a Go port of the core; any database",
             },
+            {
+              value: "flask",
+              label: "Flask (Python)",
+              hint: "a Python port of the core; any database",
+            },
           ],
           "express",
         )
       : "express")) as Backend;
   const gin = backend === "gin";
+  const flask = backend === "flask";
   const database = (options.database ??
     (prompter
       ? await prompter.select<Database>(
@@ -181,11 +244,27 @@ async function run(
               {
                 value: "postgresql",
                 label: "PostgreSQL",
-                hint: gin ? "via pgx; for real use" : "via Prisma; for real use",
+                hint: gin
+                  ? "via pgx; for real use"
+                  : flask
+                    ? "via psycopg; for real use"
+                    : "via Prisma; for real use",
               },
-              { value: "mysql", label: "MySQL", hint: "via Prisma; MySQL 8 or MariaDB" },
-              { value: "mongodb", label: "MongoDB", hint: "via Mongoose; MongoDB 6 or newer" },
-              { value: "sqlite", label: "SQLite", hint: "via Prisma; one file, no server to run" },
+              {
+                value: "mysql",
+                label: "MySQL",
+                hint: `via ${flask ? "PyMySQL" : "Prisma"}; MySQL 8 or MariaDB`,
+              },
+              {
+                value: "mongodb",
+                label: "MongoDB",
+                hint: `via ${flask ? "PyMongo" : "Mongoose"}; MongoDB 6 or newer`,
+              },
+              {
+                value: "sqlite",
+                label: "SQLite",
+                hint: `via ${flask ? "sqlite3" : "Prisma"}; one file, no server to run`,
+              },
               {
                 value: "memory",
                 label: "In-memory",
@@ -239,9 +318,9 @@ async function run(
           })
         : projectName))
     : undefined;
-  // A Go-only project has nothing for npm to install.
+  // A Go or Python project without a frontend has nothing for npm to install.
   const install =
-    gin && frontend === "none"
+    (gin || flask) && frontend === "none"
       ? false
       : (options.install ??
         (prompter
@@ -267,7 +346,7 @@ async function run(
   }
 
   say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${gin ? (database === "postgresql" ? "pgx" : database === "mongodb" ? "mongo-driver" : "database/sql") : database === "mongodb" ? "Mongoose" : "Prisma"}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
+    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : flask ? "Flask (Python)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${databaseDriver(backend, database)}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
   );
   for (const f of files) say(`  + ${f.path}`);
   if (options.dryRun) {
@@ -307,6 +386,7 @@ async function run(
   const cd = relative(process.cwd(), dir) || ".";
   say("\nNext steps:");
   if (cd !== ".") say(`  cd ${cd}`);
+  if (flask) return flaskNextSteps(answers, install);
   if (gin && frontend !== "none") {
     if (!install) say("  npm install               # installs the client (and the root scripts)");
     say(

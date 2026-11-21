@@ -9,13 +9,14 @@ from __future__ import annotations
 import os
 import sys
 
-from .. import store
+from .. import env_file, store
 from ..auth import authz
 from ..config import Config
 from ..wsgi import config_path
 
 
 def main() -> int:
+    env_file.load()
     url = os.environ.get("DATABASE_URL")
     if not url:
         print("DATABASE_URL is required", file=sys.stderr)

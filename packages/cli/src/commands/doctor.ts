@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import {
   fileDrift,
   isGoProject,
+  isPythonProject,
   loadConfig,
   loadManifest,
   packageLabel,
@@ -88,10 +89,14 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
   }
 
   const mailer = join(dir, projectPath(manifest, "src/email/mailer.ts"));
-  const go = isGoProject(manifest);
+  const mailerFunction = isGoProject(manifest)
+    ? "NewMailer"
+    : isPythonProject(manifest)
+      ? "create_mailer"
+      : "createMailer()";
   if (existsSync(mailer) && /no email provider configured/i.test(await readFile(mailer, "utf8"))) {
     report.warnings.push(
-      `no email provider yet: implement ${go ? "NewMailer" : "createMailer()"} in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
+      `no email provider yet: implement ${mailerFunction} in ${projectPath(manifest, "src/email/mailer.ts")} before production`,
     );
   }
   // A full-stack project keeps one .gitignore at its root, above the server package.

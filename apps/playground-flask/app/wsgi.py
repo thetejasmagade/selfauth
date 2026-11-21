@@ -7,7 +7,7 @@ import os
 
 from flask import Flask
 
-from . import routes, store
+from . import env_file, routes, store
 from .auth.logger import Logger
 from .config import Config, load_env
 from .factory import build_auth, create_app
@@ -20,6 +20,7 @@ def config_path() -> str:
 
 
 def build() -> tuple[Flask, store.Stores]:
+    env_file.load()  # development: variables from .env (the real environment wins)
     env = load_env()
     config = Config.load(config_path())
     # Plain-http local development cannot use Secure or __Host- cookies.

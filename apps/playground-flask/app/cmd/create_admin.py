@@ -10,7 +10,7 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from .. import store
+from .. import env_file, store
 from ..auth import authz, email
 from ..auth.crypto import new_id
 from ..auth.store import ACTIVE, EventRecord
@@ -19,6 +19,7 @@ from ..wsgi import config_path
 
 
 def main(argv: list[str] | None = None) -> int:
+    env_file.load()
     args = sys.argv[1:] if argv is None else argv
     url = os.environ.get("DATABASE_URL")
     if not url or len(args) != 1:

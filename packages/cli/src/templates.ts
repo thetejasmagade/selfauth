@@ -17,9 +17,9 @@ export const DATABASES: readonly Database[] = [
 export const usesPrisma = (database: Database): database is "postgresql" | "mysql" | "sqlite" =>
   database !== "memory" && database !== "mongodb";
 
-/** The ORM a database uses (the manifest's `database.orm`). A Go backend uses none. */
+/** The ORM a database uses (the manifest's `database.orm`). The Go and Python backends use none. */
 export const ormFor = (database: Database, backend?: Backend): "prisma" | "mongoose" | "none" =>
-  backend === "gin"
+  backend === "gin" || backend === "flask"
     ? "none"
     : usesPrisma(database)
       ? "prisma"
@@ -62,18 +62,29 @@ export const DATABASE_INFO: Record<
   memory: { label: "in-memory", urlExample: "", urlPrefixes: [], urlHint: "" },
 };
 export type Frontend = "none" | "vue" | "react";
-export type Backend = "express" | "fastify" | "gin";
-export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin"];
+export type Backend = "express" | "fastify" | "gin" | "flask";
+export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin", "flask"];
 
-/** Databases each backend supports (Gin: PostgreSQL and the in-memory store). */
+/** Databases each backend supports (every backend supports every database). */
 export const BACKEND_DATABASES: Record<Backend, readonly Database[]> = {
   express: DATABASES,
   fastify: DATABASES,
   gin: ["postgresql", "mysql", "sqlite", "mongodb", "memory"],
+  flask: ["postgresql", "mysql", "sqlite", "mongodb", "memory"],
 };
 
 /** Backends that are Go projects (no package.json, npm or Prisma). */
 export const isGo = (backend: Backend | undefined): boolean => backend === "gin";
+
+/** Backends that are Python projects (a venv and pip, no package.json, npm or Prisma). */
+export const isPython = (backend: Backend | undefined): boolean => backend === "flask";
+
+/**
+ * Backends that are not Node projects: the application is copied from a reference written in
+ * another language, and the project keeps its schema in db/migrations instead of Prisma.
+ */
+export const isNative = (backend: Backend | undefined): boolean =>
+  isGo(backend) || isPython(backend);
 
 /** The module path the Go reference application is written with; generated projects replace it. */
 export const GO_REFERENCE_MODULE = "example.com/app";

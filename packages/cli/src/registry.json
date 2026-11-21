@@ -741,6 +741,214 @@
         "devDependencies": [],
         "manifest": "apps/playground-gin/selfauth.manifest.json"
       }
+    },
+    "flask": {
+      "files": [
+        {
+          "source": "apps/playground-flask/app/__init__.py",
+          "target": "app/__init__.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/__init__.py",
+          "target": "app/auth/__init__.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/authz.py",
+          "target": "app/auth/authz.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/clock.py",
+          "target": "app/auth/clock.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/common_passwords.py",
+          "target": "app/auth/common_passwords.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/crypto.py",
+          "target": "app/auth/crypto.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/email.py",
+          "target": "app/auth/email.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/errors.py",
+          "target": "app/auth/errors.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/logger.py",
+          "target": "app/auth/logger.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/mailer.py",
+          "target": "app/auth/mailer.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/password.py",
+          "target": "app/auth/password.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/ratelimit.py",
+          "target": "app/auth/ratelimit.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/service.py",
+          "target": "app/auth/service.py"
+        },
+        {
+          "source": "apps/playground-flask/app/auth/store.py",
+          "target": "app/auth/store.py"
+        },
+        {
+          "source": "apps/playground-flask/app/cmd/__init__.py",
+          "target": "app/cmd/__init__.py"
+        },
+        {
+          "source": "apps/playground-flask/app/cmd/create_admin.py",
+          "target": "app/cmd/create_admin.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/cmd/migrate.py",
+          "target": "app/cmd/migrate.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/cmd/seed.py",
+          "target": "app/cmd/seed.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite", "mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/cmd/server.py",
+          "target": "app/cmd/server.py"
+        },
+        {
+          "source": "apps/playground-flask/app/config.py",
+          "target": "app/config.py"
+        },
+        {
+          "source": "apps/playground-flask/app/env_file.py",
+          "target": "app/env_file.py"
+        },
+        {
+          "source": "apps/playground-flask/app/factory.py",
+          "target": "app/factory.py"
+        },
+        {
+          "source": "apps/playground-flask/app/flask_auth.py",
+          "target": "app/flask_auth.py"
+        },
+        {
+          "source": "apps/playground-flask/app/httpx.py",
+          "target": "app/httpx.py"
+        },
+        {
+          "source": "apps/playground-flask/app/mailer.py",
+          "target": "app/mailer.py"
+        },
+        {
+          "source": "apps/playground-flask/app/routes.py",
+          "target": "app/routes.py"
+        },
+        {
+          "source": "apps/playground-flask/app/store/__init__.py",
+          "target": "app/store/__init__.py"
+        },
+        {
+          "source": "apps/playground-flask/app/store/dialect.py",
+          "target": "app/store/dialect.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/store/errors.py",
+          "target": "app/store/errors.py"
+        },
+        {
+          "source": "apps/playground-flask/app/store/memory.py",
+          "target": "app/store/memory.py"
+        },
+        {
+          "source": "apps/playground-flask/app/store/migrations.py",
+          "target": "app/store/migrations.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/store/mongostore.py",
+          "target": "app/store/mongostore.py",
+          "when": {
+            "databases": ["mongodb"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/store/sqlstore.py",
+          "target": "app/store/sqlstore.py",
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/app/wsgi.py",
+          "target": "app/wsgi.py"
+        },
+        {
+          "source": "apps/playground-flask/db/migrations",
+          "target": "db/migrations",
+          "directory": true,
+          "when": {
+            "databases": ["postgresql", "mysql", "sqlite"]
+          }
+        },
+        {
+          "source": "apps/playground-flask/tests/__init__.py",
+          "target": "tests/__init__.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/conftest.py",
+          "target": "tests/conftest.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_app.py",
+          "target": "tests/test_app.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_config.py",
+          "target": "tests/test_config.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_env_file.py",
+          "target": "tests/test_env_file.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_password.py",
+          "target": "tests/test_password.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/test_routes.py",
+          "target": "tests/test_routes.py"
+        },
+        {
+          "source": "apps/playground-flask/tests/testdata/default.json",
+          "target": "tests/testdata/default.json"
+        }
+      ],
+      "dependencies": [],
+      "devDependencies": [],
+      "postgresql": {
+        "dependencies": [],
+        "devDependencies": [],
+        "manifest": "apps/playground-flask/selfauth.manifest.json"
+      }
     }
   },
   "frontends": {

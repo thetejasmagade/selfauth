@@ -11,6 +11,7 @@ import {
   renderEnvExample,
   renderGoDevServer,
   renderGoGitignore,
+  frameworkName,
   isWorkspace,
   renderGitignore,
   renderPackageJson,
@@ -21,7 +22,17 @@ import {
   renderWebTsconfig,
   type InitAnswers,
 } from "./render.js";
-import { BACKEND_DATABASES, type Backend } from "./templates.js";
+import {
+  renderPytestIni,
+  renderPythonDevServer,
+  renderPythonEnvExample,
+  renderPythonGitignore,
+  renderPythonReadme,
+  renderPythonRootPackageJson,
+  renderRequirements,
+  renderRequirementsDev,
+} from "./render-python.js";
+import { BACKEND_DATABASES, isNative, type Backend } from "./templates.js";
 import {
   frontendAuthFiles,
   frontendInfo,
@@ -74,9 +85,9 @@ export async function templateFiles(
   };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
   const dialect =
-    answers.backend !== "gin" && usesPrisma(answers.database) ? answers.database : null;
+    !isNative(answers.backend) && usesPrisma(answers.database) ? answers.database : null;
   const adapt = (target: string, content: string) => {
-    if (answers.backend === "gin")
+    if (isNative(answers.backend))
       return target.startsWith("web/")
         ? withoutNotesExample(target, content)
         : adaptForGo(target, content, answers.module);
@@ -98,7 +109,7 @@ export async function templateFiles(
     // A derived database has its own migration (generated from its schema, scripts/sync-dialects.mjs).
     // The Go project keeps its schema in db/migrations: PostgreSQL's own, or the one derived for MySQL / SQLite.
     const goDialect =
-      answers.backend === "gin" &&
+      isNative(answers.backend) &&
       entry.target === "db/migrations" &&
       isDerivedDialect(answers.database)
         ? answers.database
@@ -112,7 +123,7 @@ export async function templateFiles(
     if (entry.directory) {
       for (const rel of await source.listDirectory(entrySource)) {
         if (isDemoFile(`${entry.target}/${rel}`)) continue;
-        // Prisma's lock file means nothing to the Go migration runner.
+        // Prisma's lock file means nothing to the Go or Python migration runner.
         if (goDialect && rel === "migration_lock.toml") continue;
         const path = place(rebase(`${entry.target}/${rel}`));
         if (path === null) continue;
@@ -272,7 +283,7 @@ export async function planInit(
   answers: InitAnswers,
   source: TemplateSource = templateSource(),
 ): Promise<PlannedFile[]> {
-  if (answers.backend === "gin") return planGin(answers, source);
+  if (isNative(answers.backend)) return planNative(answers, source);
   if (isWorkspace(answers)) return planWorkspace(answers, source);
   const files = await templateFiles(answers, source);
   const deps = stackDependencies(answers.database, answers.backend);
@@ -301,62 +312,103 @@ export async function planInit(
   return files;
 }
 
+/** The files that differ between a Go and a Python project, for planNative. */
+function nativeFiles(answers: InitAnswers) {
+  if (answers.backend === "flask") {
+    return {
+      gitignore: renderPythonGitignore(),
+      envExample: renderPythonEnvExample(answers),
+      readme: renderPythonReadme(answers),
+      rootPackageJson: renderPythonRootPackageJson(answers),
+      devServer: renderPythonDevServer(answers.appBaseUrl),
+      extra: [
+        {
+          path: "requirements.txt",
+          template: "rendered:requirements",
+          content: renderRequirements(answers),
+        },
+        {
+          path: "requirements-dev.txt",
+          template: "rendered:requirements-dev",
+          content: renderRequirementsDev(),
+        },
+        { path: "pytest.ini", template: "rendered:pytest-ini", content: renderPytestIni() },
+      ],
+    };
+  }
+  return {
+    gitignore: renderGoGitignore(),
+    envExample: renderEnvExample(answers),
+    readme: renderReadme(answers),
+    rootPackageJson: renderRootPackageJson(answers),
+    devServer: renderGoDevServer(answers.appBaseUrl),
+    extra: [],
+  };
+}
+
 /**
- * A Go (Gin) project: the Go application copied from the reference, plus its configuration,
- * environment example, README, .gitignore and manifest. No package.json (a frontend makes it a workspace: planGinWorkspace).
+ * A Go (Gin) or Python (Flask) project: the application copied from the reference, plus its
+ * configuration, environment example, README, .gitignore and manifest. No package.json (a
+ * frontend makes it a workspace: planNativeWorkspace).
  */
-async function planGin(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
-  if (!BACKEND_DATABASES.gin.includes(answers.database)) {
+async function planNative(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
+  const backend = answers.backend === "flask" ? "flask" : "gin";
+  if (!BACKEND_DATABASES[backend].includes(answers.database)) {
     throw new Error(
-      `The Gin backend supports ${BACKEND_DATABASES.gin.join(" and ")} (got '${answers.database}').`,
+      `The ${frameworkName(answers)} backend supports ${BACKEND_DATABASES[backend].join(" and ")} (got '${answers.database}').`,
     );
   }
-  const module = answers.module ?? answers.name;
-  const withModule = { ...answers, module };
-  if (answers.frontend !== "none") return planGinWorkspace(withModule, source);
+  // Only Go has a module path.
+  const withModule =
+    backend === "gin" ? { ...answers, module: answers.module ?? answers.name } : answers;
+  if (answers.frontend !== "none") return planNativeWorkspace(withModule, source);
+  const native = nativeFiles(answers);
   const files = await templateFiles(withModule, source);
   files.push(
-    { path: ".gitignore", template: "rendered:gitignore", content: renderGoGitignore() },
-    { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
-    { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
+    { path: ".gitignore", template: "rendered:gitignore", content: native.gitignore },
+    { path: ".env.example", template: "rendered:env-example", content: native.envExample },
+    { path: "README.md", template: "rendered:readme", content: native.readme },
     {
       path: "selfauth.config.json",
       template: "rendered:config",
       content: renderConfigJson(buildConfig(answers)),
     },
+    ...native.extra,
   );
   files.push(
-    buildManifest(withModule, files, await ownedResources(answers.database, source, "gin")),
+    buildManifest(withModule, files, await ownedResources(answers.database, source, backend)),
   );
   return files;
 }
 
 /**
- * A Go (Gin) API with a Vue or React frontend: the same shape as the Node full-stack projects.
- * The Go module is in server/, the frontend in client/, and a thin npm root runs both
- * (`npm run dev`). Each package has its own manifest.
+ * A Go (Gin) or Python (Flask) API with a Vue or React frontend: the same shape as the Node
+ * full-stack projects. The API is in server/, the frontend in client/, and a thin npm root runs
+ * both (`npm run dev`). Each package has its own manifest.
  */
-async function planGinWorkspace(
+async function planNativeWorkspace(
   answers: InitAnswers,
   source: TemplateSource,
 ): Promise<PlannedFile[]> {
   const frontend = answers.frontend as Exclude<InitAnswers["frontend"], "none">;
   const versions = await source.versions();
 
+  const native = nativeFiles(answers);
   const server = await templateFiles(answers, source, "project", "src", "server");
   server.push(
-    { path: ".gitignore", template: "rendered:gitignore", content: renderGoGitignore() },
-    { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
+    { path: ".gitignore", template: "rendered:gitignore", content: native.gitignore },
+    { path: ".env.example", template: "rendered:env-example", content: native.envExample },
     {
       path: "selfauth.config.json",
       template: "rendered:config",
       content: renderConfigJson(buildConfig(answers)),
     },
+    ...native.extra,
   );
   const serverManifest = buildManifest(
     answers,
     server,
-    await ownedResources(answers.database, source, "gin"),
+    await ownedResources(answers.database, source, answers.backend === "flask" ? "flask" : "gin"),
     "server",
     "src",
     WORKSPACE_STRUCTURE,
@@ -393,19 +445,19 @@ async function planGinWorkspace(
     {
       path: "package.json",
       template: "rendered:root-package.json",
-      content: renderRootPackageJson(answers),
+      content: native.rootPackageJson,
     },
     {
       path: "scripts/dev-server.mjs",
       template: "rendered:dev-server",
-      content: renderGoDevServer(answers.appBaseUrl),
+      content: native.devServer,
     },
     {
       path: ".gitignore",
       template: "rendered:gitignore",
       content: renderGitignore({ workspace: true }),
     },
-    { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
+    { path: "README.md", template: "rendered:readme", content: native.readme },
   ];
 }
 
