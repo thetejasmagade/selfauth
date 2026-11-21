@@ -5,7 +5,7 @@ Derived from the SelfAuth development plan. Phases are ordered by dependency.
 | Milestone | Phase | Status |
 | --- | --- | --- |
 | M0 — Product and Architecture | Phase 0 | ✅ ADRs 0001–0012, architecture, policies |
-| M1 — Authentication Specification | Phase 1 | 🟡 Draft spec 0.1 + conformance cases — **needs review** |
+| M1 — Authentication Specification | Phase 1 | 🟡 Draft spec 0.1 + conformance cases — **needs review** ([checklist](docs/spec-review.md)) |
 | M2 — Monorepo Foundation | Phase 2 | ✅ pnpm + Turborepo + TS + ESLint + Prettier + Vitest + CI + Changesets |
 | M3 — Express Reference Implementation | Phase 3 | ✅ All flows, 87/87 conformance cases (in-memory store) |
 | M4 — Database and Migration Adapters | Phase 4 | ✅ PostgreSQL + Prisma (87/87), migration orchestration; MongoDB pending |
