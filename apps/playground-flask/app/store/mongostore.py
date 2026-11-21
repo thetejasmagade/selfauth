@@ -27,7 +27,7 @@ from ..auth import store as st
 from ..auth.clock import from_millis, millis
 from ..auth.ratelimit import RateLimitRecord
 from ..auth.store import EmailTaken, EventRecord, SessionRecord, Store, TokenRecord, UserPatch, UserRecord
-from .dialect import DatabaseError
+from .errors import DatabaseError
 
 # Collection names (DATA_MODEL.md: the auth_ prefix, so nothing collides with the application's).
 USERS, SESSIONS, TOKENS, ROLES, EVENTS, RATE_LIMITS = (

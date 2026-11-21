@@ -16,12 +16,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Iterator, Sequence
 from urllib.parse import unquote, urlsplit
 
+from .errors import DatabaseError
+
 POSTGRES, MYSQL, SQLITE = "postgresql", "mysql", "sqlite"
 KINDS = (POSTGRES, MYSQL, SQLITE)
-
-
-class DatabaseError(Exception):
-    """The database could not be reached or is configured wrongly. The message is safe to show."""
 
 
 # ── dialects ──

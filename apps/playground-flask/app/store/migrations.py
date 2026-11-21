@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .dialect import MYSQL, POSTGRES, SQLITE, Database, DatabaseError, Tx
+from .dialect import MYSQL, POSTGRES, SQLITE, Database, Tx
+from .errors import DatabaseError
 
 #: Serializes concurrent migrators (two deploys starting at once).
 _PG_LOCK_KEY = 7262230001
