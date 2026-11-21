@@ -22,3 +22,10 @@ apps/*/.dialect/
 
 # VitePress cache
 website/.vitepress/cache/
+
+# Python (apps/playground-flask)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/

@@ -1,0 +1,17 @@
+{
+  "name": "@selfauth/playground-flask",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Flask (Python) reference application for SelfAuth. The Python code is the product; the TypeScript here only drives the language-neutral conformance suite against it.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "conformance": "vitest run",
+    "py:test": "python -m pytest -q"
+  },
+  "devDependencies": {
+    "@selfauth/conformance": "workspace:*",
+    "@selfauth/spec": "workspace:*"
+  }
+}
