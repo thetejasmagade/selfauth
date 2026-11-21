@@ -4,10 +4,11 @@
 useDefault = true
 
 [allowlist]
-description = "(1) The list of common passwords SelfAuth rejects (auth/core/common-passwords.ts, copied into the reference apps and templates): a public wordlist. (2) Sample verification tokens printed by throwaway local dev servers and quoted as example output in the docs (website/getting-started/first-flow.md, and chapter 2 of the Express, Fastify and Gin guides). They were never valid outside those runs."
+description = "(1) The list of common passwords SelfAuth rejects (auth/core/common-passwords.ts, copied into the reference apps and templates): a public wordlist. (2) Sample verification tokens printed by throwaway local dev servers and quoted as example output in the docs (website/getting-started/first-flow.md, and chapter 2 of the Express, Fastify, Gin and Flask guides). They were never valid outside those runs."
 paths = ['''(^|/)common-passwords\.ts$''']
 regexes = [
   '''I_zqMio5ZQj_3fWbS_2T4srUQmE_H6pQhBlrSj3FyoQ''',
   '''NQ3FSQXuhy8zERiGZZj60B6oqDKiu0KQ1F9qohuH-AQ''',
   '''-lTTHdiNdyM0GRMB76HyZukeiUVZm7okw-C2T91RyKI''',
+  '''eUWAyeCgb4hAtJU0YbVFuoFUUFDk37a_seIsIiX-kX8''',
 ]
