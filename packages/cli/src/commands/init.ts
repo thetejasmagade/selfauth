@@ -24,6 +24,8 @@ import {
   type Frontend,
 } from "../templates.js";
 import { fail, info, ok, say, warn } from "./output.js";
+import { banner, bold, box, command, dim, green, groupFiles, interactive } from "../ui.js";
+import { CLI_VERSION } from "../version.js";
 
 export interface InitOptions {
   backend?: string;
@@ -80,36 +82,45 @@ function databaseDriver(backend: Backend, database: Database): string {
 }
 
 /** What to do after a Flask project is created. */
+/** Prints one "next steps" line: commands are highlighted, notes after a blank line are dimmed. */
+function nextSay(line: string): void {
+  if (!interactive()) return say(line);
+  if (line.startsWith("\n")) return say(`\n  ${dim(line.slice(1))}`);
+  if (line.startsWith("  ")) return say(`  ${command(line.slice(2))}`);
+  say(line);
+}
+
 function flaskNextSteps(answers: InitAnswers, install: boolean): number {
   const database = hasDatabase(answers.database);
   const workspace = answers.frontend !== "none";
   const server = workspace ? "server/" : "";
   if (workspace) {
-    if (!install) say("  npm install               # installs the client (and the root scripts)");
-    say("  python3 -m venv server/.venv");
-    say(
+    if (!install)
+      nextSay("  npm install               # installs the client (and the root scripts)");
+    nextSay("  python3 -m venv server/.venv");
+    nextSay(
       `  server/.venv/bin/pip install -r server/requirements.txt   # Windows: server\\.venv\\Scripts\\pip`,
     );
-    say(`  cp server/.env.example server/.env${database ? "   # set DATABASE_URL" : ""}`);
-    if (database) say("  npm run db:migrate && npm run db:seed   # read the migration first");
-    say(
+    nextSay(`  cp server/.env.example server/.env${database ? "   # set DATABASE_URL" : ""}`);
+    if (database) nextSay("  npm run db:migrate && npm run db:seed   # read the migration first");
+    nextSay(
       `  npm run dev               # Flask API and ${answers.frontend} app together; open ${answers.appBaseUrl}`,
     );
   } else {
-    say(
+    nextSay(
       "  python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\\Scripts\\activate",
     );
-    say("  pip install -r requirements.txt");
-    say(`  cp .env.example .env${database ? "   # set DATABASE_URL" : ""}`);
+    nextSay("  pip install -r requirements.txt");
+    nextSay(`  cp .env.example .env${database ? "   # set DATABASE_URL" : ""}`);
     if (database) {
-      say(
+      nextSay(
         "  python -m app.cmd.migrate status && python -m app.cmd.migrate up   # read the migration first",
       );
-      say("  python -m app.cmd.seed");
+      nextSay("  python -m app.cmd.seed");
     }
-    say("  python -m app.cmd.server");
+    nextSay("  python -m app.cmd.server");
   }
-  say(
+  nextSay(
     `\nBefore production: implement create_mailer in ${server}app/mailer.py, then run \`npx selfauth doctor\`.`,
   );
   return 0;
@@ -177,7 +188,12 @@ async function run(
   prompter: Prompter | undefined,
 ): Promise<number> {
   if (prompter) {
-    say("SelfAuth: new project (Ctrl-C cancels; nothing is written until you confirm)\n");
+    if (interactive()) say(banner(CLI_VERSION));
+    say(
+      interactive()
+        ? `${bold("New project")} ${dim("· Ctrl-C cancels; nothing is written until you confirm")}\n`
+        : "SelfAuth: new project (Ctrl-C cancels; nothing is written until you confirm)\n",
+    );
   }
   let folder = dirArg;
   if (folder === undefined && prompter) {
@@ -212,6 +228,7 @@ async function run(
   }
   if (!project.empty) info("Directory is not empty; existing files will never be overwritten.");
 
+  if (options.backend === undefined) prompter?.section?.(1, 4, "Backend");
   const backend = (options.backend ??
     (prompter
       ? await prompter.select<Backend>(
@@ -235,6 +252,7 @@ async function run(
       : "express")) as Backend;
   const gin = backend === "gin";
   const flask = backend === "flask";
+  if (options.database === undefined) prompter?.section?.(2, 4, "Database");
   const database = (options.database ??
     (prompter
       ? await prompter.select<Database>(
@@ -275,6 +293,7 @@ async function run(
           "postgresql",
         )
       : "postgresql")) as Database;
+  if (options.frontend === undefined) prompter?.section?.(3, 4, "Frontend");
   const frontend = (options.frontend ??
     (prompter
       ? await prompter.select<Frontend>(
@@ -287,6 +306,7 @@ async function run(
           "none",
         )
       : "none")) as Frontend;
+  if (options.permissions === undefined) prompter?.section?.(4, 4, "Permissions");
   const permissions =
     options.permissions ??
     (prompter
@@ -345,10 +365,32 @@ async function run(
     return 1;
   }
 
-  say(
-    `\nPlan: create ${files.length} files (${backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : flask ? "Flask (Python)" : "Express"} + ${hasDatabase(database) ? `${DATABASE_INFO[database].label}/${databaseDriver(backend, database)}` : "in-memory store"}${frontend === "none" ? "" : ` + ${frontend} in client/`})`,
-  );
-  for (const f of files) say(`  + ${f.path}`);
+  const frameworkLabel =
+    backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : flask ? "Flask (Python)" : "Express";
+  const databaseLabel = hasDatabase(database)
+    ? `${DATABASE_INFO[database].label}/${databaseDriver(backend, database)}`
+    : "in-memory store";
+  const frontendLabel = frontend === "none" ? "" : ` + ${frontend} in client/`;
+  if (interactive() && prompter && !options.dryRun) {
+    say(
+      `\n${box(
+        [
+          `${dim("Backend ")}  ${bold(frameworkLabel)}`,
+          `${dim("Database")}  ${bold(databaseLabel)}`,
+          `${dim("Frontend")}  ${bold(frontend === "none" ? "none (API only)" : frontend)}`,
+          `${dim("Files   ")}  ${bold(String(files.length))} ${dim(`in ${dir}`)}`,
+        ],
+        "Your project",
+      )}\n`,
+    );
+    for (const line of groupFiles(files.map((f) => f.path))) say(`  ${line}`);
+    say();
+  } else {
+    say(
+      `\nPlan: create ${files.length} files (${frameworkLabel} + ${databaseLabel}${frontendLabel})`,
+    );
+    for (const f of files) say(`  + ${f.path}`);
+  }
   if (options.dryRun) {
     say("\nDry run: nothing written.");
     return 0;
@@ -384,62 +426,65 @@ async function run(
   }
 
   const cd = relative(process.cwd(), dir) || ".";
-  say("\nNext steps:");
-  if (cd !== ".") say(`  cd ${cd}`);
+  say(interactive() ? `\n${green("✔")} ${bold("Next steps")}` : "\nNext steps:");
+  if (cd !== ".") nextSay(`  cd ${cd}`);
   if (flask) return flaskNextSteps(answers, install);
   if (gin && frontend !== "none") {
-    if (!install) say("  npm install               # installs the client (and the root scripts)");
-    say(
+    if (!install)
+      nextSay("  npm install               # installs the client (and the root scripts)");
+    nextSay(
       "  cp server/.env.example server/.env" +
         (hasDatabase(database) ? "   # set DATABASE_URL" : ""),
     );
     if (hasDatabase(database)) {
-      say("  npm run db:migrate && npm run db:seed   # read the migration first");
+      nextSay("  npm run db:migrate && npm run db:seed   # read the migration first");
     }
-    say(
+    nextSay(
       `  npm run dev               # Go API and ${frontend} app together; open ${answers.appBaseUrl}`,
     );
-    say(
+    nextSay(
       "\nBefore production: implement NewMailer in server/internal/email/mailer.go, then run `npx selfauth doctor`.",
     );
     return 0;
   }
   if (gin) {
-    say(
+    nextSay(
       `  export SELFAUTH_APP_BASE_URL=${answers.appBaseUrl}   # the server reads the environment, not .env`,
     );
     if (hasDatabase(database)) {
-      say("  export DATABASE_URL=...   # see .env.example");
-      say("  go run ./cmd/migrate status && go run ./cmd/migrate up   # read the migration first");
-      say("  go run ./cmd/seed");
+      nextSay("  export DATABASE_URL=...   # see .env.example");
+      nextSay(
+        "  go run ./cmd/migrate status && go run ./cmd/migrate up   # read the migration first",
+      );
+      nextSay("  go run ./cmd/seed");
     }
-    say("  go run ./cmd/server");
-    say(
+    nextSay("  go run ./cmd/server");
+    nextSay(
       "\nBefore production: implement NewMailer in internal/email/mailer.go, then run `npx selfauth doctor`.",
     );
     return 0;
   }
   const ws = frontend !== "none";
   if (!install)
-    say(ws ? "  npm install               # installs server/ and client/" : "  npm install");
-  say(
+    nextSay(ws ? "  npm install               # installs server/ and client/" : "  npm install");
+  nextSay(
     `  cp ${ws ? "server/.env.example server/.env" : ".env.example .env"}` +
       (hasDatabase(database) ? "   # set DATABASE_URL" : ""),
   );
   if (hasDatabase(database)) {
-    say(
+    nextSay(
       database === "mongodb"
         ? "  npx selfauth db plan      # show the indexes db:migrate would create"
         : "  npx selfauth db plan      # review the migration first",
     );
-    say("  npm run db:migrate && npm run db:seed");
+    nextSay("  npm run db:migrate && npm run db:seed");
   }
-  say(
+  nextSay(
     ws
       ? `  npm run dev               # API and ${frontend} app together; open ${answers.appBaseUrl}`
       : "  npm run dev",
   );
-  say(
+  nextSay(
     `\nBefore production: implement createMailer() in ${ws ? "server/" : ""}src/email/mailer.ts, then run \`npx selfauth doctor\`.`,
   );
   return 0;

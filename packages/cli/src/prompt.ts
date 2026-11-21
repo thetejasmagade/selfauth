@@ -22,6 +22,8 @@ export interface TextOptions {
 
 /** The questions `selfauth init` asks. Tests supply their own implementation. */
 export interface Prompter {
+  /** Optional: prints a "Step n of m" heading before a question (terminals only). */
+  section?(index: number, total: number, title: string): void;
   select<T extends string>(question: string, choices: Choice<T>[], initial: T): Promise<T>;
   text(question: string, options?: TextOptions): Promise<string>;
   confirm(question: string, initial?: boolean): Promise<boolean>;
@@ -43,6 +45,7 @@ export function createPrompter(
   const dim = (text: string) => (tty ? `\x1b[2m${text}\x1b[22m` : text);
   const bold = (text: string) => (tty ? `\x1b[1m${text}\x1b[22m` : text);
   const green = (text: string) => (tty ? `\x1b[32m${text}\x1b[39m` : text);
+  const cyan = (text: string) => (tty ? `\x1b[36m${text}\x1b[39m` : text);
 
   function select<T extends string>(
     question: string,
@@ -151,5 +154,9 @@ export function createPrompter(
     }
   }
 
-  return { select, text, confirm };
+  function section(index: number, total: number, title: string): void {
+    if (tty) output.write(`\n${cyan(`${index}/${total}`)} ${bold(title)}\n`);
+  }
+
+  return { select, text, confirm, section };
 }

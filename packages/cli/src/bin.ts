@@ -10,6 +10,7 @@ import { list } from "./commands/list.js";
 import { skillInstall } from "./commands/skill.js";
 import { diffCommand, upgrade } from "./commands/upgrade.js";
 import { validate } from "./commands/validate.js";
+import { banner, interactive } from "./ui.js";
 import { CLI_VERSION } from "./version.js";
 
 const program = new Command()
@@ -18,6 +19,9 @@ const program = new Command()
     "Generate project-local authentication you own. Nothing here runs in your app at runtime.",
   )
   .version(CLI_VERSION);
+
+// On a terminal, `selfauth --help` starts with the banner; pipes and scripts get the plain help.
+if (interactive()) program.addHelpText("beforeAll", banner(CLI_VERSION));
 
 const exit = (code: number) => {
   process.exitCode = code;
