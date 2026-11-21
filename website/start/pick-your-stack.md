@@ -1,7 +1,7 @@
 ---
 title: Pick your stack
 description: Choose a backend, a database and a frontend for your SelfAuth project, see what you need installed, and find the guide to follow.
-keywords: [choose stack, express, fastify, gin, postgresql, mysql, sqlite, mongodb, vue, react, prerequisites]
+keywords: [choose stack, express, fastify, gin, flask, python, postgresql, mysql, sqlite, mongodb, vue, react, prerequisites]
 ---
 
 # Pick your stack
@@ -15,6 +15,7 @@ You make three choices when you create a project. You can't easily change them l
 | **Express** | You write JavaScript or TypeScript and want the most common choice. Start here if you're unsure. |
 | **Fastify** | You write TypeScript and already like Fastify. |
 | **Gin** | You write Go. |
+| **Flask** | You write Python. |
 
 ## Database
 
@@ -43,6 +44,7 @@ With a frontend, your project has two folders: `server/` for the API and `client
 | --- | --- |
 | Express or Fastify | [Node.js](https://nodejs.org) 22.18 or newer. Check with `node --version`. |
 | Gin | [Go](https://go.dev/dl/) 1.26 or newer, and Node.js 22.18 or newer to run the `selfauth` command |
+| Flask | [Python](https://www.python.org/downloads/) 3.11 or newer, and Node.js 22.18 or newer to run the `selfauth` command |
 | PostgreSQL, MySQL or MongoDB | A running database server and an empty database. SQLite needs nothing. |
 
 ## Your guide
@@ -52,3 +54,4 @@ Each guide builds the same small app from start to finish: a notes app where peo
 - [Express guide](/express/)
 - [Fastify guide](/fastify/)
 - [Gin (Go) guide](/gin/)
+- [Flask (Python) guide](/flask/)

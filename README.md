@@ -46,6 +46,7 @@ selfauth/
 ├── apps/playground/    Express reference implementation (memory or PostgreSQL)
 ├── apps/playground-fastify/  Fastify reference implementation (same core, Fastify adapter)
 ├── apps/playground-gin/  Gin (Go) reference implementation (a Go port of the core, pgx or in-memory)
+├── apps/playground-flask/  Flask (Python) reference implementation (a Python port of the core, every database)
 ├── apps/playground-vue/   Vue 3 reference frontend
 ├── apps/playground-react/ React reference frontend
 ├── apps/e2e/            One Playwright spec run against both frontends and both backends

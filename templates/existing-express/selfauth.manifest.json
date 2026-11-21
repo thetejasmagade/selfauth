@@ -44,7 +44,7 @@
     {
       "path": "src/selfauth/auth/types.ts",
       "template": "express:apps/playground/src/auth/types.ts",
-      "sha256": "ed8309317b5f31263e65c8e9c44b7e237bb04101b063e2264b087ac2a0dc25ce"
+      "sha256": "c8e8efdbcde6aa0be6f82a3ead278f163b070df5bc8fa663710ba686aa2a3888"
     },
     {
       "path": "src/selfauth/auth/index.ts",

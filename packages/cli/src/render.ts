@@ -41,7 +41,7 @@ export function appBaseUrlProblem(value: string): string | null {
   }
 }
 
-function checkedBaseUrl(value: string): string {
+export function checkedBaseUrl(value: string): string {
   const problem = appBaseUrlProblem(value);
   if (problem) throw new Error(`invalid app base URL: ${problem}`);
   return value;
@@ -100,7 +100,13 @@ export function renderConfigJson(config: SelfAuthConfig): string {
 }
 
 export const frameworkName = (answers: Pick<InitAnswers, "backend">) =>
-  answers.backend === "fastify" ? "Fastify" : answers.backend === "gin" ? "Gin" : "Express";
+  answers.backend === "fastify"
+    ? "Fastify"
+    : answers.backend === "gin"
+      ? "Gin"
+      : answers.backend === "flask"
+        ? "Flask"
+        : "Express";
 
 /** Full-stack projects (a frontend was chosen) are two packages in an npm workspace. */
 export const isWorkspace = (answers: Pick<InitAnswers, "frontend">) => answers.frontend !== "none";

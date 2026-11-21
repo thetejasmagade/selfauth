@@ -6,7 +6,7 @@ keywords: [http api, rest, /auth/login, /auth/register, csrf, cookies, endpoints
 
 # HTTP API
 
-These are the routes the generated Express, Fastify and Gin backends serve under `http.basePath` (`/auth` by default), and they behave the same on all three. The normative behavior is in the [authentication specification](https://github.com/thetejasmagade/selfauth/blob/main/packages/spec/specs/AUTHENTICATION_SPEC.md). This page is the practical version. A test in the SelfAuth repository checks that the routes listed below match what the server really registers.
+These are the routes the generated Express, Fastify, Gin and Flask backends serve under `http.basePath` (`/auth` by default), and they behave the same on all four. The normative behavior is in the [authentication specification](https://github.com/thetejasmagade/selfauth/blob/main/packages/spec/specs/AUTHENTICATION_SPEC.md). This page is the practical version. A test in the SelfAuth repository checks that the routes listed below match what the server really registers.
 
 ## Conventions
 

@@ -79,7 +79,7 @@ export const selfAuthConfigSchema = z
       .regex(/^\d+\.\d+$/)
       .default(SPEC_VERSION),
     adapter: z.strictObject({
-      backend: z.enum(["express", "fastify", "gin"]),
+      backend: z.enum(["express", "fastify", "gin", "flask"]),
       frontend: z.enum(["vue", "react", "none"]).default("none"),
       database: z.enum(["postgresql", "mysql", "sqlite", "mongodb", "memory"]),
       orm: z.enum(["prisma", "mongoose", "none"]),
@@ -265,8 +265,11 @@ export const selfAuthConfigSchema = z
       .prefault({}),
   })
   .superRefine((c, ctx) => {
-    // A Go backend uses no ORM; every other backend pairs each database with its ORM.
-    const expectedOrm = c.adapter.backend === "gin" ? "none" : ADAPTER_PAIRS[c.adapter.database];
+    // A Go or Python backend uses no ORM; every other backend pairs each database with its ORM.
+    const expectedOrm =
+      c.adapter.backend === "gin" || c.adapter.backend === "flask"
+        ? "none"
+        : ADAPTER_PAIRS[c.adapter.database];
     if (expectedOrm !== c.adapter.orm) {
       ctx.addIssue({
         code: "custom",

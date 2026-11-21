@@ -1,8 +1,8 @@
 ---
 layout: home
 title: SelfAuth documentation
-description: SelfAuth writes sign-up, sign-in, sessions, roles and permissions into your own project as code you own. Step-by-step guides for Express, Fastify and Gin, from the first command to production.
-keywords: [authentication, authorization, express, fastify, gin, vue, react, postgresql, generator]
+description: SelfAuth writes sign-up, sign-in, sessions, roles and permissions into your own project as code you own. Step-by-step guides for Express, Fastify, Gin and Flask, from the first command to production.
+keywords: [authentication, authorization, express, fastify, gin, flask, vue, react, postgresql, generator]
 
 hero:
   name: SelfAuth
@@ -32,7 +32,7 @@ features:
     link: /express/
     linkText: Express guide
   - title: Your stack
-    details: Express, Fastify or Gin (Go). PostgreSQL, MySQL, SQLite or MongoDB. A Vue or React frontend if you want one.
+    details: Express, Fastify, Gin (Go) or Flask (Python). PostgreSQL, MySQL, SQLite or MongoDB. A Vue or React frontend if you want one.
     link: /start/pick-your-stack
     linkText: Pick your stack
   - title: Let your AI agent do it
@@ -50,6 +50,7 @@ features:
 | Have your AI coding agent set it up | [Use with an AI agent](/ai/) |
 | Build an app step by step | The [Express](/express/), [Fastify](/fastify/) or [Gin](/gin/) guide |
 | Add your own table and migrate the database | [Add a table](/express/add-a-table) |
+| Send real email through Resend, Postmark, SendGrid, Mailgun, Brevo or Amazon SES | [Email providers](/email/) |
 | Add SelfAuth to a project you already have | [`selfauth add`](/reference/cli/add) |
 | Fix an error message | [Troubleshooting](/help/troubleshooting) |
 

@@ -77,6 +77,7 @@ export function hasFlatLayout(manifest: Manifest | null): boolean {
  */
 export function projectPath(manifest: Manifest | null, target: string): string {
   if (isGoProject(manifest)) return GO_PATHS[target] ?? target;
+  if (isPythonProject(manifest)) return PYTHON_PATHS[target] ?? target;
   const own = hasFlatLayout(manifest) ? (FLAT_LAYOUT[target] ?? target) : target;
   return manifest?.options?.layout === "add" ? addLayoutPath(own, manifest.options.srcDir) : own;
 }
@@ -87,16 +88,30 @@ const GO_PATHS: Record<string, string> = {
   "src/email/mailer.ts": "internal/email/mailer.go",
 };
 
+/** Where a Python (Flask) project keeps the file that implements `target`'s role. */
+const PYTHON_PATHS: Record<string, string> = {
+  "src/config/selfauth.config.ts": "selfauth.config.json",
+  "src/email/mailer.ts": "app/mailer.py",
+};
+
 /** True for a Go project (its manifest says `backend: gin`). */
 export const isGoProject = (manifest: Manifest | null): boolean =>
   manifest?.options?.backend === "gin";
+
+/** True for a Python project (its manifest says `backend: flask`). */
+export const isPythonProject = (manifest: Manifest | null): boolean =>
+  manifest?.options?.backend === "flask";
+
+/** True for a project that is not Node: its configuration is selfauth.config.json. */
+export const isNativeProject = (manifest: Manifest | null): boolean =>
+  isGoProject(manifest) || isPythonProject(manifest);
 
 /** Imports the project's selfauth.config.ts (Node ≥ 22.18 runs TypeScript directly) and validates it. */
 export async function loadConfig(
   dir: string,
   manifest: Manifest | null = null,
 ): Promise<{ config?: SelfAuthConfig; errors: string[] }> {
-  if (isGoProject(manifest)) return loadJsonConfig(dir);
+  if (isNativeProject(manifest)) return loadJsonConfig(dir);
   const relativePath = projectPath(manifest, "src/config/selfauth.config.ts");
   const path = join(dir, relativePath);
   if (!existsSync(path)) return { errors: [`${relativePath} not found`] };

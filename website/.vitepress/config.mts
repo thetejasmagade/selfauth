@@ -82,6 +82,37 @@ const sidebar: DefaultTheme.Sidebar = [
     ],
   },
   {
+    text: "Flask (Python) guide",
+    collapsed: true,
+    items: [
+      { text: "Overview", link: "/flask/" },
+      { text: "1. Create your project", link: "/flask/create-project" },
+      { text: "2. Run it and sign in", link: "/flask/run-and-sign-in" },
+      { text: "3. Find your way around", link: "/flask/project-tour" },
+      { text: "4. Add endpoints", link: "/flask/endpoints" },
+      { text: "5. Add permissions", link: "/flask/permissions" },
+      { text: "6. Add a table and the notes endpoints", link: "/flask/notes" },
+      { text: "7. Change a table later", link: "/flask/change-a-table" },
+      { text: "8. Test your endpoints", link: "/flask/tests" },
+      { text: "9. Get ready for production", link: "/flask/production" },
+    ],
+  },
+  {
+    text: "Email providers",
+    collapsed: true,
+    items: [
+      { text: "Send real email", link: "/email/" },
+      { text: "Resend", link: "/email/resend" },
+      { text: "Postmark", link: "/email/postmark" },
+      { text: "SendGrid", link: "/email/sendgrid" },
+      { text: "Mailgun", link: "/email/mailgun" },
+      { text: "Brevo", link: "/email/brevo" },
+      { text: "SMTP and Amazon SES", link: "/email/smtp" },
+      { text: "A provider that isn't listed", link: "/email/other-providers" },
+      { text: "Test your mailer", link: "/email/testing" },
+    ],
+  },
+  {
     text: "Reference",
     collapsed: true,
     items: [
@@ -99,6 +130,7 @@ const sidebar: DefaultTheme.Sidebar = [
       { text: "Error codes", link: "/reference/errors" },
       { text: "Server API (TypeScript)", link: "/reference/server-typescript" },
       { text: "Server API (Go)", link: "/reference/server-go" },
+      { text: "Server API (Python)", link: "/reference/server-python" },
       { text: "Client API (Vue and React)", link: "/reference/client" },
     ],
   },
@@ -157,12 +189,14 @@ export default withMermaid(
       nav: [
         { text: "Start here", link: "/start/what-is-selfauth", activeMatch: "/start/" },
         { text: "AI agent", link: "/ai/", activeMatch: "/ai/" },
+        { text: "Email", link: "/email/", activeMatch: "/email/" },
         {
           text: "Guides",
           items: [
             { text: "Express", link: "/express/" },
             { text: "Fastify", link: "/fastify/" },
             { text: "Gin (Go)", link: "/gin/" },
+            { text: "Flask (Python)", link: "/flask/" },
           ],
         },
         {

@@ -98,7 +98,9 @@ export async function inspect(dirArg: string): Promise<DetectReport> {
     const blockers = project.otherLanguages.map((l) =>
       l === "go"
         ? "this looks like a Go project; existing Go projects are not supported (a new Gin project: `selfauth init --backend gin`)"
-        : `this looks like a ${l} project; only Node.js with Express or Fastify is supported`,
+        : l === "python"
+          ? "this looks like a Python project; existing Python projects are not supported (a new Flask project: `selfauth init --backend flask`)"
+          : `this looks like a ${l} project; only Node.js with Express or Fastify is supported`,
     );
     return {
       ...base,

@@ -25,8 +25,10 @@ const exit = (code: number) => {
 
 program
   .command("init [dir]")
-  .description("generate a new Express, Fastify or Gin (Go) project with SelfAuth authentication")
-  .option("--backend <framework>", "express | fastify | gin (default: express)")
+  .description(
+    "generate a new Express, Fastify, Gin (Go) or Flask (Python) project with SelfAuth authentication",
+  )
+  .option("--backend <framework>", "express | fastify | gin | flask (default: express)")
   .option("--database <db>", "postgresql | mysql | sqlite | mongodb | memory")
   .option("--frontend <fw>", "none | vue | react (generated into client/)")
   .option(

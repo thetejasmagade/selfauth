@@ -33,7 +33,7 @@ npx selfauth --version
 
 | Command | What it does | Writes files? |
 | --- | --- | :---: |
-| [`init [dir]`](./init) | Create a new project (Express, Fastify or Gin) | yes |
+| [`init [dir]`](./init) | Create a new project (Express, Fastify, Gin or Flask) | yes |
 | [`add [dir]`](./add) | Add SelfAuth to an existing Express or Fastify project | yes (new files only) |
 | [`add-frontend [dir]`](./add#selfauth-add-frontend) | Add the auth module to an existing Vue or React app | yes (new files only) |
 | [`detect [dir]`](./inspect#selfauth-detect) | Inspect a project and recommend the right command | no |

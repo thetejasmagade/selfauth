@@ -131,7 +131,29 @@ function goChecks(where: string): void {
     test.status === 0 ? "" : tail(test.stdout + test.stderr),
   );
 }
+// A Python (Flask) project has no package.json either: run its tests with pytest, in its virtual
+// environment (.venv) when it has one.
+function pythonChecks(where: string): void {
+  if (!existsSync(join(where, "app", "wsgi.py")) || !existsSync(join(where, "requirements.txt")))
+    return;
+  if (argv.includes("--skip-tests")) {
+    add("backend: pytest", "SKIPPED", "--skip-tests");
+    return;
+  }
+  const windows = process.platform === "win32";
+  const venv = join(where, ".venv", windows ? "Scripts/python.exe" : "bin/python");
+  const python = existsSync(venv) ? venv : windows ? "python" : "python3";
+  const test = run([python, "-m", "pytest", "-q"], where);
+  add(
+    "backend: pytest",
+    test.status === 0 ? "PASS" : "FAIL",
+    test.status === 0
+      ? ""
+      : `${tail(test.stdout + test.stderr)}\n(create the virtual environment first: python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt)`,
+  );
+}
 goChecks(dir);
+pythonChecks(dir);
 const workspace = Boolean(readPackageJson(dir)?.workspaces);
 projectScripts(dir, workspace ? "workspace" : "backend");
 if (!workspace && existsSync(join(dir, "web", "package.json")))

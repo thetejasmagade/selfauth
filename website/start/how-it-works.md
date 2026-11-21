@@ -43,7 +43,7 @@ flowchart LR
 
 | What | Where |
 | --- | --- |
-| Settings: roles, permissions, password rules, session length | The configuration file (`selfauth.config.ts`, or `selfauth.config.json` for Gin) |
+| Settings: roles, permissions, password rules, session length | The configuration file (`selfauth.config.ts`, or `selfauth.config.json` for Gin and Flask) |
 | Secrets and addresses | Environment variables, in `.env` during development |
 | Your routes | `src/routes/` (Gin: `internal/routes/`) |
 | SelfAuth's own code | `src/auth/` (Gin: `internal/auth/` and `internal/ginauth/`). You read it, but you don't need to change it. |

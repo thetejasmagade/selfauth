@@ -111,7 +111,7 @@ Then do three things yourself before committing:
 
 Sometimes it stops and says no. That's the skill working. Common cases:
 
-- "That framework isn't supported." SelfAuth supports Express, Fastify and Gin. Check [Choose your stack](/start/pick-your-stack).
+- "That framework isn't supported." SelfAuth supports Express, Fastify, Gin and Flask. Check [Choose your stack](/start/pick-your-stack).
 - "The CLI can't generate that." It won't hand-write password hashing, tokens or CSRF code. If you need something SelfAuth doesn't do, like social login, that's not available yet.
 - "I need your approval first." Destructive migrations and replacing existing auth always wait for you.
 

@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -9,7 +10,7 @@ import {
 } from "@selfauth/migration";
 import { databaseUrlProblems, readDatabaseEnv } from "../database-env.js";
 import { DATABASE_INFO, type Database } from "../templates.js";
-import { databaseDir, loadManifest } from "../project.js";
+import { databaseDir, isNativeProject, isPythonProject, loadManifest } from "../project.js";
 import { fail, info, ok, say, warn } from "./output.js";
 
 /** The last lines of a tool's output, indented, for a failure message. */
@@ -72,21 +73,30 @@ function runMongoScript(dir: string, args: string[], env: NodeJS.ProcessEnv): nu
   return 0;
 }
 
+/** The python that runs a Flask project: its virtual environment when it has one, else the system's. */
+function pythonFor(dir: string): string {
+  const windows = process.platform === "win32";
+  const venv = join(dir, ".venv", windows ? "Scripts/python.exe" : "bin/python");
+  return existsSync(venv) ? venv : windows ? "python" : "python3";
+}
+
 /**
- * Go projects have their own small migration runner (cmd/migrate): `status` and `migrate` run it,
- * `plan` shows what it would apply. It is plain SQL files, so `validate`/`generate`/`rollback`
- * have nothing to orchestrate and say so.
+ * Go and Python projects have their own small migration runner (cmd/migrate, app.cmd.migrate):
+ * `status` and `migrate` run it, `plan` shows what it would apply. It is plain SQL files, so
+ * `validate`/`generate`/`rollback` have nothing to orchestrate and say so.
  */
-async function goDb(
+async function nativeDb(
   dir: string,
   command: string,
   database: Database,
   options: { manifest: Manifest; approveDestructive: boolean },
 ): Promise<number> {
+  const python = isPythonProject(options.manifest);
+  const language = python ? "Python" : "Go";
   if (!["status", "plan", "migrate"].includes(command)) {
     info(
       command === "validate"
-        ? "Go projects keep plain SQL migrations in db/migrations; `selfauth validate` checks the generated files."
+        ? `${language} projects keep plain SQL migrations in db/migrations; \`selfauth validate\` checks the generated files.`
         : command === "rollback"
           ? "There is no automatic rollback: restore from a backup, or add a new migration that reverses the change."
           : "Add a new directory under db/migrations/ with a migration.sql file, then run `selfauth db migrate`.",
@@ -109,15 +119,24 @@ async function goDb(
   }
   const env = { ...process.env, DATABASE_URL: found.url };
   const goRun = (args: string[], capture: boolean) =>
-    spawnSync("go", ["run", "./cmd/migrate", ...args], {
-      cwd: dir,
-      env,
-      encoding: "utf8",
-      stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
-    });
+    spawnSync(
+      ...((python
+        ? [pythonFor(dir), ["-m", "app.cmd.migrate", ...args]]
+        : ["go", ["run", "./cmd/migrate", ...args]]) as [string, string[]]),
+      {
+        cwd: dir,
+        env,
+        encoding: "utf8",
+        stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit",
+      },
+    );
   const missingGo = (r: ReturnType<typeof goRun>) => {
     if (!r.error) return false;
-    fail("Could not run `go` (is Go installed and on your PATH?).");
+    fail(
+      python
+        ? "Could not run `python` (is Python 3.11+ installed, and the project's virtual environment created in .venv?)."
+        : "Could not run `go` (is Go installed and on your PATH?).",
+    );
     return true;
   };
 
@@ -180,8 +199,8 @@ export async function db(
     fail("not a SelfAuth project (selfauth.manifest.json not found)");
     return 1;
   }
-  if (manifest.options?.backend === "gin" && manifest.database.type !== "memory") {
-    return goDb(dir, command, manifest.database.type as Database, {
+  if (isNativeProject(manifest) && manifest.database.type !== "memory") {
+    return nativeDb(dir, command, manifest.database.type as Database, {
       manifest,
       approveDestructive: Boolean(args.approveDestructive),
     });

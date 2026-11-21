@@ -137,7 +137,7 @@
     },
     {
       "source": "/build/email",
-      "destination": "/express/production",
+      "destination": "/email/",
       "permanent": true
     },
     {
