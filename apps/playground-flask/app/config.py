@@ -204,7 +204,7 @@ class Config:
 
         a = self.adapter
         one_of("adapter.backend", a.backend, "express", "fastify", "gin", "flask")
-        one_of("adapter.frontend", a.frontend, "vue", "react", "none")
+        one_of("adapter.frontend", a.frontend, "vue", "react", "next", "none")
         one_of("adapter.database", a.database, "postgresql", "mysql", "sqlite", "mongodb", "memory")
         orm = {"postgresql": "prisma", "mysql": "prisma", "sqlite": "prisma", "mongodb": "mongoose", "memory": "none"}.get(a.database, "")
         if a.backend in ("gin", "flask"):

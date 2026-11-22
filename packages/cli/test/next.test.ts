@@ -427,6 +427,47 @@ describe("a Next.js frontend for another backend", () => {
   );
 });
 
+describe("the Go and Python references accept every frontend the CLI can generate", () => {
+  // `init --backend gin|flask --frontend next` writes the frontend into the project's own
+  // configuration, and the server refuses to start with a value its validator does not know.
+  const FRONTENDS = ["none", "vue", "react", "next"];
+  const allowed = async (file: string, pattern: RegExp) => {
+    const source = await readFile(join(REPO, file), "utf8");
+    const line = pattern.exec(source)?.[0] ?? "";
+    return FRONTENDS.filter((f) => line.includes(`"${f}"`));
+  };
+
+  it("in the Gin configuration validator", async () => {
+    expect(
+      await allowed("apps/playground-gin/internal/config/config.go", /oneOf\("adapter.frontend".*/),
+    ).toEqual(FRONTENDS);
+  });
+
+  it("in the Flask configuration validator", async () => {
+    expect(
+      await allowed("apps/playground-flask/app/config.py", /one_of\("adapter.frontend".*/),
+    ).toEqual(FRONTENDS);
+  });
+
+  it("so the configuration init writes for each backend and frontend is the one the server reads", async () => {
+    for (const backend of ["gin", "flask"] as const) {
+      for (const frontend of ["vue", "react", "next"] as const) {
+        const files = await planInit(
+          answers("memory", {
+            backend,
+            frontend,
+            name: "shop",
+            appBaseUrl: "http://localhost:5175",
+            ...(backend === "gin" ? { module: "shop" } : {}),
+          }),
+        );
+        const config = JSON.parse(text(files, "server/selfauth.config.json"));
+        expect(config.adapter.frontend, `${backend} + ${frontend}`).toBe(frontend);
+      }
+    }
+  });
+});
+
 describe("selfauth init, add and list", () => {
   it("offers Next.js for new projects, as the backend and as the frontend", () => {
     const backend = INTEGRATIONS.find((i) => i.kind === "backend" && i.id === "next")!;

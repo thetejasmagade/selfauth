@@ -360,6 +360,7 @@ jobs:
           - { database: mongodb, frontend: vue }
           - { database: postgresql, frontend: react }
           - { database: sqlite, frontend: react }
+          - { database: memory, frontend: next }
     services:
       postgres:
         image: postgres:16
@@ -554,6 +555,7 @@ jobs:
           - { database: mongodb, frontend: vue }
           - { database: postgresql, frontend: react }
           - { database: sqlite, frontend: react }
+          - { database: sqlite, frontend: next }
     services:
       postgres:
         image: postgres:16
