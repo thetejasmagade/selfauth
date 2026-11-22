@@ -1,0 +1,235 @@
+{
+  "toolkit": "selfauth",
+  "version": "0.18.0",
+  "templateVersion": "0.18.0",
+  "specVersion": "0.1",
+  "database": {
+    "type": "postgresql",
+    "orm": "prisma"
+  },
+  "ownedResources": {
+    "tables": [
+      "auth_users",
+      "auth_credentials",
+      "auth_sessions",
+      "auth_roles",
+      "auth_permissions",
+      "auth_user_roles",
+      "auth_role_permissions",
+      "auth_password_reset_tokens",
+      "auth_email_verification_tokens",
+      "auth_security_events",
+      "auth_rate_limits"
+    ],
+    "types": [
+      "auth_account_state",
+      "auth_credential_type",
+      "auth_session_revoked_reason",
+      "auth_event_outcome"
+    ],
+    "migrations": [
+      "20261116085533_selfauth_init"
+    ]
+  },
+  "options": {
+    "layout": "server",
+    "srcDir": "src",
+    "structure": 3,
+    "backend": "express",
+    "frontend": "next",
+    "permissions": [],
+    "appBaseUrl": "http://localhost:5175"
+  },
+  "files": [
+    {
+      "path": "src/auth/types.ts",
+      "template": "express:apps/playground/src/auth/types.ts",
+      "sha256": "63e31636b94d93bf552d3a4138ac3d9120277d31288f60d7f56299e15b67029c"
+    },
+    {
+      "path": "src/auth/index.ts",
+      "template": "express:apps/playground/src/auth/index.ts",
+      "sha256": "738fa3dfc21716460128bf86801d1f56c83d9d3650427862dc916dfa847d4627"
+    },
+    {
+      "path": "src/auth/core/authorization.ts",
+      "template": "express:apps/playground/src/auth/core/authorization.ts",
+      "sha256": "aebe7f998d39ac8dcfb248548234fba376c5f7a7e71265c3aa18528fd05c47ea"
+    },
+    {
+      "path": "src/auth/core/clock.ts",
+      "template": "express:apps/playground/src/auth/core/clock.ts",
+      "sha256": "c458b5ddd0367eb6ba3e6607fe92d5350ca092ec1e29082905a78633ab64190b"
+    },
+    {
+      "path": "src/auth/core/common-passwords.ts",
+      "template": "express:apps/playground/src/auth/core/common-passwords.ts",
+      "sha256": "14ad1596f604775ecb905c7123d1db1d48b7e1a2d4d953d0efb4a9aa19367769"
+    },
+    {
+      "path": "src/auth/core/crypto.ts",
+      "template": "express:apps/playground/src/auth/core/crypto.ts",
+      "sha256": "585c48e5c5da8fb5cb60d33c259188badd7dc670383cf5ca2c33b0d3f2b29c73"
+    },
+    {
+      "path": "src/auth/core/email.ts",
+      "template": "express:apps/playground/src/auth/core/email.ts",
+      "sha256": "e8b7f338527bf217121d8e00ef3efadb5067b44f82da1a330593531c1bd0cb9a"
+    },
+    {
+      "path": "src/auth/core/errors.ts",
+      "template": "express:apps/playground/src/auth/core/errors.ts",
+      "sha256": "3654e68fd7b47abc54554e09d45a814c6dcec8b7190f7bd2e50259a8369f9e69"
+    },
+    {
+      "path": "src/auth/core/logger.ts",
+      "template": "express:apps/playground/src/auth/core/logger.ts",
+      "sha256": "2e2f902dd362c079b556893e3a48a511bfe5e9f801c182d4d50f62dc6ed55c68"
+    },
+    {
+      "path": "src/auth/core/mailer.ts",
+      "template": "express:apps/playground/src/auth/core/mailer.ts",
+      "sha256": "54458066144b229085cda5cd116f0a9d6465c73f9481552f1b45e3c537ce7aa2"
+    },
+    {
+      "path": "src/auth/core/password.ts",
+      "template": "express:apps/playground/src/auth/core/password.ts",
+      "sha256": "1397d38073de1774b7969057ab1d95664dd4b73c347b1df4bd8d5c6302ca8053"
+    },
+    {
+      "path": "src/auth/core/rate-limit.ts",
+      "template": "express:apps/playground/src/auth/core/rate-limit.ts",
+      "sha256": "182b77b4cc419397db00d0ac62897ef17d4a43d5ef2d06bb523c84ae07140221"
+    },
+    {
+      "path": "src/auth/core/service.ts",
+      "template": "express:apps/playground/src/auth/core/service.ts",
+      "sha256": "6480224b43d202b6cf756f8d16d5b8e4322326ca3813941bb8e2e720aadebae2"
+    },
+    {
+      "path": "src/auth/core/store.ts",
+      "template": "express:apps/playground/src/auth/core/store.ts",
+      "sha256": "59fc9be327a77ccdf092499c8047ab77c21328a6f713fed7f06999be1ac9a6ae"
+    },
+    {
+      "path": "src/auth/express/index.ts",
+      "template": "express:apps/playground/src/auth/express/index.ts",
+      "sha256": "863862211f0ac29c85492a5a77ed62df44ee3215c9c26affa0d1b97d9d3dbdb1"
+    },
+    {
+      "path": "src/auth/stores/memory.ts",
+      "template": "express:apps/playground/src/auth/stores/memory.ts",
+      "sha256": "50f5f8857448e1dc832267c30edd6735474ab46b3ae352740dca3fabe4994ee1"
+    },
+    {
+      "path": "src/app.ts",
+      "template": "express:apps/playground/src/app.ts",
+      "sha256": "7015bfcb25ff8840d5821c9284e7be3775f8efcea359e8bbd1c7965080540b0a"
+    },
+    {
+      "path": "src/config/env.ts",
+      "template": "express:apps/playground/src/config/env.ts",
+      "sha256": "1cf850e9a77fd9c78cebf36d5279627df10d7ca12ab2a6b991941e15a5303bfe"
+    },
+    {
+      "path": "src/http/errors.ts",
+      "template": "express:apps/playground/src/http/errors.ts",
+      "sha256": "5dc150c9b7a6f32cca47dab05ce3afdf1d1743873b0ac18e8518d9e7da568753"
+    },
+    {
+      "path": "src/http/request-id.ts",
+      "template": "express:apps/playground/src/http/request-id.ts",
+      "sha256": "ffc6c616bf38a9993e332062d1bcff1e08ff218cc0c97573a15e25d5a61dcf6f"
+    },
+    {
+      "path": "src/email/mailer.ts",
+      "template": "express:apps/playground/src/email/mailer.ts",
+      "sha256": "fdcd05041d3c4238d2096efa25e2811d99130407a68bd939fc7a160d7610c7a3"
+    },
+    {
+      "path": "src/config/dev-config.ts",
+      "template": "express:apps/playground/src/config/dev-config.ts",
+      "sha256": "c963fb2297c376da43d61582e747ea8e2593ba31450da6dc119ae1d15eeee748"
+    },
+    {
+      "path": "src/server.ts",
+      "template": "express:apps/playground/src/server.ts",
+      "sha256": "ae24b9309fddb99c7ad10ad22acb796cfb564cdbd7933d7b1d44391bb496e202"
+    },
+    {
+      "path": "test/auth.smoke.test.ts",
+      "template": "express:packages/cli/template-variants/smoke.test.ts",
+      "sha256": "a3747f95489faab6c9a3a0cac4ff74b76c933aad7dc1a76d1f3acf452f4f27e9"
+    },
+    {
+      "path": "src/routes/index.ts",
+      "template": "express:packages/cli/template-variants/routes.ts",
+      "sha256": "84c7d4e88f2213785cf91c936dc5e482edaaccd2ccf553075606390aa95b23dd"
+    },
+    {
+      "path": "src/db/store.ts",
+      "template": "express:apps/playground/src/db/store.ts",
+      "sha256": "4c5547d4493d2debd0d10ad937c3dfad1a54e46e42aa83f436a45608cfe9c52c"
+    },
+    {
+      "path": "src/auth/stores/prisma.ts",
+      "template": "express:apps/playground/src/auth/stores/prisma.ts",
+      "sha256": "28e38649fa3495c56b5836a36f9f7ead7ea7da7e0e60cbb18eebf0b45ef0de98"
+    },
+    {
+      "path": "src/scripts/seed.ts",
+      "template": "express:apps/playground/src/scripts/seed.ts",
+      "sha256": "bce9f18a37b0c259fd938411a8cd8d81da4572c6590ab1531285094f20b0143d"
+    },
+    {
+      "path": "src/scripts/create-admin.ts",
+      "template": "express:apps/playground/src/scripts/create-admin.ts",
+      "sha256": "d7b63977bd6860c1f2b2c9a3dbbd200965b33bca8ec455b6af84fa060b573a7e"
+    },
+    {
+      "path": "prisma.config.ts",
+      "template": "express:apps/playground/prisma.config.ts",
+      "sha256": "b1a00775120a05801eaa75b411e382f4a029524655d7451553c7f220782624c4"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "template": "express:apps/playground/prisma/schema.prisma",
+      "sha256": "d8b6cf8f7854d5dd53208b321ed791de9e153edb6b1e26c80aae1fd8f061c772"
+    },
+    {
+      "path": "prisma/migrations/20261116085533_selfauth_init/migration.sql",
+      "template": "express:apps/playground/prisma/migrations/20261116085533_selfauth_init/migration.sql",
+      "sha256": "4b96df56e14b423e4a4999ff93d0dcea17d7d8a91c6dddda0267d7bf416436d0"
+    },
+    {
+      "path": "prisma/migrations/migration_lock.toml",
+      "template": "express:apps/playground/prisma/migrations/migration_lock.toml",
+      "sha256": "99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900"
+    },
+    {
+      "path": "package.json",
+      "template": "rendered:package.json",
+      "sha256": "2f992d37f253cedd8efa488c80b7118bf983a42f3ba925d2f0fd2e52cdcea1bb"
+    },
+    {
+      "path": "tsconfig.json",
+      "template": "rendered:tsconfig",
+      "sha256": "8ee2351ed8808f7a8e146ac0f535db33736998ee734cf5c97008374d5a7d14cc"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "template": "rendered:tsconfig.build",
+      "sha256": "5ea2d50d8950aa8ef79a1c1cb400ce4db4f88ba1e71504e6623603859cf170b1"
+    },
+    {
+      "path": ".env.example",
+      "template": "rendered:env-example",
+      "sha256": "3f258b6030e184e053fb064023bfa1f4ea470029a2711ff54d38f60829ca3938"
+    },
+    {
+      "path": "src/config/selfauth.config.ts",
+      "template": "rendered:config",
+      "sha256": "b4372d72e2de5d260429ea1e8a870c18656cbdc6cf78f0ccaa8db8a9d823f8e2"
+    }
+  ]
+}

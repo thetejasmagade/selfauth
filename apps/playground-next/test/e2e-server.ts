@@ -6,7 +6,7 @@
  * contract as the other playgrounds' e2e servers, so one browser spec runs against all of them.
  * It lives in test/, never in src/, and refuses to run unless SELFAUTH_E2E=1.
  */
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { fileURLToPath } from "node:url";
 import next from "next";
 import { createAuth, MemoryAuthStore, MemoryMailer, syncRoles } from "../src/auth/index.ts";
@@ -15,7 +15,8 @@ import { localDevelopmentConfig } from "../src/config/dev-config.ts";
 import { loadEnv } from "../src/config/env.ts";
 import { config as baseConfig } from "../src/config/selfauth.config.ts";
 
-if (process.env["SELFAUTH_E2E"] !== "1") throw new Error("e2e-server runs only with SELFAUTH_E2E=1");
+if (process.env["SELFAUTH_E2E"] !== "1")
+  throw new Error("e2e-server runs only with SELFAUTH_E2E=1");
 
 const env = loadEnv({ ...process.env, NODE_ENV: "development" });
 const config = localDevelopmentConfig(baseConfig);
@@ -40,7 +41,7 @@ const app = next({ dev: false, dir: fileURLToPath(new URL("..", import.meta.url)
 await app.prepare();
 const handle = app.getRequestHandler();
 
-const readBody = async (req: import("node:http").IncomingMessage) => {
+const readBody = async (req: IncomingMessage) => {
   const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk as Buffer);
   return Buffer.concat(chunks).toString("utf8");

@@ -184,7 +184,7 @@ jobs:
       fail-fast: false
       matrix:
         database: [sqlite, mysql, mongodb]
-        app: [playground, playground-fastify]
+        app: [playground, playground-fastify, playground-next]
     env:
       MYSQL_TEST_URL: mysql://root:root@127.0.0.1:3306/selfauth_test
       MONGODB_TEST_URL: mongodb://127.0.0.1:27017/selfauth_test
@@ -606,6 +606,79 @@ jobs:
       - run: pnpm build --cache-dir=.turbo
       - name: Generate a Flask project outside the monorepo and exercise it
         run: scripts/smoke-flask.sh ${{ matrix.database }} ${{ matrix.frontend }}
+
+  generated-next-project:
+    name: Generated Next.js project (${{ matrix.backend }}, ${{ matrix.database }}, ${{ matrix.frontend }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Next.js is both a backend (its own route handlers) and a frontend (for Express, Fastify,
+        # Gin and Flask). The pairs below cover every database, every frontend and several crosses
+        # without the full product; the browser suite (e2e) covers the frontend x backend grid.
+        include:
+          - { backend: next, database: memory, frontend: none }
+          - { backend: next, database: postgresql, frontend: none }
+          - { backend: next, database: mysql, frontend: none }
+          - { backend: next, database: sqlite, frontend: none }
+          - { backend: next, database: mongodb, frontend: none }
+          - { backend: next, database: postgresql, frontend: next }
+          - { backend: next, database: sqlite, frontend: next }
+          - { backend: next, database: mysql, frontend: react }
+          - { backend: next, database: memory, frontend: vue }
+          - { backend: express, database: memory, frontend: next }
+          - { backend: fastify, database: sqlite, frontend: next }
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfauth
+          POSTGRES_PASSWORD: selfauth
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfauth -d smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SMOKE_DATABASE_URL: ${{ matrix.database == 'mysql' && 'mysql://root:root@127.0.0.1:3306/smoke' || matrix.database == 'mongodb' && 'mongodb://127.0.0.1:27017/smoke' || 'postgresql://selfauth:selfauth@localhost:5432/smoke' }}
+      SMOKE_MYSQL_URL: mysql://root:root@127.0.0.1:3306/smoke
+      SMOKE_MONGODB_URL: mongodb://127.0.0.1:27017/smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Start MySQL (installed on the runner image, off by default)
+        if: matrix.database == 'mysql'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
+      - name: Start MongoDB
+        if: matrix.database == 'mongodb'
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.runCommand({ ping: 1 }).ok" 2>/dev/null | grep -q 1 && exit 0
+            sleep 2
+          done
+          docker logs mongo
+          exit 1
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.sha }}
+          restore-keys: turbo-${{ github.job }}-
+      - run: pnpm build --cache-dir=.turbo
+      - name: Generate a Next.js project outside the monorepo and exercise it
+        run: scripts/smoke-next.sh ${{ matrix.database }} ${{ matrix.frontend }} ${{ matrix.backend }}
 
   generated-project:
     name: Generated project (${{ matrix.backend || 'express' }}, ${{ matrix.database }}, ${{ matrix.mode }})

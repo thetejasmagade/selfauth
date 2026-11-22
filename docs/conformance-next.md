@@ -43,6 +43,10 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | database | `sqlite` | SQLite via Prisma (derived from the PostgreSQL reference; verified by scripts/dialect-conformance.mjs in CI) (store `sqlite`) |
 | database | `mongodb` | MongoDB via Mongoose (its own store, tested by scripts/dialect-conformance.mjs against a real MongoDB in CI) (store `mongodb`) |
 | database | `memory` | In-memory (development and tests only) (store `memory`) |
+| frontend | `none` | API only |
+| frontend | `next` | Next.js 16 pages in the same app (one package, browser-tested against the Next.js API) |
+| frontend | `vue` | Vue 3 (generated as client/ next to the Next.js API in server/; browser-tested against the Next.js API) |
+| frontend | `react` | React (generated as client/ next to the Next.js API in server/; browser-tested against the Next.js API) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 

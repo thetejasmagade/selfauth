@@ -52,7 +52,10 @@ step "npm install, typecheck, the project's own tests, build"
 npm install --no-audit --no-fund --loglevel=error
 npm run -s typecheck
 # The workspace root's `npm test` runs the server's tests; a single package runs its own.
-expect "the generated project's own tests pass" "$(npm test 2>&1)" "# pass 7"
+# (The Next.js project ships 7 smoke tests, the Express and Fastify ones 6.)
+PASSING=6
+[[ "$BACKEND" == "next" ]] && PASSING=7
+expect "the generated project's own tests pass" "$(npm test 2>&1)" "# pass $PASSING"
 # `next build` needs no environment variables: SelfAuth starts on the first request.
 env -u DATABASE_URL -u SELFAUTH_APP_BASE_URL npm run -s build
 if [[ "$FRONTEND" == "next" && "$BACKEND" == "next" ]]; then

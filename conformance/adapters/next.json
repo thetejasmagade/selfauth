@@ -45,6 +45,26 @@
       "id": "memory",
       "title": "In-memory (development and tests only)",
       "store": "memory"
+    },
+    {
+      "kind": "frontend",
+      "id": "none",
+      "title": "API only"
+    },
+    {
+      "kind": "frontend",
+      "id": "next",
+      "title": "Next.js 16 pages in the same app (one package, browser-tested against the Next.js API)"
+    },
+    {
+      "kind": "frontend",
+      "id": "vue",
+      "title": "Vue 3 (generated as client/ next to the Next.js API in server/; browser-tested against the Next.js API)"
+    },
+    {
+      "kind": "frontend",
+      "id": "react",
+      "title": "React (generated as client/ next to the Next.js API in server/; browser-tested against the Next.js API)"
     }
   ],
   "independentAudit": false,

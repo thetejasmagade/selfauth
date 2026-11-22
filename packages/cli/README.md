@@ -47,6 +47,26 @@ to Go). The files are plain Go source: `cmd/server`, `internal/auth` (the core),
 `go run ./cmd/migrate up` or `npx selfauth db migrate`. Go 1.26 or newer is needed. `doctor`,
 `validate`, `diff` and `upgrade` work as for the other backends.
 
+## Next.js
+
+Next.js works two ways, and both are for new projects:
+
+```bash
+npx selfauth init my-app --backend next --database postgresql --frontend next   # one app: pages and API
+npx selfauth init my-app --backend next --database postgresql                   # the API only
+npx selfauth init my-app --backend next --frontend react                        # Next.js API in server/, Vite React in client/
+npx selfauth init my-app --backend express --frontend next                      # Express API in server/, Next.js in client/
+```
+
+The API is App Router route handlers: the authentication routes in
+`src/app/auth/[[...path]]/route.ts`, yours as `src/app/api/<name>/route.ts` files built with
+`withAuth` (`auth.protect(...)` needs a signed-in user and refuses a route no guard allowed;
+`auth.route(...)` is public). The same Next.js frontend (App Router, `src/auth-client/`, the five
+account screens) works with Express, Fastify, Gin and Flask: its `src/proxy.ts` forwards `/auth`
+and `/api` to the backend named by `SELFAUTH_API_TARGET`, read when a request arrives. Route
+handlers cannot see the connection address, so `http.trustProxy` must be the number of proxies in
+front of the app (the generated configuration sets 1; `doctor` warns when it is off).
+
 ## Existing Express or Fastify project
 
 ```bash

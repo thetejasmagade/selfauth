@@ -1,0 +1,176 @@
+{
+  "toolkit": "selfauth",
+  "version": "0.18.0",
+  "templateVersion": "0.18.0",
+  "specVersion": "0.1",
+  "database": {
+    "type": "memory",
+    "orm": "none"
+  },
+  "ownedResources": {
+    "tables": [],
+    "types": [],
+    "migrations": []
+  },
+  "options": {
+    "layout": "client",
+    "srcDir": "src",
+    "structure": 3,
+    "backend": "express",
+    "frontend": "next",
+    "permissions": [],
+    "appBaseUrl": "http://localhost:5175"
+  },
+  "files": [
+    {
+      "path": "src/app/layout.tsx",
+      "template": "next:apps/playground-next-web/src/app/layout.tsx",
+      "sha256": "2a157ee421443f83b770a9d41202dd0723ad2db9e68173309c8605d63ac18988"
+    },
+    {
+      "path": "src/app/providers.tsx",
+      "template": "next:apps/playground-next-web/src/app/providers.tsx",
+      "sha256": "1a07b1f05d2f587ae3e49482fb4f50afb66643b91af7d59b38540431d95ca4df"
+    },
+    {
+      "path": "src/app/header.tsx",
+      "template": "next:apps/playground-next-web/src/app/header.tsx",
+      "sha256": "cdb550d77ecabb8d691ebe00e0d5309ae0838f18e26a26fe8b016a0127933e42"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/page.tsx",
+      "sha256": "d69c80ee6592bf1501999016663d222d3abbee103ddb64b42c17b80da17900c4"
+    },
+    {
+      "path": "src/app/login/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/login/page.tsx",
+      "sha256": "439d4ec7ac990169485f6af0a1ad8cfe8cf22b7d3cb85d44728458026654ea09"
+    },
+    {
+      "path": "src/app/register/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/register/page.tsx",
+      "sha256": "d3a60eb72c30f47a7fbbcdb3027e680147539aed8cb8147f6b2c1cf240eeeabd"
+    },
+    {
+      "path": "src/app/verify-email/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/verify-email/page.tsx",
+      "sha256": "8dedbc7a832f315ba664a278f04022bbda9ab4d0f230c60fcf532450a7b47e0f"
+    },
+    {
+      "path": "src/app/forgot-password/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/forgot-password/page.tsx",
+      "sha256": "6a47fbeae211bfa89937e5dbcd0998e88fbd0ee62400362b3ef2ecb8df900552"
+    },
+    {
+      "path": "src/app/reset-password/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/reset-password/page.tsx",
+      "sha256": "70b425791d5e5bc5356c50210d9b8bc76b0c2a3e218051eac9db092297b8a154"
+    },
+    {
+      "path": "src/app/account/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/account/page.tsx",
+      "sha256": "4454e401cf323fb5ecd2d1f6f6377950ee9062553487381abdd35d2cffa304c6"
+    },
+    {
+      "path": "src/app/forbidden/page.tsx",
+      "template": "next:apps/playground-next-web/src/app/forbidden/page.tsx",
+      "sha256": "d72469d1575725711cf20210513ed62bfc90d6499cfb5809426d539c28221fd1"
+    },
+    {
+      "path": "src/app/not-found.tsx",
+      "template": "next:apps/playground-next-web/src/app/not-found.tsx",
+      "sha256": "9c2517f8aee962e581163177391731d7b61699b12f2e2c3cacd709bd22e8512e"
+    },
+    {
+      "path": "src/auth-client/client.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/client.ts",
+      "sha256": "39ec6d16ac7fde47af5f8ed21cc29f4d79499bdf5103f73b744634aacfef2d3b"
+    },
+    {
+      "path": "src/auth-client/redirect.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/redirect.ts",
+      "sha256": "e092042f91b52c6619e878dab1795048001af69bc6c6b11941b09849f91fcd7c"
+    },
+    {
+      "path": "src/auth-client/url-token.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/url-token.ts",
+      "sha256": "2c8790cc896d67a726ca3bafa1fcc43367b456fa52b65a5bc6557dc1fc5785de"
+    },
+    {
+      "path": "src/auth-client/messages.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/messages.ts",
+      "sha256": "60f2c1388682f504c8d1bd2d7095507e4435cb7c2a4aed87f86d32b0ac932e63"
+    },
+    {
+      "path": "src/auth-client/types.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/types.ts",
+      "sha256": "7089844ca20a307247bbd96861ca1ecff8d2ab3467fb84f713b91e0af73ec46f"
+    },
+    {
+      "path": "src/auth-client/react.tsx",
+      "template": "next:apps/playground-next-web/src/auth-client/react.tsx",
+      "sha256": "3db51fd4d874e786a55423c32ef7a1ab3db98ae84fd469989b522aef9d10ede5"
+    },
+    {
+      "path": "src/auth-client/index.ts",
+      "template": "next:apps/playground-next-web/src/auth-client/index.ts",
+      "sha256": "151aa1e431b5269713449b342e996c2c13b4bc7d1518aa3ee04be457b489afe0"
+    },
+    {
+      "path": "src/screens/AccountScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/AccountScreen.tsx",
+      "sha256": "f56446fce20a38f9419c3a778fe46aa717fb59c02331df0942cee13160de9b7f"
+    },
+    {
+      "path": "src/screens/HomeScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/HomeScreen.tsx",
+      "sha256": "945eccb00c22778948c835fa6112c63d3d5fb19a85ef7730de747ea2a99f3443"
+    },
+    {
+      "path": "src/screens/auth/ForgotPasswordScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/auth/ForgotPasswordScreen.tsx",
+      "sha256": "de09fdb1edf28c8812a61465c5592dddcf5784a48a5f3da103e95965bc4f2594"
+    },
+    {
+      "path": "src/screens/auth/LoginScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/auth/LoginScreen.tsx",
+      "sha256": "56f546bb61c920b6824d2f338e97361b745cc90e4d741a176868b27154fcb912"
+    },
+    {
+      "path": "src/screens/auth/RegisterScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/auth/RegisterScreen.tsx",
+      "sha256": "3a3d1a07fa55f77dce46c2b8f74e24c33b082e026887bf9cdc3c5f0be2295c58"
+    },
+    {
+      "path": "src/screens/auth/ResetPasswordScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/auth/ResetPasswordScreen.tsx",
+      "sha256": "5f8b14bd2f2154cfa68ae415e831238e6fd8fdf276848a44e800b9bd3cec1586"
+    },
+    {
+      "path": "src/screens/auth/VerifyEmailScreen.tsx",
+      "template": "next:apps/playground-next-web/src/screens/auth/VerifyEmailScreen.tsx",
+      "sha256": "c73dd4972cd3b13e68336c1ab0fab620262a90fb8aff8c7e16a2160408ec1c4c"
+    },
+    {
+      "path": "src/proxy.ts",
+      "template": "next:apps/playground-next-web/src/proxy.ts",
+      "sha256": "68b51535ddc1ec160a324c4f57cb90b82016f8c52bfcb3b9ec3ed04d51f2a63e"
+    },
+    {
+      "path": "next.config.ts",
+      "template": "next:apps/playground-next-web/next.config.ts",
+      "sha256": "42bcebca61f5cb09087ae119e1bde6600e47e92754d88a16e5fa385ab46dacb3"
+    },
+    {
+      "path": "package.json",
+      "template": "rendered:web-package.json",
+      "sha256": "fc7577a8fc1d21802142c3a53f8444cbbe769a956f6618ef00cc6654170ea3ac"
+    },
+    {
+      "path": "tsconfig.json",
+      "template": "rendered:web-tsconfig",
+      "sha256": "8f48b8acccc56507f1fafef86db10ea4b2ebf3c454758edda1635d30d36a098f"
+    }
+  ]
+}

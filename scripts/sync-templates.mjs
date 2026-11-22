@@ -55,6 +55,31 @@ export const TEMPLATES = {
       database: "postgresql",
       frontend: "react",
     }),
+  next: () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "next",
+      database: "postgresql",
+      frontend: "none",
+    }),
+  "next-next": () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      backend: "next",
+      database: "postgresql",
+      frontend: "next",
+      appBaseUrl: "http://localhost:3000",
+    }),
+  "express-next": () =>
+    planInit({
+      ...base,
+      name: "selfauth-app",
+      database: "postgresql",
+      frontend: "next",
+      appBaseUrl: "http://localhost:5175",
+    }),
   gin: () =>
     planInit({
       ...base,
@@ -71,7 +96,9 @@ function walk(dir) {
   if (!existsSync(dir)) return [];
   // Ignore what running a template in place creates (npm install, build, prisma generate).
   return readdirSync(dir)
-    .filter((n) => !["node_modules", "dist", "generated", ".env"].includes(n))
+    .filter(
+      (n) => !["node_modules", "dist", "generated", ".env", ".next", "next-env.d.ts"].includes(n),
+    )
     .flatMap((n) => {
       const f = join(dir, n);
       return statSync(f).isDirectory() ? walk(f) : [f];
