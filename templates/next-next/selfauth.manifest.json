@@ -49,7 +49,7 @@
     {
       "path": "src/auth/index.ts",
       "template": "next:apps/playground-next/src/auth/index.ts",
-      "sha256": "8e9fbbcbbe2a5ab85af4560fc81c0de50a3a28e4368537f18dbd06cdccb88201"
+      "sha256": "243a13a58f85d1135ab11ead91548a2aa6c887e5b33d0e77389dcfae8b37acd3"
     },
     {
       "path": "src/auth/core/authorization.ts",
@@ -117,6 +117,11 @@
       "sha256": "bf37665e19fb8fc61252abd282c01dec096b69d16a911bd0ff38c28fd565b7cd"
     },
     {
+      "path": "src/auth/next/policies.ts",
+      "template": "next:apps/playground-next/src/auth/next/policies.ts",
+      "sha256": "ad9531cd387973786bd6c7d1545a828eee9ba02ce6ef32d114e6f1c5544cb7ae"
+    },
+    {
       "path": "src/auth/stores/memory.ts",
       "template": "next:apps/playground-next/src/auth/stores/memory.ts",
       "sha256": "50f5f8857448e1dc832267c30edd6735474ab46b3ae352740dca3fabe4994ee1"
@@ -127,9 +132,14 @@
       "sha256": "4a378d1dc1fa663dd8e47129b62569971203f9da525ba72d159121d2539ca57d"
     },
     {
+      "path": "src/lib/start.ts",
+      "template": "next:apps/playground-next/src/lib/start.ts",
+      "sha256": "05055db1ef877828dc2b6bf8f4b3a60d5bb9aad50806ce068e307356a2bac3a2"
+    },
+    {
       "path": "src/instrumentation.ts",
       "template": "next:apps/playground-next/src/instrumentation.ts",
-      "sha256": "3f4ef992429c13c346de80c55246e46d5168c703266310035aee0f1aa33d67a3"
+      "sha256": "83712042c274446ec6c9f09b769dc4dd16a0bdb3db393c4b3c0bea56786865bf"
     },
     {
       "path": "src/app/auth/[[...path]]/route.ts",
@@ -374,7 +384,7 @@
     {
       "path": "README.md",
       "template": "rendered:readme",
-      "sha256": "4ac41f13a65aa509d2a0c4cd9f0e2d677baa831b0e86f821ed6ba5ff25c44cf5"
+      "sha256": "8669c540cbb59dbb813d2fb0dbe7f9028a8226a1cc4026457bcc867f2f38f066"
     },
     {
       "path": "src/config/selfauth.config.ts",

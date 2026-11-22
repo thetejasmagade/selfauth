@@ -64,6 +64,7 @@ describe("planInit --backend next", () => {
         "src/app/health/route.ts",
         "src/lib/auth.ts",
         "src/instrumentation.ts",
+        "src/lib/start.ts",
         "src/auth/next/index.ts",
         "next.config.ts",
         "test/auth.smoke.test.ts",

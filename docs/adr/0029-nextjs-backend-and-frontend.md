@@ -26,8 +26,10 @@ SelfAuth backend (Express, Fastify, Gin, Flask). The core is TypeScript, so unli
   fails on a route file that exports a plain function.
 - **Started on the first request.** `next build` loads route modules without any environment, so
   SelfAuth is built lazily by `withAuth`, cached on `globalThis` (Next.js can load a module once per
-  route), and started eagerly by `instrumentation.ts` when the server boots, so a bad variable or an
-  unreachable database still stops the server with a clear message.
+  route), and started eagerly by `instrumentation.ts` when the server boots. Next.js keeps serving
+  when that hook throws (it answers health checks with no authentication behind them), so in
+  production the hook prints one clear line and exits with status 1; in development it rethrows and
+  the next request retries once the variable is fixed.
 - **Errors are recognised by name.** Because a route may be bundled with its own copy of the error
   classes, the binding recognises `AuthError` and `HttpError` by `name` and fields, not `instanceof`.
   This was found in the real server (a 500 for a 404), not in the in-process tests.

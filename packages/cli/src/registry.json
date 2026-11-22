@@ -1036,12 +1036,20 @@
           "target": "src/auth/next/index.ts"
         },
         {
+          "source": "apps/playground-next/src/auth/next/policies.ts",
+          "target": "src/auth/next/policies.ts"
+        },
+        {
           "source": "apps/playground-next/src/auth/stores/memory.ts",
           "target": "src/auth/stores/memory.ts"
         },
         {
           "source": "apps/playground-next/src/lib/auth.ts",
           "target": "src/lib/auth.ts"
+        },
+        {
+          "source": "apps/playground-next/src/lib/start.ts",
+          "target": "src/lib/start.ts"
         },
         {
           "source": "apps/playground-next/src/instrumentation.ts",

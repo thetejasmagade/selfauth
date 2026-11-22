@@ -6,7 +6,7 @@
  * (only `import type` from @selfauth/spec).
  */
 import type { SelfAuthConfig } from "./types.ts";
-import { PolicyRegistry, roleDefinitions } from "./core/authorization.ts";
+import { roleDefinitions, type PolicyRegistry } from "./core/authorization.ts";
 import { systemClock, type Clock } from "./core/clock.ts";
 import type { Logger } from "./core/logger.ts";
 import type { Mailer } from "./core/mailer.ts";
@@ -15,6 +15,7 @@ import { MemoryRateLimitStore, RateLimiter, type RateLimitStore } from "./core/r
 import { AuthService } from "./core/service.ts";
 import type { AuthStore } from "./core/store.ts";
 import { createNextAuth, type NextAuth } from "./next/index.ts";
+import { HotReloadPolicyRegistry } from "./next/policies.ts";
 
 export interface CreateAuthOptions {
   config: SelfAuthConfig;
@@ -74,7 +75,8 @@ export function createAuth(options: CreateAuthOptions): Auth {
     limiter,
     appBaseUrl: options.appBaseUrl,
   });
-  const policies = new PolicyRegistry();
+  // Registering a type again replaces its policy (see HotReloadPolicyRegistry).
+  const policies = new HotReloadPolicyRegistry();
   const next = createNextAuth({
     config,
     service,

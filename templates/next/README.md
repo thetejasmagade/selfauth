@@ -27,7 +27,8 @@ src/
     [[...path]]/route.ts         unknown /api paths get the error envelope, not an HTML 404
   app/health/route.ts            health check
   lib/auth.ts                    builds SelfAuth on the first request; withAuth() for your handlers
-  instrumentation.ts             starts SelfAuth when the server boots (bad configuration stops it)
+  lib/start.ts                   starts SelfAuth when the server boots (bad configuration stops it)
+  instrumentation.ts             calls lib/start.ts when the server boots
   config/
     selfauth.config.ts           your authentication settings: roles, permissions, limits
     env.ts                       environment variables (SELFAUTH_APP_BASE_URL, ...)

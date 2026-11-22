@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { PolicyRegistry } from "../src/auth/core/authorization.ts";
 import { clientAddress } from "../src/auth/next/index.ts";
 import { EnvError, loadEnv } from "../src/config/env.ts";
 import { config as playgroundConfig } from "../src/config/selfauth.config.ts";
@@ -337,6 +338,27 @@ describe("startup", () => {
     }
   });
 
+  it("stops a production server that cannot start, with a clear message (instrumentation.ts)", async () => {
+    vi.stubEnv("SELFAUTH_APP_BASE_URL", "");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_RUNTIME", "nodejs");
+    const exit = vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("exit");
+    }) as never);
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const { register } = await import("../src/instrumentation.ts");
+      await expect(register()).rejects.toThrow("exit");
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(log.mock.calls.flat().join(" ")).toContain("SelfAuth could not start");
+      expect(log.mock.calls.flat().join(" ")).toContain("SELFAUTH_APP_BASE_URL");
+    } finally {
+      exit.mockRestore();
+      log.mockRestore();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("serves the real route files from one shared instance", async () => {
     const t = await buildTestApp({ config: playgroundConfig });
     (globalThis as Record<symbol, unknown>)[Symbol.for("selfauth.instance")] = Promise.resolve({
@@ -406,5 +428,42 @@ describe("startup", () => {
     const missing = await call(catchAll.GET, "GET", "/api/anything");
     expect(missing.status).toBe(404);
     expect(((await missing.json()) as { error: { code: string } }).error.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("policy registry", () => {
+  it("replaces a policy registered again, so a route file can run twice in development", async () => {
+    const { auth } = await buildTestApp({ config: playgroundConfig });
+    const allow = {
+      load: async () => ({ type: "x", id: "1", ownerId: "u" }),
+      authorize: () => true,
+    };
+    const deny = { ...allow, authorize: () => false };
+    const subject = { userId: "u", permissions: new Set(["x.view"]) } as never;
+    auth.policies.register("x", allow);
+    expect(await auth.policies.decide(subject, "x.view", "x", "1")).toBe("allow");
+    auth.policies.register("x", deny);
+    expect(await auth.policies.decide(subject, "x.view", "x", "1")).toBe("not_found");
+  });
+
+  it("decides like the core registry: deny without a policy, not_found without a resource", async () => {
+    const { auth } = await buildTestApp({ config: playgroundConfig });
+    const subject = { userId: "u", permissions: new Set(["x.view"]) } as never;
+    const missing = { load: async () => null, authorize: () => true };
+    const owned = {
+      load: async () => ({ type: "x", id: "1", ownerId: "u" }),
+      authorize: () => true,
+    };
+    expect(await auth.policies.decide(subject, "x.view", "none", "1")).toBe(
+      await new PolicyRegistry().decide(subject, "x.view", "none", "1"),
+    );
+    for (const policy of [missing, owned]) {
+      const core = new PolicyRegistry();
+      auth.policies.register("x", policy);
+      core.register("x", policy);
+      expect(await auth.policies.decide(subject, "x.view", "x", "1")).toBe(
+        await core.decide(subject, "x.view", "x", "1"),
+      );
+    }
   });
 });

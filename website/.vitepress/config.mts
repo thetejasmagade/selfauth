@@ -70,6 +70,24 @@ const sidebar: DefaultTheme.Sidebar = [
     ],
   },
   {
+    text: "Next.js guide",
+    collapsed: true,
+    items: [
+      { text: "Overview", link: "/next/" },
+      { text: "1. Create your project", link: "/next/create-project" },
+      { text: "2. Run it and sign in", link: "/next/run-and-sign-in" },
+      { text: "3. Find your way around", link: "/next/project-tour" },
+      { text: "4. Add API routes", link: "/next/endpoints" },
+      { text: "5. Add permissions", link: "/next/permissions" },
+      { text: "6. Add a table and the notes routes", link: "/next/notes" },
+      { text: "7. Add a page for the notes", link: "/next/frontend-page" },
+      { text: "8. Change a table later", link: "/next/change-a-table" },
+      { text: "9. Test your routes", link: "/next/tests" },
+      { text: "10. Get ready for production", link: "/next/production" },
+      { text: "Next.js with another backend", link: "/next/with-another-backend" },
+    ],
+  },
+  {
     text: "Gin (Go) guide",
     collapsed: true,
     items: [
@@ -135,9 +153,10 @@ const sidebar: DefaultTheme.Sidebar = [
       { text: "HTTP API", link: "/reference/http" },
       { text: "Error codes", link: "/reference/errors" },
       { text: "Server API (TypeScript)", link: "/reference/server-typescript" },
+      { text: "Server API (Next.js)", link: "/reference/server-nextjs" },
       { text: "Server API (Go)", link: "/reference/server-go" },
       { text: "Server API (Python)", link: "/reference/server-python" },
-      { text: "Client API (Vue and React)", link: "/reference/client" },
+      { text: "Client API (Vue, React and Next.js)", link: "/reference/client" },
     ],
   },
   {

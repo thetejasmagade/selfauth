@@ -24,12 +24,8 @@ const notes = (): Map<string, Note> => {
   return (holder[KEY] ??= new Map());
 };
 
-// The ownership policy is registered once per Auth instance, by the first route that needs it.
-const registered = new WeakSet<Auth>();
-
 function registerNotesPolicy(auth: Auth): void {
-  if (registered.has(auth)) return;
-  registered.add(auth);
+  // Registering a type again replaces its policy, so building the handlers twice is fine.
   auth.policies.register(
     "note",
     ownershipPolicy(async (id) => {
