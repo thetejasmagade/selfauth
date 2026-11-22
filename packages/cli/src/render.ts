@@ -87,7 +87,17 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
       roles: { user: [], admin: [] },
     },
     // Next.js route handlers cannot see the connection, so the address comes from a proxy header.
-    ...(answers.backend === "next" ? { http: { trustProxy: 1 } } : {}),
+    // A Next.js frontend forwards /auth and /api, so the other backends see it, not the visitor,
+    // and read the visitor's address from X-Forwarded-For (src/proxy.ts sends exactly one entry).
+    // Gin takes addresses rather than a count: the Next.js server on the same host.
+    ...(answers.backend === "next" || answers.frontend === "next"
+      ? {
+          http: {
+            trustProxy:
+              answers.backend === "gin" && answers.frontend === "next" ? ["127.0.0.1", "::1"] : 1,
+          },
+        }
+      : {}),
   });
 }
 

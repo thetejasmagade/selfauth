@@ -427,6 +427,43 @@ describe("a Next.js frontend for another backend", () => {
   );
 });
 
+describe("a Next.js frontend and the backend's trust of its forwarded address", () => {
+  it.each([
+    ["express", 1],
+    ["fastify", 1],
+    ["flask", 1],
+    ["gin", ["127.0.0.1", "::1"]],
+  ] as const)("is configured for %s", async (backend, expected) => {
+    const files = await planInit(
+      answers("memory", {
+        backend,
+        frontend: "next",
+        name: "shop",
+        ...(backend === "gin" ? { module: "shop" } : {}),
+      }),
+    );
+    const path =
+      backend === "gin" || backend === "flask"
+        ? "server/selfauth.config.json"
+        : "server/src/config/selfauth.config.ts";
+    const source = text(files, path);
+    const config = JSON.parse(
+      path.endsWith(".json")
+        ? source
+        : source.slice(source.indexOf("= {") + 2, source.lastIndexOf("};") + 1),
+    );
+    expect(parseConfig(config)).toEqual(config);
+    expect(config.http.trustProxy).toEqual(expected);
+  });
+
+  it("is left off for a Vite frontend", async () => {
+    const files = await planInit(
+      answers("memory", { backend: "express", frontend: "react", name: "shop" }),
+    );
+    expect(text(files, "server/src/config/selfauth.config.ts")).toContain('"trustProxy": false');
+  });
+});
+
 describe("the Go and Python references accept every frontend the CLI can generate", () => {
   // `init --backend gin|flask --frontend next` writes the frontend into the project's own
   // configuration, and the server refuses to start with a value its validator does not know.

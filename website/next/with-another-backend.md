@@ -65,15 +65,11 @@ Everything in the [Express](/express/), [Fastify](/fastify/), [Gin](/gin/) or [F
 
 ## The rate limit and the proxy
 
-The API now sees the Next.js server as its client, not the visitor. The visitor's address travels in the `X-Forwarded-For` header (the proxy passes it on as it arrived, or sets it to the connecting address when there was none). Tell the API to read it with `http.trustProxy` in its configuration, or every visitor shares one per-address rate limit:
+The API sees the Next.js server as its client, not the visitor. So `client/src/proxy.ts` works out the visitor's address and sends it to the API as the only entry of `X-Forwarded-For`, dropping anything a visitor wrote to the left of it. It uses `SELFAUTH_PROXY_HOPS`, the number of proxies in front of the Next.js server (default `1`: a hosting platform or a reverse proxy; `0` means nothing is in front, and the header is dropped because it can't be trusted).
 
-| Backend | Setting |
-| --- | --- |
-| Express, Fastify | `"trustProxy": 1` in `server/src/config/selfauth.config.ts` |
-| Flask | `"trustProxy": 1` in `server/selfauth.config.json` |
-| Gin | `"trustProxy": ["127.0.0.1", "::1"]` in `server/selfauth.config.json`, or the address of the Next.js server (Gin takes addresses, not a count) |
+The generated API configuration already reads it: `http.trustProxy` is `1` for Express, Fastify and Flask, and `["127.0.0.1", "::1"]` for Gin (the Next.js server on the same machine; Gin takes addresses, not a count, so put the Next.js server's address there if it runs elsewhere). Change those if your deployment differs, or every visitor shares one per-address rate limit.
 
-If the Next.js app sits behind a hosting platform's proxy, that proxy sets the visitor's address first, and the count is still `1` from the API's side. If the Next.js app is open to the internet with nothing in front of it, a visitor can set the header themselves, and the per-address limit can be dodged (the per-account limit still holds). See [production](./production#_4-tell-selfauth-how-many-proxies-are-in-front-of-you).
+If the Next.js app is open to the internet with nothing in front of it, a visitor can set the header themselves, and the per-address limit can be dodged (the per-account limit still holds). See [production](./production#_4-tell-selfauth-how-many-proxies-are-in-front-of-you).
 
 ## Deploying
 
@@ -92,5 +88,5 @@ Set `SELFAUTH_APP_BASE_URL` on the **API** to the Next.js app's public `https://
 
 - **Every request answers `500` or hangs.** The Next.js server can't reach the API. Check `SELFAUTH_API_TARGET` and that the API is running.
 - **`CSRF_FAILED` on every sign-in.** `SELFAUTH_APP_BASE_URL` on the API doesn't match the address in the browser (the Next.js app's, port 5175 in development).
-- **`RATE_LIMITED` after a few sign-ins from different people.** The proxy count above isn't set on the API.
+- **`RATE_LIMITED` after a few sign-ins from different people.** The API's `http.trustProxy` was changed back to `false`, or `SELFAUTH_PROXY_HOPS` doesn't match your deployment.
 - **Your changes to `proxy.ts` do nothing.** Next.js reads it when the server starts: restart `npm run dev`.

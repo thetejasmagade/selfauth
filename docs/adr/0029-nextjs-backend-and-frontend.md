@@ -41,6 +41,7 @@ SelfAuth backend (Express, Fastify, Gin, Flask). The core is TypeScript, so unli
   `doctor` warns. With no proxy at all the header comes from the client and the per-address limits
   can be bypassed (the per-account limits still hold). This is documented in the configuration
   file, the production chapter and the adapter record's limitations.
+- **The forwarded address is normalised.** `proxy.ts` sends the backend one `X-Forwarded-For` entry (the one `SELFAUTH_PROXY_HOPS` from the right, validated as an IP), and generated Express, Fastify, Flask and Gin configurations trust it (`trustProxy` 1, or loopback for Gin), so they don't share one rate-limit bucket by default.
 - **The frontend is a client of the same contract.** `apps/playground-next-web` is the React
   frontend ported to the App Router: the same API client and screens, with the session looked up in
   the browser after the first render, so a page is the same HTML for everyone. Its `src/proxy.ts`

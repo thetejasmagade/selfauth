@@ -118,7 +118,7 @@ export const config: SelfAuthConfig = {
     "bodyLimitBytes": 16384,
     "basePath": "/auth",
     "trustedOrigins": [],
-    "trustProxy": false,
+    "trustProxy": 1,
     "csrf": {
       "mode": "header",
       "headerName": "X-SelfAuth-CSRF"

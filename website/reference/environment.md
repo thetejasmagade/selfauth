@@ -21,6 +21,7 @@ Environment variables hold the things that differ between your laptop and produc
 | `SELFAUTH_CSRF_SECRET` | with `csrf.mode: "token"` | – | all | 32 or more random bytes, base64url |
 | `SELFAUTH_CSRF_SECRET_PREVIOUS` | no | – | all | The old secret, accepted while rotating |
 | `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin, Flask | Path to the configuration file |
+| `SELFAUTH_PROXY_HOPS` | no | `1` | Next.js frontend | How many proxies sit in front of the Next.js server. The visitor's address is the `X-Forwarded-For` entry that many from the right, and is sent to the backend alone. `0` drops the header |
 | `SELFAUTH_API_TARGET` | no | `http://localhost:3000` | Vite dev server, Next.js frontend | Where the dev server (or, for a Next.js frontend, the running app: it is read on every request) forwards `/auth` and `/api` |
 
 If a value is invalid the server stops at startup and lists every problem:

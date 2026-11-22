@@ -155,7 +155,7 @@
     {
       "path": "src/proxy.ts",
       "template": "next:apps/playground-next-web/src/proxy.ts",
-      "sha256": "2f7f58d37bb2b8f24dbde0323509a727cad8f47b618063b9a48e505fd2fd8c3e"
+      "sha256": "55c8f25a727f9ff63e3a0e598bc90a7726866822841bdad53bb00f4b1db03812"
     },
     {
       "path": "next.config.ts",
