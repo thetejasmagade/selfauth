@@ -21,7 +21,14 @@ CLI="${SELFAUTH_SMOKE_CLI:-$REPO/packages/cli/dist/bin.js}"
 WORK="$(mktemp -d)"
 APP="$WORK/app"
 PORT="${SMOKE_PORT:-3971}"
-trap 'kill "${SERVER:-0}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
+# `next dev` starts child processes that keep writing into the project, so the whole process group
+# is stopped (the server runs under setsid) before the folder is removed.
+cleanup() {
+  [[ -n "${SERVER:-}" ]] && kill -- "-$SERVER" 2>/dev/null || true
+  sleep 1
+  rm -rf "$WORK" 2>/dev/null || { sleep 2; rm -rf "$WORK" || true; }
+}
+trap cleanup EXIT
 
 step() { printf '\n== %s\n' "$*"; }
 skill() { SELFAUTH_CLI="$CLI" node "$APP/.claude/skills/selfauth/scripts/$1" "${@:2}"; }
@@ -88,11 +95,12 @@ node "$CLI" validate
 step "boot the API with next dev and exercise it"
 # `next dev` runs development mode (a printed mailer, plain-http cookies); `next start` is
 # production, which refuses to start until a real mailer is configured.
+export PORT
 if [[ "$BACKEND" == "next" ]]; then
-  (cd "$SERVER_DIR" && PORT="$PORT" exec npx next dev) > server.log 2>&1 &
+  setsid bash -c 'cd "$1" && exec npx next dev' _ "$SERVER_DIR" > server.log 2>&1 &
 else
   # Express/Fastify API with a Next.js client: the API is the server under test.
-  (cd "$SERVER_DIR" && PORT="$PORT" exec node --env-file=.env --watch src/server.ts) > server.log 2>&1 &
+  setsid bash -c 'cd "$1" && exec node --env-file=.env --watch src/server.ts' _ "$SERVER_DIR" > server.log 2>&1 &
 fi
 SERVER=$!
 for _ in $(seq 1 300); do curl -sf "localhost:$PORT/health" > /dev/null && break; sleep 0.2; done
