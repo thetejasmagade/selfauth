@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { AuthProvider, createAuthClient, createAuthStore, type AuthStore } from "../auth-client/index.ts";
+import {
+  AuthProvider,
+  createAuthClient,
+  createAuthStore,
+  type AuthStore,
+} from "../auth-client/index.ts";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [store] = useState<AuthStore>(() => {

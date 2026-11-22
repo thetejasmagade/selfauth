@@ -229,7 +229,7 @@
     {
       "path": "src/app/providers.tsx",
       "template": "next:apps/playground-next-web/src/app/providers.tsx",
-      "sha256": "1a07b1f05d2f587ae3e49482fb4f50afb66643b91af7d59b38540431d95ca4df"
+      "sha256": "ba99caa38f311498bf0d92ed78d600e76adb55d7b71856aff5a6968de375fff8"
     },
     {
       "path": "src/app/header.tsx",
