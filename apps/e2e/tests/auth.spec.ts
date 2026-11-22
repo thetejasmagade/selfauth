@@ -29,6 +29,9 @@ async function mailLink(
   return `${url.pathname}${url.hash}`;
 }
 
+/** The page's error message. Next.js adds its own role="alert" element (the route announcer). */
+const alert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');
+
 async function register(page: Page, email: string) {
   await page.goto("/register");
   await page.getByLabel("Email").fill(email);
@@ -67,7 +70,7 @@ test("register, verify by email link, sign in, use the app, sign out", async ({
   // Unverified accounts cannot sign in yet.
   await page.goto("/login");
   await signIn(page, email);
-  await expect(page.getByRole("alert")).toContainText("verify your email");
+  await expect(alert(page)).toContainText("verify your email");
 
   const link = await mailLink(request, backendUrl, email, "verification");
   expect(link).toMatch(/^\/verify-email#token=/);
@@ -99,7 +102,7 @@ test("register, verify by email link, sign in, use the app, sign out", async ({
 test("wrong passwords and unknown accounts look the same", async ({ page }) => {
   await page.goto("/login");
   await signIn(page, uniqueEmail("nobody"), "wrong password!!");
-  await expect(page.getByRole("alert")).toHaveText("Email or password is incorrect.");
+  await expect(alert(page)).toHaveText("Email or password is incorrect.");
 });
 
 test("post-login redirects never leave the site (SEC-REDIRECT-001)", async ({

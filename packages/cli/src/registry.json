@@ -972,6 +972,223 @@
         "devDependencies": [],
         "manifest": "apps/playground-flask/selfauth.manifest.json"
       }
+    },
+    "next": {
+      "files": [
+        {
+          "source": "apps/playground-next/src/auth/types.ts",
+          "target": "src/auth/types.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/index.ts",
+          "target": "src/auth/index.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/authorization.ts",
+          "target": "src/auth/core/authorization.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/clock.ts",
+          "target": "src/auth/core/clock.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/common-passwords.ts",
+          "target": "src/auth/core/common-passwords.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/crypto.ts",
+          "target": "src/auth/core/crypto.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/email.ts",
+          "target": "src/auth/core/email.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/errors.ts",
+          "target": "src/auth/core/errors.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/logger.ts",
+          "target": "src/auth/core/logger.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/mailer.ts",
+          "target": "src/auth/core/mailer.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/password.ts",
+          "target": "src/auth/core/password.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/rate-limit.ts",
+          "target": "src/auth/core/rate-limit.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/service.ts",
+          "target": "src/auth/core/service.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/core/store.ts",
+          "target": "src/auth/core/store.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/next/index.ts",
+          "target": "src/auth/next/index.ts"
+        },
+        {
+          "source": "apps/playground-next/src/auth/stores/memory.ts",
+          "target": "src/auth/stores/memory.ts"
+        },
+        {
+          "source": "apps/playground-next/src/lib/auth.ts",
+          "target": "src/lib/auth.ts"
+        },
+        {
+          "source": "apps/playground-next/src/instrumentation.ts",
+          "target": "src/instrumentation.ts"
+        },
+        {
+          "source": "apps/playground-next/src/app/auth/[[...path]]/route.ts",
+          "target": "src/app/auth/[[...path]]/route.ts"
+        },
+        {
+          "source": "apps/playground-next/src/app/api/[[...path]]/route.ts",
+          "target": "src/app/api/[[...path]]/route.ts"
+        },
+        {
+          "source": "apps/playground-next/src/app/health/route.ts",
+          "target": "src/app/health/route.ts"
+        },
+        {
+          "source": "apps/playground-next/next.config.ts",
+          "target": "next.config.ts"
+        },
+        {
+          "source": "apps/playground-next/src/config/env.ts",
+          "target": "src/config/env.ts"
+        },
+        {
+          "source": "apps/playground-next/src/http/errors.ts",
+          "target": "src/http/errors.ts"
+        },
+        {
+          "source": "apps/playground-next/src/email/mailer.ts",
+          "target": "src/email/mailer.ts"
+        },
+        {
+          "source": "apps/playground-next/src/config/dev-config.ts",
+          "target": "src/config/dev-config.ts"
+        },
+        {
+          "source": "packages/cli/template-variants/smoke.next.test.ts",
+          "target": "test/auth.smoke.test.ts",
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/routes.next.ts",
+          "target": "src/app/api/hello/route.ts",
+          "layout": "project"
+        },
+        {
+          "source": "packages/cli/template-variants/store.memory.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "memory"
+          }
+        },
+        {
+          "source": "apps/playground-next/src/db/store.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/src/auth/stores/prisma.ts",
+          "target": "src/auth/stores/prisma.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/prisma.config.ts",
+          "target": "prisma.config.ts",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/prisma/schema.prisma",
+          "target": "prisma/schema.prisma",
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "apps/playground-next/prisma/migrations",
+          "target": "prisma/migrations",
+          "directory": true,
+          "when": {
+            "database": "postgresql"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/auth/stores/mongoose.ts",
+          "target": "src/auth/stores/mongoose.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/db/store.ts",
+          "target": "src/db/store.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/migrate.ts",
+          "target": "src/scripts/migrate.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/seed.ts",
+          "target": "src/scripts/seed.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        },
+        {
+          "source": "packages/cli/template-variants/mongodb/src/scripts/create-admin.ts",
+          "target": "src/scripts/create-admin.ts",
+          "when": {
+            "database": "mongodb"
+          }
+        }
+      ],
+      "dependencies": ["next", "react", "react-dom", "cookie", "@node-rs/argon2"],
+      "devDependencies": ["typescript", "@types/node", "@types/react", "@types/react-dom"],
+      "postgresql": {
+        "dependencies": ["@prisma/client", "@prisma/adapter-pg", "pg"],
+        "devDependencies": ["prisma", "@types/pg"],
+        "manifest": "apps/playground-next/selfauth.manifest.json"
+      }
     }
   },
   "frontends": {
@@ -1104,6 +1321,114 @@
         "@types/react",
         "@types/react-dom"
       ],
+      "typecheck": "tsc --noEmit -p tsconfig.json"
+    },
+    "next": {
+      "port": 5175,
+      "files": [
+        {
+          "source": "apps/playground-next-web/src/app/layout.tsx",
+          "target": "web/src/app/layout.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/providers.tsx",
+          "target": "web/src/app/providers.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/header.tsx",
+          "target": "web/src/app/header.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/page.tsx",
+          "target": "web/src/app/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/login/page.tsx",
+          "target": "web/src/app/login/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/register/page.tsx",
+          "target": "web/src/app/register/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/verify-email/page.tsx",
+          "target": "web/src/app/verify-email/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/forgot-password/page.tsx",
+          "target": "web/src/app/forgot-password/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/reset-password/page.tsx",
+          "target": "web/src/app/reset-password/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/notes/page.tsx",
+          "target": "web/src/app/notes/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/account/page.tsx",
+          "target": "web/src/app/account/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/forbidden/page.tsx",
+          "target": "web/src/app/forbidden/page.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/app/not-found.tsx",
+          "target": "web/src/app/not-found.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/client.ts",
+          "target": "web/src/auth-client/client.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/redirect.ts",
+          "target": "web/src/auth-client/redirect.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/url-token.ts",
+          "target": "web/src/auth-client/url-token.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/messages.ts",
+          "target": "web/src/auth-client/messages.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/types.ts",
+          "target": "web/src/auth-client/types.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/react.tsx",
+          "target": "web/src/auth-client/react.tsx"
+        },
+        {
+          "source": "apps/playground-next-web/src/auth-client/index.ts",
+          "target": "web/src/auth-client/index.ts"
+        },
+        {
+          "source": "apps/playground-next-web/src/screens",
+          "target": "web/src/screens",
+          "directory": true
+        },
+        {
+          "source": "apps/playground-next-web/src/proxy.ts",
+          "target": "web/src/proxy.ts",
+          "when": {
+            "notBackend": ["next"]
+          }
+        },
+        {
+          "source": "apps/playground-next-web/next.config.ts",
+          "target": "web/next.config.ts",
+          "when": {
+            "notBackend": ["next"]
+          }
+        }
+      ],
+      "versionsFrom": "apps/playground-next-web/package.json",
+      "dependencies": ["next", "react", "react-dom"],
+      "devDependencies": ["typescript", "@types/node", "@types/react", "@types/react-dom"],
       "typecheck": "tsc --noEmit -p tsconfig.json"
     }
   },

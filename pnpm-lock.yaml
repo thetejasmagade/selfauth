@@ -246,6 +246,43 @@ importers:
         specifier: 7.10.1
         version: 7.10.1(@types/node@22.20.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(better-sqlite3@12.11.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)
 
+  apps/playground-next-web:
+    dependencies:
+      next:
+        specifier: ^16.4.6
+        version: 16.4.6(@playwright/test@1.63.0)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.3.1
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@selfauth/spec':
+        specifier: workspace:*
+        version: link:../../packages/spec
+      '@testing-library/dom':
+        specifier: ^10.4.2
+        version: 10.4.2
+      '@testing-library/react':
+        specifier: ^16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^6.3.0
+        version: 6.3.0(vite@8.3.8(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1))
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+      vite:
+        specifier: ^8.3.8
+        version: 8.3.8(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1)
+
   apps/playground-react:
     dependencies:
       react:

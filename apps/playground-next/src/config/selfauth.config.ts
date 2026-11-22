@@ -61,8 +61,9 @@ export const config: SelfAuthConfig = {
     basePath: "/auth",
     trustedOrigins: [],
     // Next.js does not expose the connection address, so SelfAuth reads it from X-Forwarded-For.
-    // This is the number of proxies in front of the app (a platform or a reverse proxy counts as
-    // one). Use 0 only when no proxy is involved (see website/next/production.md).
+    // This is the number of proxies in front of the app (a hosting platform or a reverse proxy
+    // counts as one). With no proxy at all the header comes from the client, and the per-address
+    // rate limits can be bypassed (the per-account limits still apply).
     trustProxy: 1,
     csrf: { mode: "header", headerName: "X-SelfAuth-CSRF" },
   },

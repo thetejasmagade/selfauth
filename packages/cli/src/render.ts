@@ -8,6 +8,13 @@ import {
   type Database,
   type Frontend,
 } from "./templates.js";
+import {
+  isNextFullStack,
+  nextClientRows,
+  nextScripts,
+  renderNextReadme,
+  renderNextTsconfig,
+} from "./render-next.js";
 
 export interface InitAnswers {
   name: string;
@@ -79,17 +86,28 @@ export function buildConfig(answers: InitAnswers): SelfAuthConfig {
       permissions,
       roles: { user: [], admin: [] },
     },
+    // Next.js route handlers cannot see the connection, so the address comes from a proxy header.
+    ...(answers.backend === "next" ? { http: { trustProxy: 1 } } : {}),
   });
 }
 
 export function renderConfig(config: SelfAuthConfig): string {
+  const proxyNote =
+    config.adapter.backend === "next"
+      ? ` *
+ * http.trustProxy: Next.js does not expose the connection address, so SelfAuth reads it from
+ * X-Forwarded-For. The number is how many proxies sit in front of the app (a hosting platform
+ * or a reverse proxy counts as one). With no proxy at all the header comes from the client, and
+ * the per-address rate limits can be bypassed (the per-account limits still apply).
+`
+      : "";
   return `import type { SelfAuthConfig } from "../auth/types.ts";
 
 /**
  * SelfAuth configuration: behavior only, never secrets (CONF-FILE-002).
  * Every default is a secure starting point and can be changed within the
  * bounds in CONFIGURATION_SPEC.md. Check changes with \`npx selfauth validate\`.
- */
+${proxyNote} */
 export const config: SelfAuthConfig = ${JSON.stringify(config, null, 2)};
 `;
 }
@@ -106,10 +124,16 @@ export const frameworkName = (answers: Pick<InitAnswers, "backend">) =>
       ? "Gin"
       : answers.backend === "flask"
         ? "Flask"
-        : "Express";
+        : answers.backend === "next"
+          ? "Next.js"
+          : "Express";
 
-/** Full-stack projects (a frontend was chosen) are two packages in an npm workspace. */
-export const isWorkspace = (answers: Pick<InitAnswers, "frontend">) => answers.frontend !== "none";
+/**
+ * Full-stack projects (a frontend was chosen) are two packages in an npm workspace, except one
+ * Next.js app that is both the API and the frontend: that is a single package.
+ */
+export const isWorkspace = (answers: Pick<InitAnswers, "backend" | "frontend">) =>
+  answers.frontend !== "none" && !isNextFullStack(answers);
 
 export function renderPackageJson(
   answers: InitAnswers,
@@ -124,13 +148,16 @@ export function renderPackageJson(
         return [n, v];
       }),
     );
-  const scripts: Record<string, string> = {
-    dev: "node --env-file-if-exists=.env --watch src/server.ts",
-    build: "tsc -p tsconfig.build.json",
-    start: "node --env-file-if-exists=.env dist/server.js",
-    typecheck: "tsc -p tsconfig.json --noEmit",
-    test: 'node --test "test/**/*.test.ts"',
-  };
+  const scripts: Record<string, string> =
+    answers.backend === "next"
+      ? { ...nextScripts(), test: 'node --test "test/**/*.test.ts"' }
+      : {
+          dev: "node --env-file-if-exists=.env --watch src/server.ts",
+          build: "tsc -p tsconfig.build.json",
+          start: "node --env-file-if-exists=.env dist/server.js",
+          typecheck: "tsc -p tsconfig.json --noEmit",
+          test: 'node --test "test/**/*.test.ts"',
+        };
   if (usesPrisma(answers.database)) {
     Object.assign(scripts, {
       generate: "prisma generate",
@@ -165,7 +192,9 @@ export function renderPackageJson(
   )}\n`;
 }
 
-export function renderTsconfig(): { base: string; build: string } {
+export function renderTsconfig(backend?: Backend): { base: string; build: string } {
+  // Next.js compiles the project itself: one tsconfig, no separate build config.
+  if (backend === "next") return { base: renderNextTsconfig(), build: "" };
   const base = {
     compilerOptions: {
       target: "ES2023",
@@ -206,18 +235,22 @@ export function renderWebPackageJson(
   versions: Record<string, string>,
 ): string {
   const pick = (names: string[]) => Object.fromEntries(names.map((n) => [n, versions[n] ?? "*"]));
+  const next = answers.frontend === "next";
   return `${JSON.stringify(
     {
       name: `${answers.name}-client`,
       version: "0.1.0",
       private: true,
       type: "module",
-      scripts: {
-        dev: "vite",
-        build: "vite build",
-        preview: "vite preview",
-        typecheck: info.typecheck,
-      },
+      engines: next ? { node: ">=22.18" } : undefined,
+      scripts: next
+        ? { ...nextScripts({ port: 5175 }), typecheck: info.typecheck }
+        : {
+            dev: "vite",
+            build: "vite build",
+            preview: "vite preview",
+            typecheck: info.typecheck,
+          },
       dependencies: pick(info.dependencies),
       devDependencies: pick(info.devDependencies),
     },
@@ -227,6 +260,7 @@ export function renderWebPackageJson(
 }
 
 export function renderWebTsconfig(frontend: Exclude<Frontend, "none">): string {
+  if (frontend === "next") return renderNextTsconfig();
   const config = {
     compilerOptions: {
       target: "ES2023",
@@ -298,7 +332,8 @@ export function renderEnvExample(answers: InitAnswers): string {
   const lines = [
     "# Copy to .env for local development. Never commit .env (SEC-SECRET-002).",
     "# Placeholders only.",
-    "NODE_ENV=development",
+    // Next.js sets NODE_ENV itself (development for `next dev`, production for `next start`).
+    ...(answers.backend === "next" ? [] : ["NODE_ENV=development"]),
     "PORT=3000",
     "# Absolute URL of your frontend: email links point here (AUTHN-VERIFY-009).",
     `SELFAUTH_APP_BASE_URL=${checkedBaseUrl(answers.appBaseUrl)}`,
@@ -422,10 +457,11 @@ for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(
 }
 
 /** .gitignore of a TypeScript project, or of the root of a full-stack one. */
-export function renderGitignore(options: { workspace?: boolean } = {}): string {
+export function renderGitignore(options: { workspace?: boolean; next?: boolean } = {}): string {
   return [
     "node_modules/",
     "dist/",
+    ...(options.next ? [".next/", "next-env.d.ts"] : []),
     ".env",
     ".env.*",
     "!.env.example",
@@ -483,6 +519,7 @@ function serverRows(answers: InitAnswers): Row[] {
 }
 
 function clientRows(answers: InitAnswers): Row[] {
+  if (answers.frontend === "next") return nextClientRows("");
   return [
     ["src/", ""],
     [
@@ -511,7 +548,10 @@ export function renderLayout(answers: InitAnswers): string {
         ["  package.json, tsconfig.json", "its own package"],
         ["  .env.example", "copy to server/.env"],
         ["  selfauth.manifest.json", "which files SelfAuth generated (doctor, diff, upgrade)"],
-        ["client/", `the ${answers.frontend} frontend (Vite)`],
+        [
+          "client/",
+          `the ${answers.frontend === "next" ? "Next.js" : answers.frontend} frontend (${answers.frontend === "next" ? "Next.js" : "Vite"})`,
+        ],
         ...indent(clientRows(answers)),
         ["  package.json", "its own package"],
         ["  selfauth.manifest.json", "which files SelfAuth generated"],
@@ -543,6 +583,20 @@ function goStoreLayout(answers: InitAnswers) {
     label: database === "memory" ? "" : DATABASE_INFO[database].label,
     stores: database === "memory" ? "memory" : `memory, ${packages[database]}`,
   };
+}
+
+/** The client/ part of a README's folder tree (shared by the Go and Python workspace READMEs). */
+export function clientTree(answers: InitAnswers): string {
+  if (answers.frontend === "next") {
+    const rows = nextClientRows("  ").filter(([name]) => name.trim() !== "src/");
+    return `client/                       the Next.js frontend\n  src/\n${rows
+      .map(([name, note]) => `  ${name.padEnd(28)}${note}`)
+      .join("\n")}`;
+  }
+  return `client/                       the ${answers.frontend} frontend (Vite)
+  src/auth/                   SelfAuth's frontend module: API client, session state, route guards, <Can>
+  src/pages/auth/             the five account screens (unstyled HTML; add your own styles)
+  src/pages/                  your pages: add yours here`;
 }
 
 function renderGoWorkspaceReadme(answers: InitAnswers): string {
@@ -594,10 +648,7 @@ ${pg ? `  cmd/migrate, cmd/seed,      ${layout.sql ? "apply migrations" : "creat
   selfauth.config.json        your authentication settings: roles, permissions, limits
   .env.example                copy to server/.env
   selfauth.manifest.json      which files SelfAuth generated (doctor, diff, upgrade)
-client/                       the ${answers.frontend} frontend (Vite)
-  src/auth/                   SelfAuth's frontend module: API client, session state, route guards, <Can>
-  src/pages/auth/             the five account screens (unstyled HTML; add your own styles)
-  src/pages/                  your pages: add yours here
+${clientTree(answers)}
   selfauth.manifest.json      which files SelfAuth generated
 scripts/dev-server.mjs        starts the Go server for \`npm run dev\`
 package.json                  workspace root: \`npm run dev\` starts both
@@ -697,6 +748,7 @@ npx selfauth diff       # what a newer SelfAuth release would change
 
 export function renderReadme(answers: InitAnswers): string {
   if (answers.backend === "gin") return renderGoReadme(answers);
+  if (answers.backend === "next") return renderNextReadme(answers);
   const pg = hasDatabase(answers.database);
   const ws = isWorkspace(answers);
   const env = ws ? "server/.env" : ".env";
@@ -727,7 +779,7 @@ deploy it. Nothing here calls a SelfAuth service.
 \`\`\`bash
 ${run}
 \`\`\`
-${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/auth/\` holds the API client, session state, route guards and \`<Can>\`. Your API routes go in \`server/src/routes/\` (guard them with \`auth.requireAuth\` or \`auth.requirePermission\`), your pages in \`client/src/pages/\`.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`vite preview\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
+${ws ? `\nOpen ${answers.appBaseUrl}. The API is in \`server/\` and the ${answers.frontend} frontend in \`client/\`; they are two packages in one npm workspace, so one \`npm install\` at the root installs both and \`npm run dev\` starts both (the frontend proxies /auth and /api to the API). The frontend's \`src/${answers.frontend === "next" ? "auth-client" : "auth"}/\` holds the API client, session state, route guards and \`<Can>\`. Your API routes go in \`server/src/routes/\` (guard them with \`auth.requireAuth\` or \`auth.requirePermission\`), your pages in \`client/src/${answers.frontend === "next" ? "app/\` and \`client/src/screens" : "pages"}/\`.\n\nThe backend only trusts the frontend origin in \`SELFAUTH_APP_BASE_URL\` (\`${env}\`). If you serve the frontend elsewhere (for example \`${answers.frontend === "next" ? "next start" : "vite preview"}\` on another port, or a deployed domain), set that variable or add the origin to \`http.trustedOrigins\`, or state-changing requests fail with CSRF_FAILED. See https://github.com/thetejasmagade/selfauth/blob/main/docs/frontend-deployment.md.\n` : ""}
 Email (verification, password reset) is printed to the console in
 development. Before production, implement \`createMailer()\` in
 \`${base}src/email/mailer.ts\`; the server refuses to start in production until you do.

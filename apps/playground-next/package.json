@@ -13,7 +13,8 @@
     "dev": "next dev --port 3000",
     "start": "next start --port 3000",
     "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
-    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts"
+    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts",
+    "e2e:server": "SELFAUTH_E2E=1 node test/e2e-server.ts"
   },
   "engines": {
     "node": ">=22"
