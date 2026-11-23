@@ -30,11 +30,14 @@ const exit = (code: number) => {
 program
   .command("init [dir]")
   .description(
-    "generate a new Express, Fastify, Gin (Go) or Flask (Python) project with SelfAuth authentication",
+    "generate a new Express, Fastify, Next.js, Gin (Go) or Flask (Python) project with SelfAuth authentication",
   )
-  .option("--backend <framework>", "express | fastify | gin | flask (default: express)")
+  .option("--backend <framework>", "express | fastify | next | gin | flask (default: express)")
   .option("--database <db>", "postgresql | mysql | sqlite | mongodb | memory")
-  .option("--frontend <fw>", "none | vue | react (generated into client/)")
+  .option(
+    "--frontend <fw>",
+    "none | vue | react | next (generated into client/; next with --backend next is the same app)",
+  )
   .option(
     "--permissions <list>",
     "comma-separated application permissions, e.g. orders.view,orders.create",

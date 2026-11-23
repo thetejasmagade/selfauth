@@ -44,6 +44,14 @@ export const INTEGRATIONS: Integration[] = [
     add: false,
   },
   {
+    kind: "backend",
+    id: "next",
+    label:
+      "Next.js 16 (App Router route handlers): its own API in the same app, 90/90 conformance cases, authorization level; new projects, as the API alone, with its own pages (`--frontend next`) or with a Vue or React frontend (`selfauth init --backend next`)",
+    production: true,
+    add: false,
+  },
+  {
     kind: "database",
     id: "postgresql",
     label:
@@ -99,6 +107,14 @@ export const INTEGRATIONS: Integration[] = [
     production: true,
     add: true,
   },
+  {
+    kind: "frontend",
+    id: "next",
+    label:
+      "Next.js 16 (App Router): the pages and the API in one app with `--backend next`, or a Next.js app in client/ for Express, Fastify, Gin or Flask (reference frontend, browser-tested); new projects only",
+    production: true,
+    add: false,
+  },
 ];
 
 export const PLANNED = ["Prisma schema merging for `selfauth add`"];
@@ -117,7 +133,7 @@ export function list(options: { json?: boolean } = {}): number {
     say(`  ${title.padEnd(10)} ${i.id.padEnd(16)} ${i.label}`);
   }
   say(
-    "\nExisting Express or Fastify + TypeScript projects: `selfauth add` (new files only, ADR 0019).\nEvery backend works with every database and every frontend. Gin and Flask are for new projects only (`add` does not apply to Go or Python).",
+    "\nExisting Express or Fastify + TypeScript projects: `selfauth add` (new files only, ADR 0019).\nEvery backend works with every database and every frontend. Gin, Flask and Next.js are for new projects only (`add` does not apply to Go, Python or Next.js).",
   );
   say(`Planned, not available yet: ${PLANNED.join("; ")}.`);
   return 0;

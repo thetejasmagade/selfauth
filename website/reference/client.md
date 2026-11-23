@@ -1,12 +1,12 @@
 ---
-title: Client API (Vue and React)
+title: Client API (Vue, React and Next.js)
 description: The generated frontend client - createAuthClient methods, AuthApiError, the Vue store, plugin and guard, and the React provider, hooks and components such as RequireAuth and Can.
 keywords: [createAuthClient, AuthApiError, useAuth, RequireAuth, Can, installAuthGuard, vue, react, frontend client]
 ---
 
-# Client API (Vue and React)
+# Client API (Vue, React and Next.js)
 
-This is the code in `client/src/auth/` of projects generated with `--frontend vue|react`, or `src/selfauth/` after `add-frontend`. It's a framework-neutral client with a thin Vue or React layer on top. It's your code, and there's no SelfAuth package at runtime.
+This is the code in `client/src/auth/` of projects generated with `--frontend vue|react` (`src/auth-client/` with `--frontend next`, in `client/`, or in the app itself for `--backend next`), or `src/selfauth/` after `add-frontend`. It's a framework-neutral client with a thin Vue or React layer on top. It's your code, and there's no SelfAuth package at runtime.
 
 ## `createAuthClient(options)`
 
@@ -55,5 +55,18 @@ Two helpers are worth knowing. `safeRedirect(target, fallback)` only accepts sam
 | `<RequireAuth permission? loginPath? forbiddenPath?>` | Redirects signed-out users to login, with a validated return path |
 | `<GuestOnly home?>` | For login and register pages |
 | `<Can permission? role? fallback?>` | Permission-aware rendering |
+
+### Next.js (`src/auth-client/react.tsx`)
+
+The same exports as React, with these differences, because the page is drawn on the server first:
+
+| Difference | Why |
+| --- | --- |
+| `createAuthStore(client)` does not look the session up. `store.start()` does, once, in the browser (`<AuthProvider>` calls it for you) | Nothing runs on the server, and a page never carries one person's name |
+| The server render and the first browser render are both `status: "loading"` | The page is the same HTML for everyone |
+| `<RequireAuth>` and `<GuestOnly>` redirect with the Next.js router, in an effect, and draw nothing until they know | `next/navigation` instead of a router component |
+| `src/auth-client/`, not `src/auth/` | In a Next.js backend the same app's `src/auth/` is the server's code |
+
+The framework-neutral files (`client.ts`, `redirect.ts`, `url-token.ts`, `messages.ts`, `types.ts`) are identical to the React and Vue ones.
 
 Every frontend check is for the user's benefit only. The server enforces each permission (AUTHZ-CORE-004).

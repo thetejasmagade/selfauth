@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+next-env.d.ts
+.env
+.env.*
+!.env.example
+src/generated/
+*.log
+*.db
+*.db-journal
+*.db-shm
+*.db-wal

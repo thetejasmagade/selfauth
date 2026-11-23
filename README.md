@@ -17,8 +17,8 @@ SelfAuth is **not** a hosted identity provider, auth server, or runtime SDK.
 Code it generates keeps working if SelfAuth, its CLI, npm, or any AI service
 disappears.
 
-> **Status: pre-alpha.** Spec, conformance suite, Express and Fastify backends with PostgreSQL, MySQL, SQLite and MongoDB, a Gin (Go) backend with PostgreSQL,
-> Vue/React frontends, a CLI (`init`, `add`, `upgrade`, migrations), and a
+> **Status: pre-alpha.** Spec, conformance suite, Express, Fastify and Next.js backends with PostgreSQL, MySQL, SQLite and MongoDB, Gin (Go) and Flask (Python) backends,
+> Vue, React and Next.js frontends, a CLI (`init`, `add`, `upgrade`, migrations), and a
 > `selfauth` skill for coding agents. See [`ROADMAP.md`](ROADMAP.md).
 
 ```bash
@@ -51,9 +51,11 @@ selfauth/
 ├── apps/playground-fastify/  Fastify reference implementation (same core, Fastify adapter)
 ├── apps/playground-gin/  Gin (Go) reference implementation (a Go port of the core, pgx or in-memory)
 ├── apps/playground-flask/  Flask (Python) reference implementation (a Python port of the core, every database)
+├── apps/playground-next/  Next.js reference implementation (the same core behind App Router route handlers)
 ├── apps/playground-vue/   Vue 3 reference frontend
 ├── apps/playground-react/ React reference frontend
-├── apps/e2e/            One Playwright spec run against both frontends and both backends
+├── apps/playground-next-web/ Next.js reference frontend (works with any backend)
+├── apps/e2e/            One Playwright spec run against every frontend and every backend
 ├── website/            The documentation website (VitePress): `pnpm docs:dev`
 ├── docs/adr/           Architecture decision records
 ├── templates/          Copyable standalone projects (manual install, no CLI)

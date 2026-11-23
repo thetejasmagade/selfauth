@@ -12,7 +12,7 @@ Environment variables hold the things that differ between your laptop and produc
 
 | Variable | Required | Default | Used by | Meaning |
 | --- | --- | --- | --- | --- |
-| `NODE_ENV` | no | `development` | Express, Fastify | `development`, `test` or `production`. `production` turns on strict checks |
+| `NODE_ENV` | no | `development` | Express, Fastify, Next.js | `development`, `test` or `production`. `production` turns on strict checks. Next.js sets it itself (`next dev` is `development`, `next start` is `production`), so leave it out of `.env` |
 | `APP_ENV` | no | `development` | Gin, Flask | The same, for Go and Python |
 | `PORT` | no | `3000` | all | Port to listen on (1 – 65535) |
 | `HOST` | no | `0.0.0.0` | Fastify | Interface to listen on |
@@ -21,7 +21,8 @@ Environment variables hold the things that differ between your laptop and produc
 | `SELFAUTH_CSRF_SECRET` | with `csrf.mode: "token"` | – | all | 32 or more random bytes, base64url |
 | `SELFAUTH_CSRF_SECRET_PREVIOUS` | no | – | all | The old secret, accepted while rotating |
 | `SELFAUTH_CONFIG` | no | `selfauth.config.json` | Gin, Flask | Path to the configuration file |
-| `SELFAUTH_API_TARGET` | no | `http://localhost:3000` | Vite dev server | Where the dev server forwards `/auth` and `/api` |
+| `SELFAUTH_PROXY_HOPS` | no | `1` | Next.js frontend | How many proxies sit in front of the Next.js server. The visitor's address is the `X-Forwarded-For` entry that many from the right, and is sent to the backend alone. `0` drops the header |
+| `SELFAUTH_API_TARGET` | no | `http://localhost:3000` | Vite dev server, Next.js frontend | Where the dev server (or, for a Next.js frontend, the running app: it is read on every request) forwards `/auth` and `/api` |
 
 If a value is invalid the server stops at startup and lists every problem:
 
@@ -77,6 +78,7 @@ These are not read by SelfAuth itself: they are read by the mailer you add befor
 | Project | How |
 | --- | --- |
 | Express, Fastify | Copy `.env.example` to `.env` (full stack: `server/.env`). The npm scripts load it with `node --env-file-if-exists=.env` |
+| Next.js | Copy `.env.example` to `.env` (with a Vite frontend: `server/.env`). Next.js loads it by itself, for `next dev` and `next start` |
 | Flask | Copy `.env.example` to `.env` (full stack: `server/.env`). The server loads it by itself in development; variables already set in the environment win |
 | Gin | The server does not read `.env`. Export the variables in your shell, or use a tool such as direnv |
 

@@ -31,8 +31,10 @@ for (const p of [
   "package.json",
   "apps/playground/package.json",
   "apps/playground-fastify/package.json",
+  "apps/playground-next/package.json",
   "apps/playground-vue/package.json",
   "apps/playground-react/package.json",
+  "apps/playground-next-web/package.json",
 ]) {
   const pkg = JSON.parse(readFileSync(join(repo, p), "utf8"));
   Object.assign(versions, pkg.devDependencies, pkg.dependencies);

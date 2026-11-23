@@ -1,0 +1,47 @@
+{
+  "name": "@selfauth/playground-next",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next.js reference implementation of SelfAuth: the same application-owned core as the Express playground behind App Router route handlers.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "next build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "next dev --port 3000",
+    "start": "next start --port 3000",
+    "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
+    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts",
+    "e2e:server": "SELFAUTH_E2E=1 node test/e2e-server.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "cookie": "^2.0.2",
+    "next": "^16.4.6",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@prisma/adapter-better-sqlite3": "7.10.1",
+    "@prisma/adapter-mariadb": "7.10.1",
+    "@selfauth/conformance": "workspace:*",
+    "@selfauth/migration": "workspace:*",
+    "@selfauth/spec": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "better-sqlite3": "^13.2.0",
+    "mariadb": "^3.4.5",
+    "mongoose": "^9.12.2",
+    "prisma": "7.10.1"
+  }
+}
