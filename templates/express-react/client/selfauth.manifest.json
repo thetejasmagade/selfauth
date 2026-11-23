@@ -110,7 +110,7 @@
     {
       "path": "package.json",
       "template": "rendered:web-package.json",
-      "sha256": "bee283474e429d00981d5bacd46a0c35ab9bf4726bedc4ab5f9a8bd1f49e9270"
+      "sha256": "ff322293845c4da5a3ad35f915a6a4b1fc5ff1d77b14eab7e399d23a4bead191"
     },
     {
       "path": "tsconfig.json",
