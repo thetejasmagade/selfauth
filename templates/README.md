@@ -16,7 +16,6 @@ run it.
 | [`fastify-vue/`](fastify-vue/), [`fastify-react/`](fastify-react/) | The Fastify API in `server/` with a Vue 3 or React app in `client/` | Its `README.md` |
 | [`next/`](next/) | Next.js 16 API with PostgreSQL (Prisma): the same core and stores as `express/` behind App Router route handlers (`app/auth/[[...path]]/route.ts`, your routes as `app/api/.../route.ts`) | Its `README.md` |
 | [`next-next/`](next-next/) | One Next.js app that is both the API and the pages (login, register, verify email, reset password, account) | Its `README.md` |
-| [`express-next/`](express-next/) | The Express API in `server/` with a Next.js app in `client/` that forwards `/auth` and `/api` to it | Its `README.md` |
 | [`gin/`](gin/) | Gin (Go) API with PostgreSQL (pgx): a Go port of the core, API only. Falls back to an in-memory store when `DATABASE_URL` is unset in development. Other databases and a frontend: generate with the CLI (`selfauth init --backend gin --database … --frontend …`) | Its `README.md` |
 | [`existing-express/`](existing-express/) | The files to **add** to an existing Express app: `src/selfauth/`, `prisma/` and `selfauth.manifest.json` | [Manual integration](../docs/manual-integration.md#existing-express-app) |
 

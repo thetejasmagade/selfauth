@@ -72,14 +72,6 @@ export const TEMPLATES = {
       frontend: "next",
       appBaseUrl: "http://localhost:3000",
     }),
-  "express-next": () =>
-    planInit({
-      ...base,
-      name: "selfauth-app",
-      database: "postgresql",
-      frontend: "next",
-      appBaseUrl: "http://localhost:5175",
-    }),
   gin: () =>
     planInit({
       ...base,
