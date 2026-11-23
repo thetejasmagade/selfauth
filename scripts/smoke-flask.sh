@@ -4,14 +4,14 @@
 # verification → login → protected route flow, then the agent skill's validate-auth against the
 # running server.
 #   scripts/smoke-flask.sh memory
-#   scripts/smoke-flask.sh memory react        (Flask + a frontend: server/ and client/ in one workspace)
+#   scripts/smoke-flask.sh memory react        (Flask + a frontend (vue, react or next): server/ and client/ in one workspace)
 #   scripts/smoke-flask.sh sqlite              (a temporary file, no server)
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-flask.sh postgresql   (an empty database)
 #   SMOKE_DATABASE_URL=mysql://… scripts/smoke-flask.sh mysql            (an empty database)
 #   SMOKE_DATABASE_URL=mongodb://…/smoke scripts/smoke-flask.sh mongodb  (an empty database)
 # Needs Python 3.11+ and the built CLI (pnpm build). SMOKE_PYTHON picks the interpreter.
 set -euo pipefail
-DB="${1:?usage: smoke-flask.sh memory|postgresql|mysql|sqlite|mongodb [none|vue|react]}"
+DB="${1:?usage: smoke-flask.sh memory|postgresql|mysql|sqlite|mongodb [none|vue|react|next]}"
 FRONTEND="${2:-none}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 CLI="${SELFAUTH_SMOKE_CLI:-$REPO/packages/cli/dist/bin.js}"

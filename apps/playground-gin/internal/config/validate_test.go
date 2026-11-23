@@ -131,6 +131,10 @@ func TestAccepts(t *testing.T) {
 		"a proxy list":         func(m map[string]any) { at(m, "http")["trustProxy"] = []any{"10.0.0.0/8"} },
 		"a proxy hop count":    func(m map[string]any) { at(m, "http")["trustProxy"] = 1 },
 		"a Go backend, no ORM": func(m map[string]any) { at(m, "adapter")["backend"] = "gin" },
+		// Every frontend `selfauth init --frontend` can generate next to the Go server.
+		"a Vue frontend":     func(m map[string]any) { at(m, "adapter")["frontend"] = "vue" },
+		"a React frontend":   func(m map[string]any) { at(m, "adapter")["frontend"] = "react" },
+		"a Next.js frontend": func(m map[string]any) { at(m, "adapter")["frontend"] = "next" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := edit(t, change); err != nil {

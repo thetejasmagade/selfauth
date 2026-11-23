@@ -48,6 +48,7 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | frontend | `none` | API only |
 | frontend | `vue` | Vue 3 (generated as client/ next to the Flask server in server/; browser-tested against the Flask server) |
 | frontend | `react` | React (generated as client/ next to the Flask server in server/; browser-tested against the Flask server) |
+| frontend | `next` | Next.js 16 (generated as client/ next to the Flask server in server/; browser-tested against the Flask server) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 

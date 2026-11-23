@@ -48,6 +48,7 @@ CI runs the whole suite against the in-memory store and against PostgreSQL, and 
 | frontend | `none` | API only |
 | frontend | `vue` | Vue 3 (generated as client/ next to the Go server in server/; browser-tested against the Go server) |
 | frontend | `react` | React (generated as client/ next to the Go server in server/; browser-tested against the Go server) |
+| frontend | `next` | Next.js 16 (generated as client/ next to the Go server in server/; browser-tested against the Gin server) |
 
 Not supported yet: see [Known limitations](#known-limitations).
 
