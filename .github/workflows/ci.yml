@@ -106,7 +106,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r apps/playground-flask/requirements.txt
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -115,7 +115,7 @@ jobs:
       - name: Playwright version
         id: pw
         run: echo "version=$(pnpm --filter @selfauth/e2e exec playwright --version)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: pw-cache
         with:
           path: ~/.cache/ms-playwright
@@ -141,7 +141,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -196,7 +196,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -315,7 +315,7 @@ jobs:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -404,7 +404,7 @@ jobs:
           docker logs mongo
           exit 1
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -510,7 +510,7 @@ jobs:
           cache-dependency-path: apps/playground-flask/requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pip install -r apps/playground-flask/requirements.txt
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -600,7 +600,7 @@ jobs:
           docker logs mongo
           exit 1
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -673,7 +673,7 @@ jobs:
           docker logs mongo
           exit 1
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
@@ -740,7 +740,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-${{ github.job }}-${{ github.sha }}
