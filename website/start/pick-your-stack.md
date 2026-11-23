@@ -1,7 +1,7 @@
 ---
 title: Pick your stack
 description: Choose a backend, a database and a frontend for your SelfAuth project, see what you need installed, and find the guide to follow.
-keywords: [choose stack, express, fastify, gin, flask, python, postgresql, mysql, sqlite, mongodb, vue, react, prerequisites]
+keywords: [choose stack, express, fastify, next.js, gin, flask, python, postgresql, mysql, sqlite, mongodb, vue, react, prerequisites]
 ---
 
 # Pick your stack
@@ -14,6 +14,7 @@ You make three choices when you create a project. You can't easily change them l
 | --- | --- |
 | **Express** | You write JavaScript or TypeScript and want the most common choice. Start here if you're unsure. |
 | **Fastify** | You write TypeScript and already like Fastify. |
+| **Next.js** | You build with Next.js and want the API in the same app: sign-in pages and API routes together. |
 | **Gin** | You write Go. |
 | **Flask** | You write Python. |
 
@@ -35,14 +36,15 @@ SQLite runs as a single process, so before you run several copies of your server
 | --- | --- |
 | **None** | You only need an API, or you'll build the frontend separately. |
 | **React** or **Vue** | You want sign-in, sign-up, password reset and account pages ready to use. |
+| **Next.js** | You want those pages in a Next.js app. With the Next.js backend the pages and the API are one app. With Express, Fastify, Gin or Flask it's a Next.js app in front of that API. |
 
-With a frontend, your project has two folders: `server/` for the API and `client/` for the pages. The guides point out where that changes a path.
+With a Vue or React frontend, your project has two folders: `server/` for the API and `client/` for the pages. The guides point out where that changes a path. The one exception is the Next.js backend with the Next.js frontend, which is a single app with the pages and the API side by side.
 
 ## What to install first
 
 | For | You need |
 | --- | --- |
-| Express or Fastify | [Node.js](https://nodejs.org) 22.18 or newer. Check with `node --version`. |
+| Express, Fastify or Next.js | [Node.js](https://nodejs.org) 22.18 or newer. Check with `node --version`. |
 | Gin | [Go](https://go.dev/dl/) 1.26 or newer, and Node.js 22.18 or newer to run the `selfauth` command |
 | Flask | [Python](https://www.python.org/downloads/) 3.11 or newer, and Node.js 22.18 or newer to run the `selfauth` command |
 | PostgreSQL, MySQL or MongoDB | A running database server and an empty database. SQLite needs nothing. |
@@ -53,5 +55,6 @@ Each guide builds the same small app from start to finish: a notes app where peo
 
 - [Express guide](/express/)
 - [Fastify guide](/fastify/)
+- [Next.js guide](/next/) (pages and API in one app), and [Next.js with another backend](/next/with-another-backend)
 - [Gin (Go) guide](/gin/)
 - [Flask (Python) guide](/flask/)

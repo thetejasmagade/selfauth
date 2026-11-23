@@ -1,7 +1,7 @@
 {
   "toolkit": "selfauth",
-  "version": "0.19.0",
-  "templateVersion": "0.19.0",
+  "version": "0.20.0",
+  "templateVersion": "0.20.0",
   "specVersion": "0.1",
   "database": {
     "type": "postgresql",
@@ -175,7 +175,7 @@
     {
       "path": "internal/config/config.go",
       "template": "gin:apps/playground-gin/internal/config/config.go",
-      "sha256": "68691163dc79eca463fc6ae07025855dcfbddc731cc60b12d0794771030511a6"
+      "sha256": "4736e9a32d9cb251821dcbd512568ec536bd4a448812b816b930a1f27ea0c542"
     },
     {
       "path": "internal/config/config_test.go",

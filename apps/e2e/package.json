@@ -2,7 +2,7 @@
   "name": "@selfauth/e2e",
   "version": "0.0.0",
   "private": true,
-  "description": "Browser end-to-end tests: one spec run against every reference frontend (Vue, React) and the Express backend.",
+  "description": "Browser end-to-end tests: one spec run against every reference frontend (Vue, React, Next.js) and every reference backend.",
   "license": "MIT",
   "type": "module",
   "scripts": {

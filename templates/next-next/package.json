@@ -1,0 +1,40 @@
+{
+  "name": "selfauth-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:seed": "node --env-file-if-exists=.env src/scripts/seed.ts",
+    "db:create-admin": "node --env-file-if-exists=.env src/scripts/create-admin.ts"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "cookie": "^2.0.2",
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/client": "7.10.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "prisma": "7.10.1",
+    "@types/pg": "^8.23.1"
+  }
+}

@@ -19,7 +19,7 @@ flowchart TD
 
 ## 1. Same origin (recommended)
 
-The browser talks to one address, say `https://app.example.com`. The frontend is served from there, and `/auth` and `/api` are proxied to the backend. Local development already works this way, with Vite doing the proxying.
+The browser talks to one address, say `https://app.example.com`. The frontend is served from there, and `/auth` and `/api` are proxied to the backend. Local development already works this way, with Vite doing the proxying (a generated Next.js frontend does it with `src/proxy.ts`, which reads `SELFAUTH_API_TARGET` when a request arrives, so it works in production too; and a Next.js backend with Next.js pages is already one origin).
 
 | Setting | Value |
 | --- | --- |

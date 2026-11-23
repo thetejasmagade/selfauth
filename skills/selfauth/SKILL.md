@@ -1,10 +1,10 @@
 ---
 name: selfauth
-description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express or Fastify + TypeScript projects (and new Gin/Go and Flask/Python API projects), with Vue or React frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
+description: Add, check, upgrade and explain email/password authentication, sessions, roles and permissions in Node.js Express or Fastify + TypeScript projects (and new Next.js, Gin/Go and Flask/Python projects), with Vue, React or Next.js frontends, using the SelfAuth CLI, which generates tested code the project owns. Use when asked to add login, sign-up, auth, RBAC or permissions, to protect routes, to wire SelfAuth into an existing app (any folder layout, monorepo, separate frontend), to diagnose or upgrade a SelfAuth install, or to answer questions about what SelfAuth supports, how it works, its security, database, configuration, deployment or limits. Use it instead of hand-writing authentication code or answering from memory.
 license: MIT
 compatibility: Node.js >= 22.18. Supports Express 5 and Fastify 5 (new and existing projects) + TypeScript >= 5.7 backends with PostgreSQL, MySQL or SQLite (Prisma), MongoDB (Mongoose) or an in-memory store, and Vue or React frontends for new projects. Needs the SelfAuth CLI (npx @selfauth/cli).
 metadata:
-  version: "0.19.0"
+  version: "0.20.0"
   spec: "0.1"
 ---
 
@@ -53,7 +53,7 @@ from this skill's files, not from memory.
    If the CLI can't generate it, say so and stop. Don't improvise.
 2. **Never invent adapters.** Only what `selfauth list` reports is supported
    (see [framework-support](references/framework-support.md)). For NestJS,
-   Next.js, Django, Mongo or anything else unsupported,
+   Django, Remix or anything else unsupported,
    stop and report it. Don't port the Express code.
 3. **Never bypass the CLI.** Don't copy files out of the SelfAuth repository by
    hand when `init`, `add` or `upgrade` covers the case.
@@ -192,7 +192,8 @@ for the API. In short:
   covers the whole app (SEC-CSRF-004).
 - Email: the mailer needs a real provider before production (`createMailer()` in
   `email/mailer.ts` for Express and Fastify, `NewMailer` in `internal/email/mailer.go`
-  for Gin, `create_mailer` in `app/mailer.py` for Flask). That is a manual item
+  for Gin, `create_mailer` in `app/mailer.py` for Flask; the same `createMailer()` in
+  `src/email/mailer.ts` for Next.js). That is a manual item
   unless the developer names a provider; then use the tested code and variable
   names in the docs' email section (`/email/`), and read `references/questions.md`
   ("How do I send real emails?") for the variables. Never hard-code the API key.
