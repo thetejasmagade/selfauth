@@ -96,7 +96,7 @@ jobs:
           node-version: 22
           cache: pnpm
       # The Go reference backend is one of the backends the browser spec runs against.
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
@@ -250,7 +250,7 @@ jobs:
       SELFAUTH_REQUIRE_MONGODB: "1"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
@@ -310,7 +310,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
@@ -384,7 +384,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
