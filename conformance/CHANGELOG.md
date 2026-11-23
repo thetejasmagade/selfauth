@@ -1,5 +1,12 @@
 # @selfauth/conformance
 
+## 0.20.0
+
+### Patch Changes
+
+- Updated dependencies [90c8abd]
+  - @selfauth/spec@0.20.0
+
 ## 0.19.0
 
 ### Patch Changes
