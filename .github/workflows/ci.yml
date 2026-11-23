@@ -101,7 +101,7 @@ jobs:
           go-version-file: apps/playground-gin/go.mod
           cache-dependency-path: apps/playground-gin/go.sum
       # The Python reference backend is one of the backends the browser spec runs against.
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -r apps/playground-flask/requirements.txt
@@ -442,7 +442,7 @@ jobs:
       SELFAUTH_REQUIRE_MONGODB: "1"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -502,7 +502,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -577,7 +577,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
