@@ -26,7 +26,7 @@ That also means the code is yours to look after. SelfAuth helps with that: `self
 - An admin role, plus an API for managing users and their roles
 - Migrations for your database, and tests for the wiring
 
-You choose the backend (Express, Fastify, Gin or Flask), the database (PostgreSQL, MySQL, SQLite or MongoDB) and, optionally, a Vue or React frontend.
+You choose the backend (Express, Fastify, Next.js, Gin or Flask), the database (PostgreSQL, MySQL, SQLite or MongoDB) and, optionally, a Vue, React or Next.js frontend.
 
 ## What you write yourself
 

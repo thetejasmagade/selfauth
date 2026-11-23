@@ -62,9 +62,13 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
   }
   const detected = await detectProject(dir);
   const requested = options.backend ?? detected.framework ?? undefined;
-  if (requested === "gin" || requested === "flask") {
+  if (requested === "gin" || requested === "flask" || requested === "next") {
+    const kind = requested === "gin" ? "Go" : requested === "flask" ? "Python" : "Next.js";
     fail(
-      `\`selfauth add\` supports Express and Fastify projects. For ${requested === "gin" ? "Go" : "Python"}, create a new project: \`selfauth init --backend ${requested}\`.`,
+      `\`selfauth add\` supports Express and Fastify projects. For ${kind}, create a new project: \`selfauth init --backend ${requested}\`.` +
+        (requested === "next"
+          ? " Adding SelfAuth to an existing Next.js app is not automated yet; copy the files from a generated project (see the manual integration guide)."
+          : ""),
     );
     return 1;
   }
@@ -72,7 +76,7 @@ export async function add(dirArg: string | undefined, options: AddOptions): Prom
     fail(`Unsupported backend '${requested}'. Supported: express, fastify.`);
     return 1;
   }
-  const backend = (requested ?? "express") as Exclude<Backend, "gin" | "flask">;
+  const backend = (requested ?? "express") as Exclude<Backend, "gin" | "flask" | "next">;
   const layout = await detectSourceLayout(dir, backend);
   const srcDir = options.src ?? layout.sourceDir;
   say(`Source folder: ${srcDir} (${options.src ? "from --src" : layout.basis})`);

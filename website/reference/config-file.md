@@ -181,7 +181,7 @@ When a limit is hit you get `429 RATE_LIMITED` with a `Retry-After` header. The 
 
 ::: warning Behind a proxy
 
-Per-address limits use the client's address. Behind a reverse proxy or load balancer, set `http.trustProxy`, or every user appears to come from the proxy and they all share one limit.
+Per-address limits use the client's address. Behind a reverse proxy or load balancer, set `http.trustProxy`, or every user appears to come from the proxy and they all share one limit. In a Next.js backend this setting matters more: route handlers can't see the connection at all, so the address is always read from `X-Forwarded-For`, and the generated configuration sets `trustProxy: 1`. With `false` the address is unknown and every visitor shares one limit. See [the production chapter](/next/production#_4-tell-selfauth-how-many-proxies-are-in-front-of-you).
 
 :::
 

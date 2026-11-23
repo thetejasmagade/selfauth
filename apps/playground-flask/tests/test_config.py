@@ -16,6 +16,21 @@ def test_the_default_configuration_is_valid() -> None:
     assert config.http.base_path == "/auth"
 
 
+@pytest.mark.parametrize("frontend", ["none", "vue", "react", "next"])
+def test_every_frontend_the_cli_can_generate_is_accepted(frontend: str) -> None:
+    """`selfauth init --backend flask --frontend next` writes this value into the configuration."""
+    data = json.loads(DEFAULT.read_bytes())
+    data["adapter"]["frontend"] = frontend
+    assert Config.parse(json.dumps(data)).adapter.frontend == frontend
+
+
+def test_an_unknown_frontend_is_rejected() -> None:
+    data = json.loads(DEFAULT.read_bytes())
+    data["adapter"]["frontend"] = "svelte"
+    with pytest.raises(ConfigError):
+        Config.parse(json.dumps(data))
+
+
 def test_an_unknown_field_is_rejected() -> None:
     data = json.loads(DEFAULT.read_bytes())
     data["authentication"]["password"]["minLenght"] = 3

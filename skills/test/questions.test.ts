@@ -66,9 +66,15 @@ const SAMPLES: Sample[] = [
     leadsTo: "framework-support.md",
   },
   {
-    ask: "Does it work with Next.js or NestJS?",
-    entry: "NestJS, Next.js",
+    ask: "Does it work with NestJS?",
+    entry: "NestJS, Koa",
     facts: [/Not supported/i, /never port/i],
+  },
+  {
+    ask: "Does it work with Next.js?",
+    entry: "Does it work with Next.js",
+    facts: [/--backend next/, /--frontend next/, /trustProxy/, /not supported by `selfauth add`/],
+    leadsTo: "guides/conformance-next.md",
   },
   {
     ask: "Can users sign in with Google?",
@@ -329,6 +335,8 @@ describe("answers that quote the product stay true", () => {
         "memory",
         "mongodb",
         "mysql",
+        "next",
+        "next", // a backend and a frontend
         "none",
         "postgresql",
         "react",

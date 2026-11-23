@@ -44,7 +44,7 @@
     {
       "path": "src/auth/types.ts",
       "template": "fastify:apps/playground-fastify/src/auth/types.ts",
-      "sha256": "c8e8efdbcde6aa0be6f82a3ead278f163b070df5bc8fa663710ba686aa2a3888"
+      "sha256": "63e31636b94d93bf552d3a4138ac3d9120277d31288f60d7f56299e15b67029c"
     },
     {
       "path": "src/auth/index.ts",

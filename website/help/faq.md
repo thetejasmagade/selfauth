@@ -80,11 +80,11 @@ Express 5, Fastify 5 (both TypeScript) and Gin (Go). Frontends are Vue 3 and Rea
 
 ### Can I use Next.js, NestJS, Django, Laravel...?
 
-Not with a generated adapter. A frontend of any kind can call the [HTTP API](/reference/http) of a SelfAuth backend, but other backends aren't supported.
+Next.js, yes, in two ways: as the backend, with its own API in route handlers (`--backend next`, [guide](/next/)), and as the frontend of any other backend (`--frontend next`, [how](/next/with-another-backend)). NestJS, Django and Laravel have no generated adapter. A frontend of any kind can call the [HTTP API](/reference/http) of a SelfAuth backend, but other backends aren't supported. SelfAuth can't be added to an existing Next.js app with `selfauth add` yet: generate a new project and move your code across.
 
 ### Which databases?
 
-PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Every database works with Express, Fastify, Gin and Flask.
+PostgreSQL, MySQL (8 or MariaDB), SQLite, MongoDB (6+) and in-memory. PostgreSQL is the best tested. Every database works with Express, Fastify, Next.js, Gin and Flask.
 
 ### Can I use it with an ORM other than Prisma?
 

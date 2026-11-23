@@ -5,11 +5,13 @@ import { basename, relative, resolve } from "node:path";
 import { detectProject } from "../detect.js";
 import { applyPlan, ConflictError, planInit } from "../plan.js";
 import { createPrompter, PromptCancelled, type Prompter } from "../prompt.js";
+import { isNextFullStack } from "../render-next.js";
 import {
   appBaseUrlProblem,
   parsePermissions,
   permissionProblem,
   type InitAnswers,
+  isWorkspace,
 } from "../render.js";
 import {
   BACKENDS,
@@ -42,7 +44,7 @@ export interface InitOptions {
   prompter?: Prompter;
 }
 
-const FRONTENDS: Frontend[] = ["none", "vue", "react"];
+const FRONTENDS: Frontend[] = ["none", "vue", "react", "next"];
 
 /** Folder names `init` accepts when it asks for one: a plain relative path, or `.` for here. */
 const FOLDER = /^(\.|[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*)*)$/;
@@ -246,6 +248,11 @@ async function run(
               label: "Flask (Python)",
               hint: "a Python port of the core; any database",
             },
+            {
+              value: "next",
+              label: "Next.js 16",
+              hint: "route handlers in the App Router; its own API",
+            },
           ],
           "express",
         )
@@ -302,6 +309,11 @@ async function run(
             { value: "none", label: "None", hint: "API only" },
             { value: "vue", label: "Vue 3", hint: "Vite, in client/" },
             { value: "react", label: "React", hint: "Vite, in client/" },
+            {
+              value: "next",
+              label: "Next.js",
+              hint: backend === "next" ? "pages and API in one app" : "App Router, in client/",
+            },
           ],
           "none",
         )
@@ -323,7 +335,10 @@ async function run(
           default: "http://localhost:5173",
           validate: appBaseUrlProblem,
         })
-      : `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`);
+      : // One Next.js app serves its own pages: the address is the app's.
+        backend === "next" && frontend === "next"
+        ? "http://localhost:3000"
+        : `http://localhost:${frontend === "none" ? 5173 : frontendInfo(frontend).port}`);
   const projectName =
     basename(dir)
       .toLowerCase()
@@ -366,18 +381,32 @@ async function run(
   }
 
   const frameworkLabel =
-    backend === "fastify" ? "Fastify" : gin ? "Gin (Go)" : flask ? "Flask (Python)" : "Express";
+    backend === "fastify"
+      ? "Fastify"
+      : gin
+        ? "Gin (Go)"
+        : flask
+          ? "Flask (Python)"
+          : backend === "next"
+            ? "Next.js"
+            : "Express";
+  const fullStackNext = isNextFullStack(answers);
   const databaseLabel = hasDatabase(database)
     ? `${DATABASE_INFO[database].label}/${databaseDriver(backend, database)}`
     : "in-memory store";
-  const frontendLabel = frontend === "none" ? "" : ` + ${frontend} in client/`;
+  const frontendLabel =
+    frontend === "none"
+      ? ""
+      : fullStackNext
+        ? " + Next.js pages in the same app"
+        : ` + ${frontend} in client/`;
   if (interactive() && prompter && !options.dryRun) {
     say(
       `\n${box(
         [
           `${dim("Backend ")}  ${bold(frameworkLabel)}`,
           `${dim("Database")}  ${bold(databaseLabel)}`,
-          `${dim("Frontend")}  ${bold(frontend === "none" ? "none (API only)" : frontend)}`,
+          `${dim("Frontend")}  ${bold(frontend === "none" ? "none (API only)" : fullStackNext ? "next (same app)" : frontend)}`,
           `${dim("Files   ")}  ${bold(String(files.length))} ${dim(`in ${dir}`)}`,
         ],
         "Your project",
@@ -411,7 +440,7 @@ async function run(
     throw error;
   }
   ok(
-    frontend === "none"
+    frontend === "none" || fullStackNext
       ? `Created ${files.length} files and selfauth.manifest.json`
       : `Created ${files.length} files: server/ (API), client/ (${frontend}) and a workspace root. Each package has its own selfauth.manifest.json.`,
   );
@@ -464,7 +493,7 @@ async function run(
     );
     return 0;
   }
-  const ws = frontend !== "none";
+  const ws = isWorkspace(answers);
   if (!install)
     nextSay(ws ? "  npm install               # installs server/ and client/" : "  npm install");
   nextSay(
@@ -482,7 +511,9 @@ async function run(
   nextSay(
     ws
       ? `  npm run dev               # API and ${frontend} app together; open ${answers.appBaseUrl}`
-      : "  npm run dev",
+      : fullStackNext
+        ? `  npm run dev               # open ${answers.appBaseUrl}`
+        : "  npm run dev",
   );
   nextSay(
     `\nBefore production: implement createMailer() in ${ws ? "server/" : ""}src/email/mailer.ts, then run \`npx selfauth doctor\`.`,

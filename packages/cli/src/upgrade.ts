@@ -5,6 +5,7 @@ import { MANIFEST_FILE, manifestSchema, type Manifest } from "@selfauth/migratio
 import { createTwoFilesPatch } from "diff";
 import { frontendAddFiles, sha256, templateFiles, type PlannedFile } from "./plan.js";
 import { hasFlatLayout } from "./project.js";
+import { isNextFullStack } from "./render-next.js";
 import type { InitAnswers } from "./render.js";
 import { templateSource, type TemplateSource } from "./templates.js";
 import { CLI_VERSION } from "./version.js";
@@ -76,15 +77,23 @@ export async function planUpgrade(
   const frontend = manifest.options?.frontend ?? "none";
   // A full-stack project's two packages each have a manifest: the server's lists the backend
   // files, the client's the frontend files (paths relative to its own package).
+  const answers = answersFrom(manifest);
   const next =
     layout === "frontend"
       ? await frontendAddFiles(frontend === "react" ? "react" : "vue", source, srcDir)
       : await templateFiles(
-          answersFrom(manifest),
+          answers,
           source,
           layout === "add" ? "add" : "project",
           srcDir,
-          layout === "server" ? "server" : layout === "client" ? "client" : "all",
+          layout === "server"
+            ? "server"
+            : layout === "client"
+              ? "client"
+              : // One Next.js app holds the pages next to the API: the frontend's files are not under web/.
+                isNextFullStack(answers)
+                ? "merged"
+                : "all",
         );
   const recorded = new Map((manifest.files ?? []).map((f) => [f.path, f]));
   const items: UpgradeItem[] = [];

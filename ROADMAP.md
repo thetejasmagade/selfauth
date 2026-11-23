@@ -180,10 +180,26 @@ databases (Phase 6 CLI).
   authorization level on every store; production-profile is not claimed.
 - ADR 0028.
 
+## Phase 10 — Next.js done
+
+- `apps/playground-next`: the TypeScript core behind a Fetch-API binding (`src/auth/next`) and
+  App Router route handlers (`app/auth/[[...path]]/route.ts`, `withAuth`-built `app/api/...`). All 90
+  conformance cases run on the in-memory, PostgreSQL, SQLite and MySQL stores (MongoDB in CI).
+- `apps/playground-next-web`: the Next.js frontend (App Router, client-side session, a `proxy.ts`
+  that forwards `/auth` and `/api` to any backend at run time). The browser suite now runs Vue, React
+  and Next.js against Express, Fastify, Gin, Flask and Next.js: 15 pairs, 90 tests.
+- `selfauth init --backend next` and `--frontend next`: a Next.js app that is both the API and the
+  pages (one package), the Next.js API with a Vue or React client, or a Next.js client for Express,
+  Fastify, Gin or Flask. `selfauth doctor` warns when `http.trustProxy` is off for Next.js.
+  `selfauth add` does not apply to an existing Next.js app.
+- `conformance/adapters/next.json` and the generated [`docs/conformance-next.md`](docs/conformance-next.md):
+  authorization level on every store; production-profile is not claimed.
+- ADR 0029.
+
 ## Next
 
 1. Maintainer: independent security review before 1.0 (docs/security-review.md, "Before 1.0").
-2. Phase 10, continued: more frameworks and languages (NestJS, Next.js, ...). Each adds its own adapter record and sign-offs. For Fastify and Gin: a production-profile review. For Gin: MySQL/SQLite/MongoDB stores and a frontend.
+2. Phase 10, continued: more frameworks and languages (NestJS, ...). Each adds its own adapter record and sign-offs. For Fastify, Next.js, Gin and Flask: a production-profile review. `selfauth add` for an existing Next.js app.
 3. Later: MongoDB + Mongoose, Prisma schema merging for `add`, tests for the `add` layout.
 
 ## Decisions made after Sprint 1 review

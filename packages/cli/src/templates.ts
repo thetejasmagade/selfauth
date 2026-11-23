@@ -61,9 +61,9 @@ export const DATABASE_INFO: Record<
   },
   memory: { label: "in-memory", urlExample: "", urlPrefixes: [], urlHint: "" },
 };
-export type Frontend = "none" | "vue" | "react";
-export type Backend = "express" | "fastify" | "gin" | "flask";
-export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin", "flask"];
+export type Frontend = "none" | "vue" | "react" | "next";
+export type Backend = "express" | "fastify" | "gin" | "flask" | "next";
+export const BACKENDS: readonly Backend[] = ["express", "fastify", "gin", "flask", "next"];
 
 /** Databases each backend supports (every backend supports every database). */
 export const BACKEND_DATABASES: Record<Backend, readonly Database[]> = {
@@ -71,7 +71,11 @@ export const BACKEND_DATABASES: Record<Backend, readonly Database[]> = {
   fastify: DATABASES,
   gin: ["postgresql", "mysql", "sqlite", "mongodb", "memory"],
   flask: ["postgresql", "mysql", "sqlite", "mongodb", "memory"],
+  next: DATABASES,
 };
+
+/** The Next.js backend: App Router route handlers, a Node project with its own build. */
+export const isNextBackend = (backend: Backend | undefined): boolean => backend === "next";
 
 /** Backends that are Go projects (no package.json, npm or Prisma). */
 export const isGo = (backend: Backend | undefined): boolean => backend === "gin";
@@ -111,7 +115,13 @@ export interface Selection {
 export interface RegistryFile {
   source: string;
   target: string;
-  when?: { database?: Database; databases?: Database[]; frontend?: "none" | "any" };
+  when?: {
+    database?: Database;
+    databases?: Database[];
+    frontend?: "none" | "any";
+    /** The file is left out when the project's backend is one of these. */
+    notBackend?: Backend[];
+  };
   layout?: "project" | "add";
   directory?: boolean;
 }
@@ -133,8 +143,10 @@ export const VERSION_SOURCES = [
   "package.json",
   "apps/playground/package.json",
   "apps/playground-fastify/package.json",
+  "apps/playground-next/package.json",
   registry.frontends.vue.versionsFrom,
   registry.frontends.react.versionsFrom,
+  registry.frontends.next.versionsFrom,
 ];
 
 async function listFiles(dir: string): Promise<string[]> {
@@ -196,6 +208,7 @@ function applies(file: RegistryFile, sel: Selection): boolean {
   if (w.database === "memory" && sel.database !== "memory") return false;
   if (w.database === "postgresql" && !usesPrisma(sel.database)) return false;
   if (w.database === "mongodb" && sel.database !== "mongodb") return false;
+  if (w.notBackend?.includes(sel.backend ?? "express")) return false;
   if (w.frontend === "none" && sel.frontend !== "none") return false;
   if (w.frontend === "any" && sel.frontend === "none") return false;
   return true;
@@ -207,7 +220,10 @@ export function stackFiles(sel: Selection): RegistryFile[] {
     applies(f, sel),
   );
   if (sel.frontend === "none") return backend;
-  return [...backend, ...(registry.frontends[sel.frontend].files as RegistryFile[])];
+  const frontend = (registry.frontends[sel.frontend].files as RegistryFile[]).filter((f) =>
+    applies(f, sel),
+  );
+  return [...backend, ...frontend];
 }
 
 /** The frontend's authentication module (web/src/auth/*): what `add-frontend` copies. */
