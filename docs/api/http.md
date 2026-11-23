@@ -1,6 +1,6 @@
 # HTTP API
 
-The routes the generated Express code serves under `http.basePath`
+The routes the generated Express, Fastify and Next.js code serves under `http.basePath`
 (default `/auth`). The normative behaviour is in
 [`AUTHENTICATION_SPEC.md` §11](../../packages/spec/specs/AUTHENTICATION_SPEC.md#11-http-binding-non-normative-used-by-mvp-adapters).
 This page is the practical reference. A test checks that the route table

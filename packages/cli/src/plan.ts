@@ -32,6 +32,7 @@ import {
   renderRequirements,
   renderRequirementsDev,
 } from "./render-python.js";
+import { isNextFullStack } from "./render-next.js";
 import { BACKEND_DATABASES, isNative, type Backend } from "./templates.js";
 import {
   frontendAuthFiles,
@@ -72,15 +73,17 @@ export async function templateFiles(
   srcDir = "src",
   /**
    * `server`: the backend only. `client`: the frontend only, with paths relative to its own
-   * package (web/ stripped). `all`: both, frontend under web/ (structures 1 and 2).
+   * package (web/ stripped). `all`: both, frontend under web/ (structures 1 and 2). `merged`:
+   * both in one package, the frontend's files next to the backend's (one Next.js app).
    */
-  scope: "all" | "server" | "client" = "all",
+  scope: "all" | "server" | "client" | "merged" = "all",
 ): Promise<PlannedFile[]> {
   const files: PlannedFile[] = [];
   const place = (path: string): string | null => {
     const inWeb = path.startsWith("web/");
     if (scope === "server") return inWeb ? null : path;
     if (scope === "client") return inWeb ? path.slice("web/".length) : null;
+    if (scope === "merged") return inWeb ? path.slice("web/".length) : path;
     return path;
   };
   const rebase = layout === "add" ? (t: string) => addLayoutPath(t, srcDir) : (t: string) => t;
@@ -134,6 +137,7 @@ export async function templateFiles(
         });
       }
     } else {
+      if (isDemoFile(entry.target)) continue;
       const path = place(rebase(entry.target));
       if (path === null) continue;
       files.push({
@@ -278,6 +282,18 @@ export async function ownedResources(
   return isDerivedDialect(database) ? { ...owned, types: [] } : owned;
 }
 
+/** The npm packages of one Next.js app that is both the API and the frontend. */
+function fullStackNextDependencies(answers: InitAnswers) {
+  const api = stackDependencies(answers.database, answers.backend);
+  const web = registry.frontends.next;
+  const union = (a: string[], b: string[]) => [...new Set([...a, ...b])];
+  return {
+    ...api,
+    dependencies: union(api.dependencies, web.dependencies),
+    devDependencies: union(api.devDependencies, web.devDependencies),
+  };
+}
+
 /** Every file `init` would create, in memory. Nothing is written. */
 export async function planInit(
   answers: InitAnswers,
@@ -285,10 +301,14 @@ export async function planInit(
 ): Promise<PlannedFile[]> {
   if (isNative(answers.backend)) return planNative(answers, source);
   if (isWorkspace(answers)) return planWorkspace(answers, source);
-  const files = await templateFiles(answers, source);
-  const deps = stackDependencies(answers.database, answers.backend);
+  // One Next.js app that is also the frontend: its files sit next to the backend's.
+  const merged = isNextFullStack(answers);
+  const files = await templateFiles(answers, source, "project", "src", merged ? "merged" : "all");
+  const deps = merged
+    ? fullStackNextDependencies(answers)
+    : stackDependencies(answers.database, answers.backend);
   const versions = await source.versions();
-  const ts = renderTsconfig();
+  const ts = renderTsconfig(answers.backend);
   files.push(
     {
       path: "package.json",
@@ -296,8 +316,14 @@ export async function planInit(
       content: renderPackageJson(answers, deps, versions),
     },
     { path: "tsconfig.json", template: "rendered:tsconfig", content: ts.base },
-    { path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build },
-    { path: ".gitignore", template: "rendered:gitignore", content: renderGitignore() },
+    ...(ts.build
+      ? [{ path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build }]
+      : []),
+    {
+      path: ".gitignore",
+      template: "rendered:gitignore",
+      content: renderGitignore({ next: answers.backend === "next" }),
+    },
     { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
     { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
     {
@@ -455,7 +481,7 @@ async function planNativeWorkspace(
     {
       path: ".gitignore",
       template: "rendered:gitignore",
-      content: renderGitignore({ workspace: true }),
+      content: renderGitignore({ workspace: true, next: answers.frontend === "next" }),
     },
     { path: "README.md", template: "rendered:readme", content: native.readme },
   ];
@@ -469,7 +495,7 @@ async function planNativeWorkspace(
 async function planWorkspace(answers: InitAnswers, source: TemplateSource): Promise<PlannedFile[]> {
   const frontend = answers.frontend as Exclude<InitAnswers["frontend"], "none">;
   const versions = await source.versions();
-  const ts = renderTsconfig();
+  const ts = renderTsconfig(answers.backend);
 
   const server = await templateFiles(answers, source, "project", "src", "server");
   server.push(
@@ -483,7 +509,9 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
       ),
     },
     { path: "tsconfig.json", template: "rendered:tsconfig", content: ts.base },
-    { path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build },
+    ...(ts.build
+      ? [{ path: "tsconfig.build.json", template: "rendered:tsconfig.build", content: ts.build }]
+      : []),
     { path: ".env.example", template: "rendered:env-example", content: renderEnvExample(answers) },
     {
       path: "src/config/selfauth.config.ts",
@@ -536,7 +564,10 @@ async function planWorkspace(answers: InitAnswers, source: TemplateSource): Prom
     {
       path: ".gitignore",
       template: "rendered:gitignore",
-      content: renderGitignore({ workspace: true }),
+      content: renderGitignore({
+        workspace: true,
+        next: answers.backend === "next" || answers.frontend === "next",
+      }),
     },
     { path: "README.md", template: "rendered:readme", content: renderReadme(answers) },
   ];

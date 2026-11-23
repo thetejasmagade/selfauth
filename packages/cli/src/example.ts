@@ -1,5 +1,5 @@
 /**
- * The reference frontends (apps/playground-vue, apps/playground-react) include a "notes" page that
+ * The reference frontends (apps/playground-vue, -react and -next-web) include a "notes" page that
  * the browser tests use to prove permissions and ownership. Generated projects ship without it: a
  * small starter should not carry a demo you have to delete. The reference apps stay the single
  * tested source, so the demo is removed at generation time with exact replacements. Each must
@@ -7,7 +7,12 @@
  */
 
 /** Files that exist only for the notes demo (targets, as in the registry). */
-const DEMO_FILES = new Set(["web/src/pages/NotesPage.vue", "web/src/pages/NotesPage.tsx"]);
+const DEMO_FILES = new Set([
+  "web/src/pages/NotesPage.vue",
+  "web/src/pages/NotesPage.tsx",
+  "web/src/screens/NotesScreen.tsx",
+  "web/src/app/notes/page.tsx",
+]);
 
 interface Replacement {
   from: string;
@@ -100,6 +105,40 @@ const EDITS: Record<string, Replacement[]> = {
   ],
   "web/src/pages/auth/LoginPage.tsx": [NOTES_TO_ACCOUNT()],
   "web/src/pages/auth/RegisterPage.tsx": [NOTES_TO_ACCOUNT()],
+  // Next.js frontend.
+  "web/src/app/header.tsx": [
+    {
+      from: 'import { Can, useAuth } from "../auth-client/index.ts";',
+      to: 'import { useAuth } from "../auth-client/index.ts";',
+    },
+    {
+      from: `        <>
+          <Link href="/notes">Notes</Link>
+          <Link href="/account">Account</Link>
+          <Can permission="notes.view_any">
+            <span data-testid="support-badge">Support</span>
+          </Can>
+        </>
+`,
+      to: `        <Link href="/account">Account</Link>
+`,
+    },
+  ],
+  "web/src/screens/HomeScreen.tsx": [
+    {
+      from: 'Signed in. Go to your <Link href="/notes">notes</Link>.',
+      to: 'Signed in. Go to your <Link href="/account">account</Link>.',
+    },
+  ],
+  "web/src/app/login/page.tsx": [
+    { from: '<GuestOnly home="/notes">', to: '<GuestOnly home="/account">' },
+  ],
+  "web/src/app/register/page.tsx": [
+    { from: '<GuestOnly home="/notes">', to: '<GuestOnly home="/account">' },
+  ],
+  "web/src/screens/auth/LoginScreen.tsx": [NOTES_TO_ACCOUNT()],
+  "web/src/screens/auth/RegisterScreen.tsx": [NOTES_TO_ACCOUNT()],
+  "web/src/auth-client/react.tsx": [{ from: "notes.view_any", to: "orders.view" }],
 };
 
 export const isDemoFile = (target: string): boolean => DEMO_FILES.has(target);

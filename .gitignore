@@ -12,6 +12,11 @@ coverage/
 # Prisma client is generated (pnpm generate)
 apps/playground/src/generated/
 apps/playground-fastify/src/generated/
+apps/playground-next/src/generated/
+
+# Next.js build output
+.next/
+next-env.d.ts
 
 # Playwright output
 test-results/

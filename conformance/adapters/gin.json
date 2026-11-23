@@ -60,6 +60,11 @@
       "kind": "frontend",
       "id": "react",
       "title": "React (generated as client/ next to the Go server in server/; browser-tested against the Go server)"
+    },
+    {
+      "kind": "frontend",
+      "id": "next",
+      "title": "Next.js 16 (generated as client/ next to the Go server in server/; browser-tested against the Gin server)"
     }
   ],
   "independentAudit": false,

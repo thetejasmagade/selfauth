@@ -5,6 +5,8 @@ export default tseslint.config(
   {
     ignores: [
       "**/src/generated/**",
+      "**/.next/**", // Next.js build output
+      "**/next-env.d.ts",
       "**/dist/**",
       "**/coverage/**",
       "**/.turbo/**",

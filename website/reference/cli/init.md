@@ -23,9 +23,9 @@ Each option below answers its question in advance, so you only get asked about w
 | Option | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `[dir]` | a folder name | asked, or `.` if the current folder is empty | Where to create the project. The folder name becomes the project name |
-| `--backend <framework>` | `express`, `fastify`, `gin`, `flask` | `express` | The web framework |
+| `--backend <framework>` | `express`, `fastify`, `next`, `gin`, `flask` | `express` | The web framework. `next` is Next.js, with its API as route handlers |
 | `--database <db>` | `postgresql`, `mysql`, `sqlite`, `mongodb`, `memory` | `postgresql` | The data store. Works with every backend |
-| `--frontend <fw>` | `none`, `vue`, `react` | `none` | Generate a frontend into `client/`. With Gin or Flask the Go module or Python application moves into `server/` |
+| `--frontend <fw>` | `none`, `vue`, `react`, `next` | `none` | Generate a frontend into `client/`. With Gin or Flask the Go module or Python application moves into `server/`. `--backend next --frontend next` is one Next.js app with the pages and the API together (no `client/`) |
 | `--permissions <list>` | comma-separated, such as `orders.view,orders.create` | none | Declares your application permissions in the configuration. They are not given to any role: see [Permissions and roles](/express/permissions) |
 | `--app-base-url <url>` | an `http` or `https` address | `http://localhost:5173` | Frontend address used in email links |
 | `--module <path>` | a Go module path, such as `github.com/you/my-api` | the project name | Gin only. Used in `go.mod` and all imports |
@@ -124,6 +124,10 @@ The number of files depends on the options you chose.
 | --- | --- | --- |
 | Express or Fastify, no frontend | one package with `src/` at the root | [Express API](/express/project-tour) |
 | with `--frontend` | `server/` and `client/` in one npm workspace | [Full stack](/express/frontend-page) |
+| Next.js, no frontend | one Next.js package, the API only | [Next.js](/next/) |
+| Next.js with `--frontend next` | one Next.js package with pages and API | [Next.js](/next/) |
+| Next.js with `--frontend vue` or `react` | `server/` (Next.js API) and `client/` (Vite) | [Next.js](/next/) |
+| any backend with `--frontend next` | `server/` and `client/` (Next.js) | [Next.js with another backend](/next/with-another-backend) |
 | Gin | a Go module | [Gin (Go)](/gin/) |
 | Flask | a Python application with `requirements.txt` | [Flask (Python)](/flask/) |
 

@@ -1,5 +1,5 @@
 import { DATABASE_INFO, hasDatabase } from "./templates.js";
-import { checkedBaseUrl, isWorkspace } from "./render.js";
+import { checkedBaseUrl, clientTree, isWorkspace } from "./render.js";
 import type { InitAnswers } from "./render.js";
 
 /** The Python libraries each database needs (the project installs only the one it uses). */
@@ -205,10 +205,7 @@ ${base ? "  " : ""}requirements.txt             what the server installs (requir
 ${base ? "  " : ""}.env.example                 copy to ${base}.env
 ${base ? "  " : ""}selfauth.manifest.json       which files SelfAuth generated (doctor, diff, upgrade)`;
   const client = ws
-    ? `client/                       the ${answers.frontend} frontend (Vite)
-  src/auth/                   SelfAuth's frontend module: API client, session state, route guards, <Can>
-  src/pages/auth/             the five account screens (unstyled HTML; add your own styles)
-  src/pages/                  your pages: add yours here
+    ? `${clientTree(answers)}
   selfauth.manifest.json      which files SelfAuth generated
 scripts/dev-server.mjs        starts the Flask server for \`npm run dev\`
 package.json                  workspace root: \`npm run dev\` starts both
