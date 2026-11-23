@@ -182,7 +182,7 @@ func (c *Config) Validate() error {
 	}
 
 	oneOf("adapter.backend", c.Adapter.Backend, "express", "fastify", "gin")
-	oneOf("adapter.frontend", c.Adapter.Frontend, "vue", "react", "none")
+	oneOf("adapter.frontend", c.Adapter.Frontend, "vue", "react", "next", "none")
 	oneOf("adapter.database", c.Adapter.Database, "postgresql", "mysql", "sqlite", "mongodb", "memory")
 	orm := map[string]string{"postgresql": "prisma", "mysql": "prisma", "sqlite": "prisma", "mongodb": "mongoose", "memory": "none"}[c.Adapter.Database]
 	if c.Adapter.Backend == "gin" {

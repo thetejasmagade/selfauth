@@ -8,10 +8,12 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/apps/playground/**",
         "$TURBO_ROOT$/apps/playground-fastify/**",
+        "$TURBO_ROOT$/apps/playground-next/**",
         "$TURBO_ROOT$/apps/playground-gin/**",
         "$TURBO_ROOT$/apps/playground-flask/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
+        "$TURBO_ROOT$/apps/playground-next-web/**",
         "$TURBO_ROOT$/skills/selfauth/**"
       ]
     },
@@ -20,10 +22,12 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/apps/playground/**",
         "$TURBO_ROOT$/apps/playground-fastify/**",
+        "$TURBO_ROOT$/apps/playground-next/**",
         "$TURBO_ROOT$/apps/playground-gin/**",
         "$TURBO_ROOT$/apps/playground-flask/**",
         "$TURBO_ROOT$/apps/playground-vue/**",
         "$TURBO_ROOT$/apps/playground-react/**",
+        "$TURBO_ROOT$/apps/playground-next-web/**",
         "$TURBO_ROOT$/skills/**",
         "$TURBO_ROOT$/packages/spec/specs/**"
       ],

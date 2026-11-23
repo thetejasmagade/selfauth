@@ -75,6 +75,10 @@ export async function diagnose(dir: string): Promise<DoctorReport> {
       report.warnings.push(
         "sessions.cookie.sameSite is 'none': cross-site deployment, token-mode CSRF required (docs/frontend-deployment.md)",
       );
+    if (config.adapter.backend === "next" && config.http.trustProxy === false)
+      report.warnings.push(
+        "http.trustProxy is false: Next.js route handlers cannot see the connection address, so the per-address rate limits share one bucket. Set it to the number of proxies in front of the app (1 behind a hosting platform or a reverse proxy)",
+      );
     if (config.adapter.database === "memory")
       report.warnings.push(
         "in-memory store: data is lost on restart; use PostgreSQL, MySQL, SQLite or MongoDB in production",

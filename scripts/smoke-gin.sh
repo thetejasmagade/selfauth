@@ -3,14 +3,14 @@
 # the project's own tests, migrations (PostgreSQL), and a real sign-up → email verification →
 # login → protected route flow, then the agent skill's validate-auth against the running server.
 #   scripts/smoke-gin.sh memory
-#   scripts/smoke-gin.sh memory react          (Gin + a frontend: server/ and client/ in one workspace)
+#   scripts/smoke-gin.sh memory react          (Gin + a frontend (vue, react or next): server/ and client/ in one workspace)
 #   scripts/smoke-gin.sh sqlite                (a temporary file, no server)
 #   SMOKE_DATABASE_URL=postgresql://… scripts/smoke-gin.sh postgresql   (an empty database)
 #   SMOKE_DATABASE_URL=mysql://… scripts/smoke-gin.sh mysql            (an empty database)
 #   SMOKE_DATABASE_URL=mongodb://…/smoke scripts/smoke-gin.sh mongodb  (an empty database)
 # Needs Go (the version in go.mod) and the built CLI (pnpm build).
 set -euo pipefail
-DB="${1:?usage: smoke-gin.sh memory|postgresql|mysql|sqlite|mongodb [none|vue|react]}"
+DB="${1:?usage: smoke-gin.sh memory|postgresql|mysql|sqlite|mongodb [none|vue|react|next]}"
 FRONTEND="${2:-none}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 CLI="${SELFAUTH_SMOKE_CLI:-$REPO/packages/cli/dist/bin.js}"

@@ -10,3 +10,6 @@ playwright-report
 # Generated copies of the reference implementation (scripts/sync-templates.mjs)
 templates/
 .dialect
+.next
+apps/playground-next/src/generated
+next-env.d.ts

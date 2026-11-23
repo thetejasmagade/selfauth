@@ -1,8 +1,8 @@
 ---
 layout: home
 title: SelfAuth documentation
-description: SelfAuth writes sign-up, sign-in, sessions, roles and permissions into your own project as code you own. Step-by-step guides for Express, Fastify, Gin and Flask, from the first command to production.
-keywords: [authentication, authorization, express, fastify, gin, flask, vue, react, postgresql, generator]
+description: SelfAuth writes sign-up, sign-in, sessions, roles and permissions into your own project as code you own. Step-by-step guides for Express, Fastify, Next.js, Gin and Flask, from the first command to production.
+keywords: [authentication, authorization, express, fastify, next.js, gin, flask, vue, react, postgresql, generator]
 
 hero:
   name: SelfAuth
@@ -32,7 +32,7 @@ features:
     link: /express/
     linkText: Express guide
   - title: Your stack
-    details: Express, Fastify, Gin (Go) or Flask (Python). PostgreSQL, MySQL, SQLite or MongoDB. A Vue or React frontend if you want one.
+    details: Express, Fastify, Next.js, Gin (Go) or Flask (Python). PostgreSQL, MySQL, SQLite or MongoDB. A Vue, React or Next.js frontend if you want one.
     link: /start/pick-your-stack
     linkText: Pick your stack
   - title: Let your AI agent do it
