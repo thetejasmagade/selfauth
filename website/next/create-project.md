@@ -29,7 +29,7 @@ The values are `postgresql`, `mysql`, `sqlite`, `mongodb` and `memory`. You'll n
 :::
 
 ::: details Want the API without pages, or a Vue or React frontend?
-Use `--frontend none` for the API only. `--frontend react` or `--frontend vue` makes two folders: `server/` holds the Next.js API (no pages) and `client/` holds a Vite app. Every file this guide mentions is then inside `server/`, so `src/app/api/hello/route.ts` becomes `server/src/app/api/hello/route.ts`. Run the `npm` and `npx selfauth` commands from the top `notes-app` folder, as written.
+Use `--frontend none` for the API only. `--frontend react` or `--frontend vue` makes two folders: `server/` holds the Next.js API (no pages) and `client/` holds a Vite app. Every file this guide mentions is then inside `server/`, so `src/app/api/hello/route.ts` becomes `server/src/app/api/hello/route.ts`. Run the `npm` and `npx selfauth` commands from the top `notes-app` folder, as written. To use the API from a frontend of your own, see [Connect your own frontend](./use-your-own-frontend).
 :::
 
 ## Install and set up the database

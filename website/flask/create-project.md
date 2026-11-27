@@ -27,7 +27,7 @@ The values are `postgresql`, `mysql`, `sqlite`, `mongodb` and `memory`. You'll n
 :::
 
 ::: details Want a frontend?
-`--frontend none` gives you the API only, and [Connect your own frontend](/start/use-your-own-frontend) shows how to use it from a frontend of your own. Use `--frontend react`, `vue` or `next` instead to get ready-made sign-in pages, and then see [Open the frontend and try it](/start/try-the-frontend). The project then has a `server/` folder for the Flask app and a `client/` folder for the pages, so paths in this guide gain a `server/` prefix.
+`--frontend none` gives you the API only, and [Connect your own frontend](./use-your-own-frontend) shows how to use it from a frontend of your own. Use `--frontend react`, `vue` or `next` instead to get ready-made sign-in pages, and then see [Open the frontend and try it](./try-the-frontend). The project then has a `server/` folder for the Flask app and a `client/` folder for the pages, so paths in this guide gain a `server/` prefix.
 :::
 
 ## A virtual environment

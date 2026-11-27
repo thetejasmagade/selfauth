@@ -163,4 +163,8 @@ Every error looks like this: a `code` your code can check, a `message` for peopl
 - **No verification email, with a provider set up.** Check spam, then your provider's dashboard for the message. A `401` or `403` from the provider is in the server's log (a wrong key, or a sender that isn't on a verified domain). The [email guide](/email/) lists the errors for each provider. To carry on without waiting, remove the provider's variables and restart: the email is printed in the terminal again.
 - **`INVALID_TOKEN` when verifying.** You copied only part of the token, or used an older one. Each new registration or resend prints a new link.
 
+::: tip Does your project have a frontend?
+This chapter uses curl. If you created the project with a frontend, [open it in the browser](./try-the-frontend) instead. With `--frontend none`, [connect your own frontend](./use-your-own-frontend).
+:::
+
 Next: [Find your way around the files](./project-tour)

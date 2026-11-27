@@ -1,6 +1,6 @@
 ---
 title: Connect your own frontend
-description: Use a SelfAuth backend created with --frontend none from your own frontend (Angular, Svelte, Solid, plain JavaScript and others). Set the frontend address, reach the API without CORS errors, call it with fetch, and build the pages the email links open.
+description: Use a SelfAuth Express backend created with --frontend none from your own frontend (Angular, Svelte, Solid, plain JavaScript and others). Set the frontend address, reach the API without CORS errors, call it with fetch, and build the pages the email links open.
 keywords: [own frontend, frontend none, api only, angular, svelte, cors, credentials include, csrf, trustedOrigins, SELFAUTH_APP_BASE_URL, fetch, proxy, verify-email, reset-password]
 ---
 
@@ -22,14 +22,9 @@ The full list of routes, with bodies and responses, is the [HTTP API reference](
 
 ## 1. Start the API
 
-| Backend | Start it with | Where its settings live |
-| --- | --- | --- |
-| Express, Fastify | `npm run dev` | `.env`, and `src/config/selfauth.config.ts` |
-| Next.js | `npm run dev` | `.env`, and `src/config/selfauth.config.ts` |
-| Flask | `python -m app.cmd.server` | `.env`, and `selfauth.config.json` |
-| Gin | `go run ./cmd/server` | environment variables (it doesn't read `.env`), and `selfauth.config.json` |
+Start the API with `npm run dev`. Your environment is in `.env` and your settings file is `src/config/selfauth.config.ts`.
 
-The first time, also run the install, migrate and seed steps from your project's README. Then check it:
+The first time, also run the install, migrate and seed steps from your project's README, or from [chapter 1](./create-project). Then check it:
 
 ```bash
 curl localhost:3000/health
@@ -52,7 +47,7 @@ Set `SELFAUTH_APP_BASE_URL` to your frontend's address, with no trailing path. F
 SELFAUTH_APP_BASE_URL=http://localhost:4200
 ```
 
-In `.env` for Express, Fastify, Next.js and Flask. For Gin, export it before you start the server. Then restart the API.
+Put it in `.env`, then restart the API.
 
 The default is `http://localhost:5173`. If your frontend is somewhere else and you skip this step, you'll see this on the first sign-in:
 
@@ -72,7 +67,7 @@ In the browser's console you'll also see a CORS error, because the API doesn't s
 }
 ```
 
-The file is `selfauth.config.ts` for Express, Fastify and Next.js, and `selfauth.config.json` (same key, same place) for Gin and Flask. The address in `SELFAUTH_APP_BASE_URL` is always trusted as well. Origins are exact: `http://localhost:4200` and `http://127.0.0.1:4200` are different, so use the one you really type in the browser.
+The file is `src/config/selfauth.config.ts`. The address in `SELFAUTH_APP_BASE_URL` is always trusted as well. Origins are exact: `http://localhost:4200` and `http://127.0.0.1:4200` are different, so use the one you really type in the browser.
 
 ## 3. Let the browser reach the API
 

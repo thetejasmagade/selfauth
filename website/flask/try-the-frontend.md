@@ -1,6 +1,6 @@
 ---
 title: Open the frontend and try it
-description: Start a project that includes a Vue, React or Next.js frontend, open it in the browser, create an account, find the verification link in the terminal, sign in and out, and reset a password.
+description: Start a Flask project that includes a Vue, React or Next.js frontend, open it in the browser, create an account, find the verification link in the terminal, sign in and out, and reset a password.
 keywords: [frontend, vue, react, next.js, localhost 5173, sign in, create account, verification link, browser, try it, run the project]
 ---
 
@@ -12,7 +12,7 @@ Created the project with `--frontend none`? You have an API only. See [Connect y
 
 ## 1. Start the project
 
-The first time, follow the "Run" steps in the README of your project (or chapter 1 of the guide for your backend): install, copy `.env.example` to `.env`, migrate and seed. After that, one command starts everything. Run it from the top folder of the project:
+The first time, follow the "Run" steps in the README of your project (or [chapter 1](./create-project)): install, copy `.env.example` to `.env`, migrate and seed. After that, one command starts everything. Run it from the top folder of the project:
 
 ```bash
 npm run dev
@@ -33,14 +33,13 @@ Open the address of the **frontend**, not the API's.
 
 | You created | Open | The API runs on |
 | --- | --- | --- |
-| Express, Fastify, Gin, Flask or Next.js, with `--frontend vue` or `react` | `http://localhost:5173` | `:3000`, reached through the frontend |
-| Express, Fastify, Gin or Flask, with `--frontend next` | `http://localhost:5175` | `:3000`, reached through the frontend |
-| Next.js with `--frontend next` | `http://localhost:3000` | the same app |
+| Flask with `--frontend vue` or `react` | `http://localhost:5173` | `:3000`, reached through the frontend |
+| Flask with `--frontend next` | `http://localhost:5175` | `:3000`, reached through the frontend. See [Next.js with another backend](/next/with-another-backend) |
 
 Two things catch people out here:
 
 - **Use `localhost`, not `127.0.0.1`.** The API trusts the one address in `SELFAUTH_APP_BASE_URL` (`http://localhost:5173` by default). Open the app as `http://127.0.0.1:5173` and every sign-in fails with `CSRF_FAILED`. If you must use another address, set `SELFAUTH_APP_BASE_URL` to it in `.env` (in `server/.env` for a project with a `server/` folder) and restart.
-- **`http://localhost:3000` shows an error in the first two rows.** That's the API, which has no page at its root, so it answers `{"error":{"code":"NOT_FOUND",...}}`. The pages are on the frontend's address.
+- **`http://localhost:3000` shows an error.** That's the API, which has no page at its root, so it answers `{"error":{"code":"NOT_FOUND",...}}`. The pages are on the frontend's address.
 
 ## 3. Create an account
 
@@ -106,11 +105,11 @@ Resetting a password signs out every session on purpose, so someone who stole an
 | `/reset-password` | Opened from the email link | no |
 | `/account` | Password change, devices | yes |
 
-The screens are plain on purpose, with no styling, so you can restyle them. They're your files: `client/src/pages/auth/` for Vue and React, and `src/screens/auth/` for a Next.js frontend. See the [project tour](/express/project-tour) for the folder layout.
+The screens are plain on purpose, with no styling, so you can restyle them. They're your files: `client/src/pages/auth/` for Vue and React, and `client/src/screens/auth/` for a Next.js frontend. See the [project tour](./project-tour) for the folder layout.
 
 ## The first administrator
 
-The generated screens have no admin page, because administration is done through API routes. Create the first administrator from the terminal after you've registered and verified, as described in [Permissions and roles](/express/permissions).
+The generated screens have no admin page, because administration is done through API routes. Create the first administrator from the terminal after you've registered and verified, as described in [Permissions and roles](./permissions).
 
 ## If something goes wrong
 
@@ -121,4 +120,4 @@ The generated screens have no admin page, because administration is done through
 | No verification link in the terminal | You may have set up an email provider, so the email went to the inbox. Otherwise look for the line starting `[dev mail]` further up. | Check the inbox and spam folder, or remove the provider's variables and restart. |
 | Sign-in says the email isn't verified | You haven't opened the link yet, or you used an older one. Each new sign-up or resend prints a new link. | Use the newest link in the terminal. |
 
-Next: [add your own page](/express/frontend-page), or read the [client reference](/reference/client) to see what the generated frontend gives you.
+Next: read the [client reference](/reference/client) to see what the generated frontend gives you.

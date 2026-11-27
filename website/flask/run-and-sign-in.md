@@ -101,4 +101,8 @@ curl -s -b jar localhost:3000/api/hello
 | `role 'user' is missing in the database` | Run `python -m app.cmd.seed` |
 | `could not start on port 3000` | Something else uses the port: change `PORT` in `.env` |
 
+::: tip Does your project have a frontend?
+This chapter uses curl. If you created the project with a frontend, [open it in the browser](./try-the-frontend) instead. With `--frontend none`, [connect your own frontend](./use-your-own-frontend).
+:::
+
 Next: [Find your way around](./project-tour)
