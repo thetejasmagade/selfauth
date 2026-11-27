@@ -40,9 +40,9 @@ jobs:
       - run: pnpm build
       - uses: changesets/action@v2
         with:
-          version: pnpm version-packages
-          publish: pnpm release
-          title: "Release: version packages"
-          commit: "Release: version packages"
+          version-script: pnpm version-packages
+          publish-script: pnpm release
+          pr-title: "Release: version packages"
+          commit-message: "Release: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
