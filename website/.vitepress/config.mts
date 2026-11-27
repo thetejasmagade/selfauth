@@ -24,6 +24,8 @@ const sidebar: DefaultTheme.Sidebar = [
       { text: "What is SelfAuth?", link: "/start/what-is-selfauth" },
       { text: "How it works", link: "/start/how-it-works" },
       { text: "Pick your stack", link: "/start/pick-your-stack" },
+      { text: "Open the frontend and try it", link: "/start/try-the-frontend" },
+      { text: "Connect your own frontend", link: "/start/use-your-own-frontend" },
     ],
   },
   {

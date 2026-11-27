@@ -29,7 +29,7 @@ The values are `postgresql`, `mysql`, `sqlite`, `mongodb` and `memory`. You'll n
 :::
 
 ::: details Want React or Vue pages too?
-Use `--frontend react` or `--frontend vue`. Your project then has two folders: `server/` holds the Express API and `client/` holds the pages. Every file this guide mentions is inside `server/`, so `src/routes/index.ts` becomes `server/src/routes/index.ts`. Run the `npm` and `npx selfauth` commands from the top `notes-app` folder, as written.
+Use `--frontend react` or `--frontend vue`. Your project then has two folders: `server/` holds the Express API and `client/` holds the pages. Every file this guide mentions is inside `server/`, so `src/routes/index.ts` becomes `server/src/routes/index.ts`. Run the `npm` and `npx selfauth` commands from the top `notes-app` folder, as written. To open the generated pages in a browser, see [Open the frontend and try it](/start/try-the-frontend). With `--frontend none` you have the API only, and [Connect your own frontend](/start/use-your-own-frontend) shows how to use it from a frontend of your own.
 :::
 
 ## Install and set up the database

@@ -34,8 +34,8 @@ SQLite runs as a single process, so before you run several copies of your server
 
 | Choose | If |
 | --- | --- |
-| **None** | You only need an API, or you'll build the frontend separately. |
-| **React** or **Vue** | You want sign-in, sign-up, password reset and account pages ready to use. |
+| **None** | You only need an API, or you'll build the frontend separately. [Here's how to connect your own frontend](./use-your-own-frontend). |
+| **React** or **Vue** | You want sign-in, sign-up, password reset and account pages ready to use. [Here's how to open them and try them](./try-the-frontend). |
 | **Next.js** | You want those pages in a Next.js app. With the Next.js backend the pages and the API are one app. With Express, Fastify, Gin or Flask it's a Next.js app in front of that API. |
 
 With a Vue or React frontend, your project has two folders: `server/` for the API and `client/` for the pages. The guides point out where that changes a path. The one exception is the Next.js backend with the Next.js frontend, which is a single app with the pages and the API side by side.

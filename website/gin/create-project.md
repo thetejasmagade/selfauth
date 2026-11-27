@@ -29,7 +29,7 @@ The values are `postgresql`, `mysql`, `sqlite`, `mongodb` and `memory`. You'll n
 :::
 
 ::: details Want React or Vue pages too?
-Use `--frontend react` or `--frontend vue`. Your project then has two folders: `server/` holds the Go code and `client/` holds the pages. Every Go file this guide mentions is inside `server/`, so `internal/routes/routes.go` becomes `server/internal/routes/routes.go`. Run `go` commands inside `server/`. [Chapter 9](./frontend-page) explains the rest.
+Use `--frontend react` or `--frontend vue`. Your project then has two folders: `server/` holds the Go code and `client/` holds the pages. Every Go file this guide mentions is inside `server/`, so `internal/routes/routes.go` becomes `server/internal/routes/routes.go`. Run `go` commands inside `server/`. [Chapter 9](./frontend-page) explains the rest. To open the generated pages in a browser, see [Open the frontend and try it](/start/try-the-frontend). With `--frontend none` you have the API only, and [Connect your own frontend](/start/use-your-own-frontend) shows how to use it from a frontend of your own.
 :::
 
 ## Your settings
