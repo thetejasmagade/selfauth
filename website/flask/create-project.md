@@ -26,6 +26,10 @@ npx selfauth@latest init notes-app --backend flask --database postgresql --front
 The values are `postgresql`, `mysql`, `sqlite`, `mongodb` and `memory`. You'll need an empty database ready, and in the next step you'll put its address in `.env`. The project installs only the Python library for the database you chose.
 :::
 
+::: details Want a frontend?
+`--frontend none` gives you the API only, and [Connect your own frontend](/start/use-your-own-frontend) shows how to use it from a frontend of your own. Use `--frontend react`, `vue` or `next` instead to get ready-made sign-in pages, and then see [Open the frontend and try it](/start/try-the-frontend). The project then has a `server/` folder for the Flask app and a `client/` folder for the pages, so paths in this guide gain a `server/` prefix.
+:::
+
 ## A virtual environment
 
 Python projects keep their libraries in a *virtual environment*, a folder that belongs to this project alone. Create one and install what the project needs:

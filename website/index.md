@@ -47,6 +47,8 @@ features:
 | --- | --- |
 | Understand the idea in five minutes | [What is SelfAuth?](/start/what-is-selfauth) |
 | Choose a backend, database and frontend | [Pick your stack](/start/pick-your-stack) |
+| Open the generated frontend and sign in from the browser | [Open the frontend and try it](/start/try-the-frontend) |
+| Use your own frontend with a project created without one | [Connect your own frontend](/start/use-your-own-frontend) |
 | Have your AI coding agent set it up | [Use with an AI agent](/ai/) |
 | Build an app step by step | The [Express](/express/), [Fastify](/fastify/) or [Gin](/gin/) guide |
 | Add your own table and migrate the database | [Add a table](/express/add-a-table) |
