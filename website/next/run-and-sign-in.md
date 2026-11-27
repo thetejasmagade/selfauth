@@ -177,4 +177,8 @@ You should have seen all of this:
 - **`INVALID_CREDENTIALS`.** The email or the password is wrong. SelfAuth never says which.
 - **`RATE_LIMITED`.** Too many tries in a short time. Wait for the window to pass (15 minutes by default; the limits are in `selfauth.config.ts`).
 
+::: tip Only want the API?
+With `--frontend none` you have no pages. See [Connect your own frontend](./use-your-own-frontend).
+:::
+
 Next: [Find your way around](./project-tour)
